@@ -118,9 +118,9 @@ authoritative detail on each.
 
 ## See also
 
-- [`CATEGORY_REFERENCE.md`](CATEGORY_REFERENCE.md) — per-category detail
-  (definition, example, lifecycle) for the vocabulary above, not yet
-  populated.
+- [`CATEGORY_REFERENCE.md`](CATEGORY_REFERENCE.md) — per-category worked
+  example and lifecycle for the vocabulary above, plus corpus-coverage
+  tracking.
 - [`DESIGN_NOTES_TEMPLATE.md`](DESIGN_NOTES_TEMPLATE.md) — where boundary/
   confidence categories actually get used per example.
 - [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md) — the

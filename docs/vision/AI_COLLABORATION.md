@@ -41,8 +41,7 @@ decisions with lasting consequences.
 ## Dataset lifecycle
 
 See `REVIEW_GUIDE.md`'s release bundle table (design notes → review report
-→ lessons learned) and `CATEGORY_REFERENCE.md`'s category lifecycle section,
-once those are populated with this repository's own taxonomy.
+→ lessons learned) and `CATEGORY_REFERENCE.md`'s category lifecycle section.
 
 ## Conflict resolution
 
