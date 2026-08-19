@@ -102,6 +102,17 @@ don't just eyeball for a general sense of accuracy:
   isn't implied by `input`.
 - **No misattribution**: when a note mentions more than one person, a
   fragment belonging to one of them is never reassigned to another.
+- **No invented certainty**: a hedge in `input` ("i think," "maybe," "if
+  not... totally stuck") stays a hedge in the output — never smoothed into
+  a flat, confident, or causally-linked statement the input didn't
+  actually make. Distinct from invented chronology/causality above: this
+  is asserting a *tone* (certainty, finality, a decision) that isn't
+  there, not asserting a new fact. Easy to miss specifically because the
+  schema asks for "coherent flowing narrative" — smoothing a hedge is what
+  makes prose read well, which is exactly why it's worth checking for
+  deliberately rather than trusting a fluency read. Identified by the
+  first periodic adversarial re-review (PDR-006, 2026-08-19) — see this
+  file's "Periodic adversarial re-review" section's log.
 
 These categories of failure carried real, observed instances in the
 predecessor project — use this list as a concrete checklist against real
@@ -137,6 +148,54 @@ Beyond whether a single example is internally sound (item 3), does this
 `gold_vX.Y_curriculum.md`'s "Out of Scope" section for capabilities reserved
 for future releases — a well-written example that quietly exercises one of
 those is curriculum creep, even on its own terms.
+
+## Periodic adversarial re-review
+
+Per [PDR-006](../decisions/PDR-006.md): items 0–8 above run on every batch,
+by the same collaborator (Claude) who wrote that batch's generation prompt
+and taxonomy understanding — a real correlation-bias risk, since a
+systematic blind spot would be consistent between the two roles rather
+than visible as a contradiction. This section is a supplementary,
+periodic audit against that specific risk, not a replacement for items
+0–8, which still gate every batch's initial acceptance.
+
+**Cadence**: every 2 batches of synthetic generation (i.e. after batch 4,
+6, 8, ...), and always before any gold-tier release bundle is finalized —
+whichever comes first. Tightened from every 3 batches to every 2 after the
+first run (see log below) — the product owner's call, as generation volume
+grows and each batch adds more corpus for a blind spot to hide in.
+
+**Sample**: at least 10 examples, or 15% of the corpus accepted since the
+last adversarial re-review, whichever is larger. Weight the sample toward
+categories that have had the most fixes/relabels historically (see
+`CATEGORY_REFERENCE.md`'s "Depth by category" section) — those are where a
+shared blind spot is most likely to be hiding, precedent already shown by
+batches 1 and 3.
+
+**Process**: spawn a fresh agent with no involvement in writing the
+sampled batches' generation prompts or taxonomy revisions. Give it this
+file's items 0–8 and the sampled examples — **not** the original review's
+conclusions or reasoning for accepting them. Instruct it to look
+adversarially: assume nothing already reviewed is necessarily correct, and
+report findings independent of what the first pass concluded.
+
+**Reconciling findings**: per
+[`AI_COLLABORATION.md`](../vision/AI_COLLABORATION.md)'s "Conflict
+resolution" — surface disagreements between the original review and the
+adversarial pass to the product owner rather than silently resolving them
+either way. A finding that holds up gets the same disposition as any other
+review defect (fix in place, relabel, or reject and regenerate).
+
+**What this doesn't solve**: the fresh-context reviewer is still Claude,
+not an architecturally independent model — this reduces same-context
+correlation bias, not model-family correlation bias. See PDR-006 for the
+stronger options considered and not adopted.
+
+**Log**:
+
+| Date | Sample | Result | Findings |
+|---|---|---|---|
+| 2026-08-19 | 15 examples (batches 1–4), weighted toward `voice_to_text_artifact`/`contradictory_statement`/`dangling_reference`/`self_correction`/`interrupted_thought` — the categories with the most historical fixes/relabels, plus 2 control examples from never-flagged categories | 10 ACCEPT, 5 FIX, 0 REJECT, 0 hard RELABEL | First run — validated the safeguard itself works (found real, previously-uncaught defects, not just noise) and surfaced a genuine checklist gap: 4 of the 5 fixes shared one root pattern (a hedge in `input` smoothed into unearned certainty in the output) that §4's existing bullets didn't separately name. Added as "No invented certainty" above. The 5 flagged examples were fixed in place directly (not rejected — none were fundamentally unsound, all were narrow wording overreaches). Next run due after batch 6 — product owner tightened the cadence to every 2 batches after this run, rather than every 3. |
 
 ## After review
 
@@ -186,6 +245,8 @@ link to instead of restating:
 - [ ] Benchmark and holdout cases identified
 - [ ] Independent review passes (Claude reviews Gemini-generated content
       before acceptance — never accepted unreviewed)
+- [ ] Periodic adversarial re-review completed (always due before a
+      release, per PDR-006 — see "Periodic adversarial re-review" above)
 - [ ] Training compatibility confirmed (`prepare_data.py` reads it cleanly,
       once it exists)
 - [ ] Evaluation shows no unacceptable regression against prior releases
