@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+*.egg-info/
+
+# Training artifacts
+training/checkpoints/
+*.onnx
+
+# Misc
+.DS_Store
+.env
+.env.local
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# MCP config secrets (API keys via env var, never committed)
+.mcp.local.json

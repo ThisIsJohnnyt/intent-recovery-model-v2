@@ -1,0 +1,7 @@
+# Real personal notes used as held-out eval sets — not synthetic, not meant
+# to be published alongside the code. real_validation.jsonl (routine
+# dev-time eval) and real_holdout.jsonl (sealed, release-milestone-only
+# eval) serve different roles, and are never generative-model-assisted —
+# see training/DATASET_SPEC.md.
+real_validation.jsonl
+real_holdout.jsonl
