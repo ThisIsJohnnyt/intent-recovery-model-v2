@@ -4,7 +4,8 @@
       "command": "npx",
       "args": ["-y", "@rlabs-inc/gemini-mcp"],
       "env": {
-        "GEMINI_API_KEY": "${GEMINI_API_KEY}"
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "GEMINI_PRO_MODEL": "gemini-3.1-pro-preview"
       }
     }
   }
