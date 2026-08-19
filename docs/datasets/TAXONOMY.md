@@ -101,10 +101,12 @@ constitution:
 already accepted into the corpus — same scenario, same phrasing pattern,
 same category-plus-detail combination. Named explicitly because v1's
 generation runs repeatedly stalled on exactly this (Gemini producing
-near-duplicates of already-protected content, tripping collision rules) —
-this entry states the principle; the actual similarity-check mechanics
-belong in `DATASET_SPEC.md`'s generation process, not here, and are still
-to be defined.
+near-duplicates of already-protected content, tripping collision rules).
+Mechanics: [`training/check_duplicates.py`](../../training/check_duplicates.py),
+a lexical similarity check run against the full corpus as part of
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md) §0.5 — lexical-only, so it won't catch
+a wording-free paraphrase; revisit with embedding-based similarity if that
+gap turns out to matter in practice.
 
 ## Failure category vocabulary
 

@@ -7,8 +7,8 @@ and updates after review. Definitions live in `TAXONOMY.md`, linked here,
 not restated.
 
 **Status**: first draft, 2026-08-19, alongside `TAXONOMY.md`'s acceptance.
-Tracking sections below reflect batch 1 (`datasets/synthetic.jsonl`,
-2026-08-19, first real generation run — see `training/COST_LEDGER.md`).
+Tracking sections below reflect batches 1–2 (`datasets/synthetic.jsonl`,
+2026-08-19 — see `training/COST_LEDGER.md`).
 
 ## Per-category detail
 
@@ -39,18 +39,51 @@ deprecations yet.
 Updated after each batch per `REVIEW_GUIDE.md` §6 — a category is removed
 from this list once at least one accepted example exists for it.
 
-After batch 1 (`datasets/synthetic.jsonl`, 2026-08-19, 13 accepted of 15
-generated — see `training/COST_LEDGER.md`):
+After batches 1–2 (`datasets/synthetic.jsonl`, 2026-08-19; batch 1: 13
+accepted of 15; batch 2: 14 accepted of 15, targeted at closing batch 1's
+gaps — see `training/COST_LEDGER.md`):
 
-`interrupted_thought`, `contradictory_statement`, `voice_to_text_artifact`
+*(none — every category now has at least one accepted example)*
 
-All three were attempted in batch 1 but rejected on independent review
-(dropped fragment, category mismatch, and an unexplainable "No Magic
-Examples" violation, respectively — not absence of effort, a quality bar).
-The other 12 categories now have one accepted example each;
-`self_correction` has two (one of batch 1's rejects was actually a
-mislabeled `self_correction` example, relabeled and kept rather than
-discarded).
+Batch 2 targeted all three of batch 1's gaps directly, with explicit
+guidance to avoid each one's specific failure mode:
+`interrupted_thought` (2/2 accepted — the cut-off fragment now correctly
+preserved as unresolved instead of dropped) and `contradictory_statement`
+(2/2 accepted — now correctly an unresolved tension, not conflated with
+`self_correction`) both fully resolved. `voice_to_text_artifact` improved
+but not fully — 1 of 2 accepted; the rejected one repeated the same "No
+Magic Examples" failure mode as batch 1 (one fragment not traceable to a
+plausible dictation error), just subtler. Worth another attempt in a future
+batch if more `voice_to_text_artifact` coverage is wanted, though one
+accepted example now exists where none did before.
+
+Every category has at least one accepted example after batches 1–2.
+
+## Depth by category (running total, after batch 4)
+
+Batch 3 (14 accepted of 15 — see `training/COST_LEDGER.md`) surfaced a
+pattern: Gemini kept defaulting to clean-resolution `self_correction`-shaped
+content when asked for `contradictory_statement` or `dangling_reference`
+specifically. Batch 4 tested a fix — explicit contrastive definitions
+(what each category is NOT) instead of just naming them — and it worked:
+**15 of 15 accepted, 0 relabeled**, all 6 targeted `contradictory_statement`/
+`dangling_reference` examples correctly distinct from `self_correction` this
+time. Worth reusing this contrastive-definition approach for any category
+that shows the same confusion pattern in the future.
+
+Every category now has at least 3 accepted examples — first time the corpus
+has had no thin categories at all:
+
+`simple_list` (3), `interrupted_thought` (4), `topic_switching` (4),
+`topic_interleaving` (3), `dangling_reference` (5), `repeated_reminder` (3),
+`zero_action_items` (4), `contradictory_statement` (5), `rapid_branching`
+(3), `minimal_fragment` (3), `long_rambling` (3), `multi_person_note` (4),
+`voice_to_text_artifact` (3), `self_correction` (6), `time_ambiguous` (3).
+
+56 accepted examples total across 4 batches (13 + 14 + 14 + 15). A future
+batch could deepen any category further, or shift focus to `difficulty`
+balance and continued subject-matter variety rather than category coverage,
+which is no longer the binding constraint.
 
 ## Cognitive / emotional / structural states covered
 
@@ -64,23 +97,25 @@ mostly-anxious): calm/organized, mild distraction, hyperfocus, executive
 dysfunction, anxiety, sensory overwhelm, burnout, rapid-branching
 excitement, emotional journaling, dry/neutral observation.
 
-- Covered so far (batch 1, 2026-08-19): calm/organized, mild distraction,
-  hyperfocus, rapid-branching excitement, dry/neutral observation.
-- Not yet covered: executive dysfunction, anxiety, sensory overwhelm,
-  burnout, emotional journaling.
+- Covered so far (batches 1–2, 2026-08-19): calm/organized, mild
+  distraction, hyperfocus, rapid-branching excitement, dry/neutral
+  observation (batch 1); executive dysfunction, anxiety, sensory overwhelm,
+  burnout, emotional journaling (batch 2).
+- Not yet covered: *(none — all target states have at least one example;
+  future batches can now deepen coverage rather than fill gaps)*.
 
 **Structural variety**: interleaved topics, abrupt topic switches,
 half-finished thoughts, dangling references, restated worries, contradictory
 statements, zero-action-item notes, very short notes, long rambling notes,
 subjects spanning work/relationships/health/chores/hobbies/money/family.
 
-- Covered so far (batch 1, 2026-08-19): interleaved topics, abrupt topic
-  switches, dangling references, restated worries, zero-action-item notes,
-  very short notes, long rambling notes, subjects spanning
-  work/relationships/health/chores/hobbies/money/family.
-- Not yet covered: half-finished thoughts left genuinely unresolved (batch
-  1's attempt was rejected — see "Target categories not yet represented"),
-  contradictory statements (same).
+- Covered so far (batches 1–2, 2026-08-19): interleaved topics, abrupt
+  topic switches, half-finished thoughts left genuinely unresolved (batch 2
+  fixed batch 1's dropped-fragment failure), dangling references, restated
+  worries, contradictory statements (batch 2 fixed batch 1's category
+  mismatch), zero-action-item notes, very short notes, long rambling notes,
+  subjects spanning work/relationships/health/chores/hobbies/money/family.
+- Not yet covered: *(none identified so far)*.
 
 ## Category lifecycle
 

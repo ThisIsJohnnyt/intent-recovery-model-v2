@@ -19,6 +19,27 @@ safer. A partial edit risks leaving residual unsafe phrasing in the
 corpus. This is not a "needs revision" outcome like the other checklist
 items below; it's an immediate reject.
 
+## 0.5. Near-duplicate check
+
+Run [`training/check_duplicates.py`](../../training/check_duplicates.py)
+against the full corpus (not just the new batch — a new example can
+collide with one from an earlier batch) before anything else in this list:
+
+```bash
+cd training
+python check_duplicates.py
+```
+
+This is the mechanism [`TAXONOMY.md`](TAXONOMY.md)'s "No near-duplicate
+content" rule refers to — a lexical similarity check (character-sequence +
+word-overlap) flagging pairs at or above a 0.55 threshold by default. It
+surfaces candidates, it doesn't auto-reject: a flagged pair still needs a
+human read to judge whether it's a genuine near-duplicate (same scenario,
+same phrasing pattern) or just incidental word overlap (shared names,
+common filler). It's lexical-only — it will not catch a paraphrase that
+reuses no wording; see the script's docstring for when embedding-based
+similarity would be worth the added API cost instead.
+
 ## 1. Schema validity
 
 Run it through the pipeline's own validator — don't eyeball this one:
@@ -155,6 +176,7 @@ The reusable acceptance-criteria core every `gold_vX.Y_curriculum.md` should
 link to instead of restating:
 
 - [ ] No harmful or illegal content (§0, hard gate, checked first)
+- [ ] Near-duplicate check run against the full corpus (§0.5)
 - [ ] Schema validation passes (§1)
 - [ ] Design notes complete, including Boundary Evidence (§7, per
       [`DESIGN_NOTES_TEMPLATE.md`](DESIGN_NOTES_TEMPLATE.md))
