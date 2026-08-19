@@ -4,6 +4,21 @@ A checklist for reviewing a new batch of examples (gold or synthetic)
 before it's accepted into `datasets/`. Process before scale — write and
 prove out this review discipline before generating at volume.
 
+## 0. No harmful or illegal content (hard gate — checked first)
+
+Before anything else: does any example depict, instruct, or normalize
+self-harm, suicide, violence toward oneself or others, or other illegal or
+seriously immoral activity? Permanent, non-negotiable, and checked ahead of
+every other item on this list — see
+[`GOLD_PHILOSOPHY.md`](../vision/GOLD_PHILOSOPHY.md)'s "No Harmful or
+Illegal Content" principle and [PDR-005](../decisions/PDR-005.md).
+
+If any example fails this check, the remedy is always **discard and
+regenerate that example from scratch** — never edit it down to something
+safer. A partial edit risks leaving residual unsafe phrasing in the
+corpus. This is not a "needs revision" outcome like the other checklist
+items below; it's an immediate reject.
+
 ## 1. Schema validity
 
 Run it through the pipeline's own validator — don't eyeball this one:
@@ -139,6 +154,7 @@ bundle — one identifier per release, not a separate numbering scheme.
 The reusable acceptance-criteria core every `gold_vX.Y_curriculum.md` should
 link to instead of restating:
 
+- [ ] No harmful or illegal content (§0, hard gate, checked first)
 - [ ] Schema validation passes (§1)
 - [ ] Design notes complete, including Boundary Evidence (§7, per
       [`DESIGN_NOTES_TEMPLATE.md`](DESIGN_NOTES_TEMPLATE.md))

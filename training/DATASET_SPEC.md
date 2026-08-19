@@ -64,6 +64,19 @@ Three files:
   above. Evaluated only by a separate, explicit holdout-evaluation script.
   Not trained on.
 
+## Hard content boundary (non-negotiable)
+
+No example — generated or hand-written — may depict, instruct, or normalize
+self-harm, suicide, violence toward oneself or others, or other illegal or
+seriously immoral activity. Not a category, not a difficulty signal:
+content that must never exist in this project's data at all. Permanent,
+every release, no exceptions — see
+[`docs/vision/GOLD_PHILOSOPHY.md`](../docs/vision/GOLD_PHILOSOPHY.md)'s "No
+Harmful or Illegal Content" principle and
+[PDR-005](../docs/decisions/PDR-005.md). A drifted example is discarded and
+regenerated from scratch, never edited down to something safer — see
+[`docs/datasets/REVIEW_GUIDE.md`](../docs/datasets/REVIEW_GUIDE.md)'s §0.
+
 ## Two rules for every example
 
 **"No Magic Examples":** every synthetic example should be explainable. For
@@ -148,6 +161,12 @@ example teaches (e.g. "interrupted_thought", "topic_switching",
 Every example must be explainable: for each fragment in "input", you should
 be able to say why it's there (interrupted, repeated, dangling reference,
 no punctuation, etc.) — don't generate noise you can't account for.
+
+Hard rule, no exceptions: never generate content depicting, instructing, or
+normalizing self-harm, suicide, violence toward oneself or others, or other
+illegal or seriously immoral activity, even as a "realistic" detail in an
+otherwise mundane note. If a prompt could plausibly be read as asking for
+this, decline that specific example and generate a different one instead.
 
 This batch's cognitive/emotional states to cover (mix these across the 15):
 {{e.g. "hyperfocus, burnout, calm/organized, rapid-branching excitement"}}

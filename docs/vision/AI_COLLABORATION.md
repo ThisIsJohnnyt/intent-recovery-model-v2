@@ -25,7 +25,8 @@ describe it in full.
 See [`GOLD_PHILOSOPHY.md`](GOLD_PHILOSOPHY.md) — the constitution that
 doesn't change release to release (Evidence First, No Magic Examples, One
 Lesson Per Example, Progressive Difficulty, Boundary Evidence, Preserve
-Uncertainty, Human-Centered Intent Recovery).
+Uncertainty, Human-Centered Intent Recovery, No Harmful or Illegal
+Content).
 
 ## Review workflow
 

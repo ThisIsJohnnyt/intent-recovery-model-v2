@@ -4,12 +4,12 @@ The constitution of the Gold Curriculum Series: principles that hold across
 every release, unlike a `gold_vX.Y_curriculum.md` (one release's specific
 theme and examples), a dataset card (one release's scope/limitations), or a
 review report (one release's quality check) — all of which are expected to
-change release to release. These seven don't. A new release proposing to
+change release to release. These eight don't. A new release proposing to
 violate one of these isn't a new curriculum choice, it's a regression.
 
 Curriculum specs should **link here, not restate these**.
 
-## The seven principles
+## The eight principles
 
 **Evidence First** — every recovered fragment, boundary, and relationship in
 the output must be traceable to something actually in the input. Nothing is
@@ -51,6 +51,18 @@ emotional *state* is fair game (rushed, distracted, excited); a diagnosis
 label (ADHD, autism, etc.) never is. See
 [`NORTH_STAR.md`](NORTH_STAR.md)'s mission statement and
 `REVIEW_GUIDE.md`'s "No diagnosis framing" check.
+
+**No Harmful or Illegal Content** — no content depicting, instructing, or
+normalizing self-harm, suicide, violence toward oneself or others, or other
+illegal or seriously immoral activity is ever permitted in this project's
+data, at any tier, at any release. Not a category, not a difficulty signal
+— content that must never exist in this project's data at all. A drifted
+example is discarded and regenerated from scratch, never edited down to
+something safer. Permanent and non-negotiable; see
+[PDR-001](../decisions/PDR-001.md) and [PDR-005](../decisions/PDR-005.md)
+for why this project holds this boundary. Operationalized in
+`training/DATASET_SPEC.md`'s generation-prompt exclusion and
+`REVIEW_GUIDE.md`'s hard-gate check.
 
 ## Why this document exists
 
