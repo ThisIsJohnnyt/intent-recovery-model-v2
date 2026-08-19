@@ -7,8 +7,8 @@ and updates after review. Definitions live in `TAXONOMY.md`, linked here,
 not restated.
 
 **Status**: first draft, 2026-08-19, alongside `TAXONOMY.md`'s acceptance.
-No batches exist yet — every tracking section below starts empty, by
-construction, not by omission.
+Tracking sections below reflect batch 1 (`datasets/synthetic.jsonl`,
+2026-08-19, first real generation run — see `training/COST_LEDGER.md`).
 
 ## Per-category detail
 
@@ -37,14 +37,20 @@ deprecations yet.
 ## Target categories not yet represented
 
 Updated after each batch per `REVIEW_GUIDE.md` §6 — a category is removed
-from this list once at least one accepted example exists for it. Starts as
-the full list, since no batches exist yet:
+from this list once at least one accepted example exists for it.
 
-`simple_list`, `interrupted_thought`, `topic_switching`,
-`topic_interleaving`, `dangling_reference`, `repeated_reminder`,
-`zero_action_items`, `contradictory_statement`, `rapid_branching`,
-`minimal_fragment`, `long_rambling`, `multi_person_note`,
-`voice_to_text_artifact`, `self_correction`, `time_ambiguous`
+After batch 1 (`datasets/synthetic.jsonl`, 2026-08-19, 13 accepted of 15
+generated — see `training/COST_LEDGER.md`):
+
+`interrupted_thought`, `contradictory_statement`, `voice_to_text_artifact`
+
+All three were attempted in batch 1 but rejected on independent review
+(dropped fragment, category mismatch, and an unexplainable "No Magic
+Examples" violation, respectively — not absence of effort, a quality bar).
+The other 12 categories now have one accepted example each;
+`self_correction` has two (one of batch 1's rejects was actually a
+mislabeled `self_correction` example, relabeled and kept rather than
+discarded).
 
 ## Cognitive / emotional / structural states covered
 
@@ -58,14 +64,23 @@ mostly-anxious): calm/organized, mild distraction, hyperfocus, executive
 dysfunction, anxiety, sensory overwhelm, burnout, rapid-branching
 excitement, emotional journaling, dry/neutral observation.
 
-- Covered so far: *(none — no batches generated yet)*
+- Covered so far (batch 1, 2026-08-19): calm/organized, mild distraction,
+  hyperfocus, rapid-branching excitement, dry/neutral observation.
+- Not yet covered: executive dysfunction, anxiety, sensory overwhelm,
+  burnout, emotional journaling.
 
 **Structural variety**: interleaved topics, abrupt topic switches,
 half-finished thoughts, dangling references, restated worries, contradictory
 statements, zero-action-item notes, very short notes, long rambling notes,
 subjects spanning work/relationships/health/chores/hobbies/money/family.
 
-- Covered so far: *(none — no batches generated yet)*
+- Covered so far (batch 1, 2026-08-19): interleaved topics, abrupt topic
+  switches, dangling references, restated worries, zero-action-item notes,
+  very short notes, long rambling notes, subjects spanning
+  work/relationships/health/chores/hobbies/money/family.
+- Not yet covered: half-finished thoughts left genuinely unresolved (batch
+  1's attempt was rejected — see "Target categories not yet represented"),
+  contradictory statements (same).
 
 ## Category lifecycle
 

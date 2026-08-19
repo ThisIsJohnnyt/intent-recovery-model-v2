@@ -155,8 +155,12 @@ repeated to reach a target count. "action_items" = concrete
 tasks mentioned, or [] if none — never invent tasks that aren't implied by
 the input. "difficulty" is your judgment of how hard this example is to
 recover correctly. "category" is the one specific recovery skill this
-example teaches (e.g. "interrupted_thought", "topic_switching",
-"zero_action_items", "repeated_reminder", "simple_list").
+example teaches — one of: "simple_list", "interrupted_thought",
+"topic_switching", "topic_interleaving", "dangling_reference",
+"repeated_reminder", "zero_action_items", "contradictory_statement",
+"rapid_branching", "minimal_fragment", "long_rambling",
+"multi_person_note", "voice_to_text_artifact", "self_correction",
+"time_ambiguous" (see docs/datasets/TAXONOMY.md for definitions).
 
 Every example must be explainable: for each fragment in "input", you should
 be able to say why it's there (interrupted, repeated, dangling reference,
