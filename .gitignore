@@ -24,3 +24,6 @@ training/checkpoints/
 
 # MCP config secrets (API keys via env var, never committed)
 .mcp.local.json
+
+# Session handoffs — local-only, overwritten each session, not part of project history
+/training/Session Handoffs/
