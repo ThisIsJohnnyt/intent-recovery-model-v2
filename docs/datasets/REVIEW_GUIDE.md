@@ -46,13 +46,17 @@ Run it through the pipeline's own validator — don't eyeball this one:
 
 ```bash
 cd training
-./venv/Scripts/python.exe -c "
+C:\Users\thisi\.venvs\intent-recovery-v2\Scripts\python.exe -c "
 from prepare_data import load_jsonl
 from pathlib import Path
 records = load_jsonl(Path('../datasets/<path-to-batch>.jsonl'))
 print(f'{len(records)} records validated OK')
 "
 ```
+
+(See [`training/SETUP.md`](../../training/SETUP.md) for why the venv
+lives outside `training/` — a Windows path-length limit, not a change of
+convention worth remembering as "just how it is.")
 
 If this throws, the batch has a schema problem (missing field, wrong type)
 — fix before anything else. This Python validator is authoritative (it's

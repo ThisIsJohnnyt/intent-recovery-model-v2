@@ -1,0 +1,16 @@
+# Fine-tuning pipeline dependencies. Nothing else in training/ needs these
+# (check_duplicates.py and telemetry.py are deliberately stdlib-only).
+#
+# DO NOT just `pip install -r requirements.txt` -- that pulls the CPU-only
+# torch build silently, which works but throws away the GPU. See
+# training/SETUP.md for the actual install sequence (CUDA torch first,
+# from PyTorch's own index, then everything else) and for why the venv
+# itself lives outside this directory (a Windows path-length limit).
+#
+# google/flan-t5-base is a T5 model -- sentencepiece is required for its
+# tokenizer, not optional. accelerate is required by transformers'
+# Seq2SeqTrainer as of recent versions, even for single-device CPU/GPU runs.
+torch>=2.2
+transformers>=4.40
+sentencepiece>=0.2
+accelerate>=0.30

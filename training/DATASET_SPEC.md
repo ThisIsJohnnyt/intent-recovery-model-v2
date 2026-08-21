@@ -28,6 +28,72 @@ other analysis, and are never read by the training pipeline, so they're
 free to be as rich as useful without risking rejection for not matching the
 pipeline's actual schema.
 
+## Model output serialization (the delimited format)
+
+`prepare_data.py` converts each record's `output` object (JSON in the
+dataset) into the literal text the model is trained to generate — the
+delimited format named above. Designed fresh for v2.0, not inherited from
+v1; [Thought Organizer](https://github.com/ThisIsJohnnyt/thought-organizer-app)
+will be updated separately to parse it, not the other way around.
+
+Exact shape — three section headers, always present and always in this
+order, each on its own line, `bullets`/`action_items` as `- `-prefixed
+lines (zero or more; an empty list means the header appears with nothing
+after it):
+
+```
+###NARRATIVE###
+<narrative, one paragraph, no literal newlines>
+###BULLETS###
+- <bullet 1>
+- <bullet 2>
+###ACTIONS###
+- <action 1>
+```
+
+Empty `action_items` example (a `zero_action_items` record):
+
+```
+###NARRATIVE###
+<narrative>
+###BULLETS###
+- <bullet 1>
+###ACTIONS###
+```
+
+Rules:
+- Headers are always present, even when a section is empty — a parser
+  splitting on the three fixed markers never has to guess whether a
+  section was omitted vs. genuinely empty.
+- One list item per line, `- ` prefix, no trailing punctuation added
+  beyond what the item text itself has.
+- `narrative` must not contain literal newlines (it's a single paragraph
+  per the data contract already) — `prepare_data.py` collapses any
+  present to spaces as a defensive measure, not an expected case.
+- Round-trip: `prepare_data.py` exposes both `serialize_target()` (dict →
+  this text) and `deserialize_target()` (text → dict), so the same logic
+  used to build training targets can validate model output at eval time.
+
+## Task prefix (model input, not just the raw note)
+
+`google/flan-t5-base` is instruction-tuned — fine-tuning it well means
+feeding it an instruction, not just the bare scattered note, especially
+valuable with a corpus this small (leans on its pretrained
+instruction-following prior more than a larger fine-tuning run would need
+to). `prepare_data.py` prepends a fixed prefix to every `input` before
+tokenizing:
+
+```
+Recover the intent behind these scattered notes:
+
+<input>
+```
+
+This is part of the model's actual input contract now, same status as the
+output delimiters above — [Thought Organizer](https://github.com/ThisIsJohnnyt/thought-organizer-app)
+must prepend the identical prefix at inference time, or the model sees
+out-of-distribution input it wasn't fine-tuned on.
+
 ## File format
 
 One JSON object per line (JSONL), UTF-8:

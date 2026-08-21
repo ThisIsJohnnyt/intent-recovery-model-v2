@@ -6,6 +6,7 @@ venv/
 
 # Training artifacts
 training/checkpoints/
+training/prepared/
 *.onnx
 
 # Misc
