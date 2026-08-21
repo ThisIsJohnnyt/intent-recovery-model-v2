@@ -85,6 +85,75 @@ batch could deepen any category further, or shift focus to `difficulty`
 balance and continued subject-matter variety rather than category coverage,
 which is no longer the binding constraint.
 
+## Depth by category (running total, after batch 5)
+
+Batch 5 (15/15 accepted, 0 fixes — see `training/COST_LEDGER.md`) weighted
+the 8 categories then at the floor (3 each) and also tested the adversarial
+review's "invented certainty" finding as a *preventive* prompt instruction
+rather than only a review-time check — it worked cleanly across all 15,
+first batch needing zero corrections of any kind.
+
+`simple_list` (5), `interrupted_thought` (4), `topic_switching` (4),
+`topic_interleaving` (5), `dangling_reference` (5), `repeated_reminder`
+(5), `zero_action_items` (4), `contradictory_statement` (5),
+`rapid_branching` (5), `minimal_fragment` (5), `long_rambling` (5),
+`multi_person_note` (4), `voice_to_text_artifact` (5), `self_correction`
+(6), `time_ambiguous` (4).
+
+71 accepted examples total across 5 batches (13 + 14 + 14 + 15 + 15).
+Depth is now tightly banded (4–6 across every category) — no category is
+meaningfully thin relative to the others anymore.
+
+## Depth by category (running total, after batch 6)
+
+Batch 6 (15/15 accepted, 0 fixes) closed out the remaining categories
+still at the depth floor and deliberately skewed toward `expert`/`hard`
+difficulty, since the corpus-wide difficulty spread had grown lopsided
+(`expert` at 9/71 vs. 18-27 for the other tiers) even as category depth
+evened out — depth and difficulty are independent things to track, and
+this batch is the first one to target difficulty specifically rather than
+category.
+
+`simple_list` (5), `interrupted_thought` (6), `topic_switching` (6),
+`topic_interleaving` (5), `dangling_reference` (7), `repeated_reminder`
+(5), `zero_action_items` (6), `contradictory_statement` (7),
+`rapid_branching` (5), `minimal_fragment` (5), `long_rambling` (5),
+`multi_person_note` (6), `voice_to_text_artifact` (5), `self_correction`
+(7), `time_ambiguous` (6).
+
+**Difficulty distribution, full corpus**: easy 19, medium 29, hard 23,
+expert 15 (86 total). Improved from pre-batch-6 (easy 17, medium 27, hard
+18, expert 9) but medium still leads by a wide margin — worth another
+difficulty-targeted batch at some point, same approach as batch 6.
+
+86 accepted examples total across 6 batches (13 + 14 + 14 + 15 + 15 + 15).
+
+## Depth by category (running total, after batch 7)
+
+Batch 7 (15/15 accepted, 0 fixes, 2 relabeled — first batch run with live
+F.A.R.T. telemetry, see `training/telemetry.py`) closed the depth floor on
+6 of the 7 targeted categories, but confirmed a real gap: `topic_switching`
+vs. `topic_interleaving` needs the same contrastive-definition treatment
+`contradictory_statement`/`dangling_reference` got in batch 4 — both
+requested `topic_switching` examples this round were structurally
+interleaved instead, so the category gained zero net depth despite being
+targeted twice in a row now (also true in the second adversarial review's
+sample).
+
+`simple_list` (7), `interrupted_thought` (6), `topic_switching` (5, now
+the clear outlier — needs a dedicated future batch), `topic_interleaving`
+(8), `dangling_reference` (7), `repeated_reminder` (7), `zero_action_items`
+(6), `contradictory_statement` (7), `rapid_branching` (7),
+`minimal_fragment` (7), `long_rambling` (7), `multi_person_note` (6),
+`voice_to_text_artifact` (8), `self_correction` (7), `time_ambiguous` (6).
+
+**Difficulty distribution, full corpus**: easy 21, medium 31, hard 28,
+expert 21 (101 total). Meaningfully better balanced — hard and expert are
+now close to easy, only medium still leads by a real margin.
+
+101 accepted examples total across 7 batches
+(13 + 14 + 14 + 15 + 15 + 15 + 15).
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s

@@ -189,6 +189,23 @@ financial guardrails — see
 billed API without the product owner's own direct authorization for that
 specific run.
 
+## Telemetry (F.A.R.T. integration)
+
+Three checkpoints per batch, using [`training/telemetry.py`](telemetry.py)
+— see [`FART_TELEMETRY_INTEGRATION.md`](FART_TELEMETRY_INTEGRATION.md) for
+the full schema. These are now a standing part of running a batch, not
+optional:
+
+1. **Right before the `gemini-query` call**:
+   `telemetry.batch_starting(batch_size, phase_description, model=...)`
+2. **Optionally, while reviewing** (if reviewing incrementally rather than
+   as a whole batch): `telemetry.batch_progress(current_step, total_steps,
+   phase_description)`
+3. **The same moment a new row goes into `COST_LEDGER.md`**:
+   `telemetry.batch_finished(accepted_delta, rejected_delta, model=...)` —
+   pass this batch's own counts, not running totals; the function adds
+   them to whatever's already in the telemetry file.
+
 ## Where files go
 
 ```

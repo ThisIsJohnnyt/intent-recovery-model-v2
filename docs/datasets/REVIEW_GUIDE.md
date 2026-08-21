@@ -113,6 +113,18 @@ don't just eyeball for a general sense of accuracy:
   deliberately rather than trusting a fluency read. Identified by the
   first periodic adversarial re-review (PDR-006, 2026-08-19) — see this
   file's "Periodic adversarial re-review" section's log.
+  **Check `action_items` at least as carefully as narrative/bullets, not
+  less** — the second adversarial re-review found this exact failure mode
+  recurring specifically in `action_items`, even in examples where
+  narrative/bullets correctly preserved the hedge. `action_items` has no
+  fluency pressure (it's terse and imperative by design), so the smoothing
+  mechanism there isn't "prose reads better" — it's that an imperative,
+  decided-sounding field seems to pull hedged input toward false certainty
+  on its own. Also watch for a genuinely ambiguous referent (e.g. a
+  pronoun or conditional that could plausibly point to either of two
+  established threads) getting silently resolved to one reading instead of
+  flagged as unresolved — a distinct but related trap from smoothing a
+  literal hedge word.
 
 These categories of failure carried real, observed instances in the
 predecessor project — use this list as a concrete checklist against real
@@ -196,6 +208,7 @@ stronger options considered and not adopted.
 | Date | Sample | Result | Findings |
 |---|---|---|---|
 | 2026-08-19 | 15 examples (batches 1–4), weighted toward `voice_to_text_artifact`/`contradictory_statement`/`dangling_reference`/`self_correction`/`interrupted_thought` — the categories with the most historical fixes/relabels, plus 2 control examples from never-flagged categories | 10 ACCEPT, 5 FIX, 0 REJECT, 0 hard RELABEL | First run — validated the safeguard itself works (found real, previously-uncaught defects, not just noise) and surfaced a genuine checklist gap: 4 of the 5 fixes shared one root pattern (a hedge in `input` smoothed into unearned certainty in the output) that §4's existing bullets didn't separately name. Added as "No invented certainty" above. The 5 flagged examples were fixed in place directly (not rejected — none were fundamentally unsound, all were narrow wording overreaches). Next run due after batch 6 — product owner tightened the cadence to every 2 batches after this run, rather than every 3. |
+| 2026-08-19 | 12 examples (batches 5–6), all 12 originally reviewed by Claude as "zero issues" — deliberately sampled to stress-test that confidence, weighted toward dense/expert-difficulty examples (multiple hedges, ambiguous cross-person attribution) since that's where a same-reviewer blind spot is most likely | 9 ACCEPT, 3 FIX, 0 REJECT | **The original "zero issues" verdict was not justified for 3 of 12.** Two were the same "No invented certainty" failure mode recurring — both specifically in `action_items`, even where narrative/bullets got the hedge right (one flattened "kinda liked" to "likes"; one silently resolved a genuinely ambiguous conditional — "I'll do it if Greg doesn't," where Greg's only established role was driving, not calling — into a flat, unhedged action item). The third was an unrelated mislabel (`topic_switching` when the structure was textbook `topic_interleaving`, confirmed by direct comparison with a correctly-labeled neighboring example). All 3 fixed in place. §4's "No invented certainty" bullet updated to name `action_items` as the higher-risk field specifically, per the reviewer's diagnosis that the field's terse, imperative format — not narrative fluency pressure — is the actual mechanism. Next run due after batch 8. |
 
 ## After review
 
@@ -203,6 +216,9 @@ stronger options considered and not adopted.
   equivalent) and `CATEGORY_REFERENCE.md`.
 - Rejected/needs-revision: send back with which checklist item(s) failed —
   specific enough that the fix is obvious, not just "doesn't feel right."
+- Same moment as the new `COST_LEDGER.md` row: call
+  `training/telemetry.py`'s `batch_finished(accepted_delta, rejected_delta)`
+  — see `training/DATASET_SPEC.md`'s "Telemetry" section.
 
 ## Release bundle
 
