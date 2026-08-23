@@ -424,6 +424,84 @@ per scenario is inside the diversity rule) and a scenario-level read is now
 142 accepted examples total across 10 batches
 (13 + 14 + 14 + 15 + 15 + 15 + 15 + 15 + 15 + 12, less 2 rejected on review).
 
+## Fourth adversarial re-review (2026-08-23) — corpus 142 → 141
+
+Run immediately after batch 10 per the every-2-batches cadence. 13 examples
+from batches 9–10; full findings in [`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log.
+Result: 3 ACCEPT, 9 FIX, 1 REJECT, 4 difficulty relabels, 3 further defects
+found outside the sample.
+
+**The headline finding is about the checklist, not the data.** `narrative` had
+an upper bound and no lower bound: every §4 bullet prohibits *addition*, so a
+narrative that copies `input` verbatim passes the whole checklist trivially —
+it invents nothing, loses nothing and smooths nothing precisely by doing
+nothing. Measured input→narrative similarity had climbed from a batch 1–7 mean
+of 0.50 to 0.67 across batches 8–9, with two narratives at 0.97–0.98. Ten
+batches of tightening the evidence rules had made *doing less* the safe
+strategy, and generation found that gradient. Now §4's "No non-recovery"
+bullet, the first §4 item that is not a prohibition.
+
+**Meta-commentary was diagnosed rather than banned again.** Three categories —
+`interrupted_thought`, `contradictory_statement`, `dangling_reference` — ask
+the output to represent an *absence*: a thought that stops, two claims that
+can't both hold, a referent never resolved. No output field has a device for
+absence, so generation describes the note instead. That is why the defect
+reappeared in four successive surface forms, each after the previous was
+banned by name — the pressure was never addressed. Confirmed by scan: every
+meta-commentary hit in the corpus was `interrupted_thought`. Replaced with a
+convention: **preserve the note's own broken-off text verbatim** (`"Print
+the—"`, `"Oh look the mailman is—"`), which is the note rather than a report
+about it.
+
+**§6b was tested for the first time, vindicated, and corrected in the same
+run.** It found two things per-example review cannot reach — bullet terminal
+punctuation at 0% in batch 9 and 100% in batch 10 (normalized corpus-wide to
+bare list items, 274 periods stripped), and the `interrupted_thought`
+meta-commentary cluster. But its own bolded "check by batch first" advice was
+wrong, generalized from a single incident, and would have diluted the second
+finding across three batches. Batch-tracking drift is a prompt artifact;
+category-tracking drift is structural pressure from what the category asks the
+output to represent, spans batches, and is the more durable of the two.
+Neither is primary. §6b also gained the two axes it was missing — copy ratio
+and difficulty calibration — both purely comparative, the proof case being
+#127 and #128: the same note with different nouns, carrying different
+difficulty tiers, in the same batch.
+
+**A sweep that looked complete was not.** The standing regression grep scanned
+only `narrative`. Widening it to all three fields immediately surfaced 8
+third-person bullets across 7 batch-4 records — the same drift the corpus-wide
+sweep earlier the same day had reported as fully cleared. The grep now scans
+the whole `output` object.
+
+**Two §4 rules were found to contradict each other**: "every fragment must
+appear somewhere" versus `voice_to_text_artifact`'s "recover through the
+noise, don't annotate it". Dictation commands are both fragments and noise,
+and two examples answered both ways at once. Resolved with an explicit
+artifact exception — such fragments are represented by their *effect*, never
+their surface text, applied uniformly within an example.
+
+**Rejected**: #122, the dog-kibble note. Verbatim narrative (0.980), two
+flatly contradictory imperatives in `action_items` that would have a user feed
+a dog one and a half scoops, and no mood or intention *shift* — so it was
+never `contradictory_statement` as defined. This reverses the first pass's
+"borderline, keep it" call; surfaced to the product owner per the
+reconciliation rule and agreed.
+
+**Still open, deferred to the product owner**: what `action_items` should do
+when a note commits to two incompatible things. The three available moves are
+pick a side (invention), emit both flat (what #122 did, and actively harmful),
+or describe the conflict (banned by the voice rule). The reviewer correctly
+declined to invent a convention. Rejecting #122 removed the only instance, so
+this is documented rather than decided — it needs settling before a note like
+that recurs.
+
+**Scenario wells already past the two-per-scenario line**, found by reading
+the whole `input` column rather than the new batch: car-maintenance errands
+(#48, #85, #94, #102, #132 — five) and garden/tomatoes (#6, #30, #42, #130 —
+four). Worth avoiding in batches 11+.
+
+141 accepted examples after ten batches and four adversarial re-reviews.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s

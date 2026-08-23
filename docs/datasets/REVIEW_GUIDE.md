@@ -122,6 +122,19 @@ don't just eyeball for a general sense of accuracy:
   brief or seemingly minor — appears *somewhere* in the output (narrative,
   bullets, or action_items). A short fragment being easy to drop is not a
   reason to drop it.
+  **Exception, transcription-layer artifacts** (`voice_to_text_artifact`):
+  spoken punctuation ("comma", "period", "new paragraph"), dictation commands
+  ("write down", "remind me", "cancel that", "pause"), and mistranscription
+  self-corrections ("right down — wait, write down") are *noise, not
+  fragments*. They are represented by their **effect** on the recovered
+  content, never by their own surface text. The test is whether the writer
+  intended it as content or as an instruction to the device. Apply uniformly
+  within a single example — never keep half of one artifact event and drop
+  the other half. Without this exception the rule above and the category's own
+  definition ("recover intent *through* the noise, don't annotate the noise")
+  give opposite answers; the fourth adversarial re-review found two examples
+  answering both ways at once, which was a gap in this guide rather than an
+  error by either reviewer.
 - **No over-summarization**: don't compress `input` so much that a
   distinct fragment disappears into a vaguer, more general statement.
 - **No unsupported tasks**: `action_items` never contains a task that
@@ -177,6 +190,34 @@ don't just eyeball for a general sense of accuracy:
   bullets said only "for Saturday"; an `action_items` entry leading with
   "Clean (or maybe just air dust) the primary mirror" where the narrative
   correctly honored the input's "actually maybe just air dust it" retraction.
+- **No non-recovery** (the narrative must actually do something): the
+  narrative has to *reorganize*. A narrative that reproduces `input` in its
+  original order with only capitalization and punctuation repaired has
+  performed no recovery — and passes every other bullet in this section
+  trivially, because it invents nothing, loses nothing and smooths nothing
+  precisely by doing nothing. **Every bullet in §4 except this one is a
+  prohibition on addition, which means copying the input is the degenerate
+  optimum of the whole checklist.** This bullet is the counterweight. Cheap
+  detector: token-sequence similarity between `input` and `narrative` (see
+  §6b). Corpus mean across batches 1–7 is ~0.50; anything above ~0.85 should
+  be read deliberately, and a near-verbatim narrative is a defect however
+  clean it looks. Identified by the fourth adversarial re-review (2026-08-23),
+  which measured the corpus mean climbing from 0.50 to 0.67 over batches 8–9
+  as the evidence rules were tightened — generation finding the safe gradient.
+- **Representing an absence** (a convention, not a prohibition): three
+  categories — `interrupted_thought`, `contradictory_statement`, and
+  `dangling_reference` — require the output to convey something that *isn't
+  there*: a thought that stops, two claims that can't both hold, a referent
+  never resolved. No output field has a device for absence, so generation
+  reaches for the only one available and starts describing the note ("The
+  note cuts off mid-sentence while mentioning the mailman"). This is why
+  meta-commentary has reappeared in four successive surface forms, each after
+  the previous was banned by name: the *pressure* was never addressed, only
+  its symptom. **The convention: preserve the note's own broken-off text
+  verbatim** — `"Print the—"`, `"Oh look the mailman is—"`. That is the note
+  itself rather than a report about it, and it satisfies the voice rule
+  without inventing a completion. Adopted 2026-08-23 after the fourth
+  adversarial re-review diagnosed the mechanism.
 - **`action_items` ownership**: an entry may be a task committed to by *any*
   person named in `input`, attributed to them ("Uncle Bob to handle the
   catering") — not only the writer's own tasks. What does **not** belong is a
@@ -216,15 +257,28 @@ has a blind spot: a *convention* can drift across batches while every
 individual example remains defensible against its own input, so no per-example
 check ever fires. Items 0–5 cannot catch this by construction.
 
-**Check by batch first, then by category.** A convention artifact tracks the
-*prompt*, not the taxonomy — so it appears in whatever categories that batch
-happened to contain and is uniform within the batch. Looking down a single
-category shows it faintly in several places and obviously in none. This was
-learned the hard way: the drift described below was first diagnosed as a
-`voice_to_text_artifact` problem starting at batch 5, and an earlier version
-of this section said to compare within a category. Scanning by batch showed
-the real shape — batch 4 was affected 15/15, every narrative in it, spanning
-nine different categories.
+**Batch and category are two different generators of drift. Check both; rank
+neither.**
+
+- **Batch-tracking drift is a prompt artifact.** It appears in whatever
+  categories that batch happened to contain, is uniform within the batch, and
+  shows up faintly in each category and obviously in none. Example: batch 4
+  was 15/15 third-person narratives across nine categories. Example: bullet
+  terminal punctuation ran 0% in batch 9 and 100% in batch 10 — perfectly and
+  oppositely uniform, and invisible to any per-example check because a period
+  is never *wrong* against its own input.
+- **Category-tracking drift is structural pressure from what the category
+  asks the output to represent.** It spans batches, concentrates in one
+  category, and recurs in *every* batch that touches that category — which
+  makes it the more durable and more dangerous of the two. Example:
+  meta-commentary concentrates in `interrupted_thought` (3 of 9 examples,
+  across three batches) because that category asks the output to represent an
+  absence and no field can. See §4's "Representing an absence".
+
+An earlier version of this section said, in bold, to check by batch *first*.
+That was generalized from a single incident and it is wrong: the fourth
+adversarial re-review found a category-tracking defect that a batch-first read
+would have diluted across three batches. Neither axis is primary.
 
 So, once per batch: read the new batch's narratives (or bullets, or
 `action_items`) as a **column**, all of them together, and ask whether the
@@ -249,6 +303,18 @@ they still agree on:
 - **Depth of transcription/artifact commentary**, for
   `voice_to_text_artifact` specifically — recover intent through the noise,
   don't annotate the noise.
+- **Input→narrative copy ratio.** Purely comparative, and the strongest
+  quantitative signal available. Token-sequence similarity between `input` and
+  `narrative`, read as a distribution rather than per example: a single high
+  value may be inherent to a category, a whole batch shifting upward is
+  generation retreating into non-recovery (see §4's "No non-recovery").
+- **Difficulty calibration.** `difficulty` is a purely comparative judgment —
+  it means nothing against one input and everything against the corpus — and
+  so it is the most cross-example field in the schema. The proof case: #127
+  and #128 are the same note with different nouns, one labelled `easy` and one
+  `medium`, in the same batch. Per-example inspection cannot catch that; only
+  putting them side by side can. Every difficulty relabel this project has
+  made was found by comparison, never by inspection.
 - **Scenario repetition.** `check_duplicates.py` is lexical and cannot see
   this: two notes can describe the same situation while sharing almost no
   wording. Batch 10 produced a "40 gal tank setup" note and a "the magic
@@ -257,7 +323,12 @@ they still agree on:
   `input` values as a list and ask whether any *situation* is already in the
   corpus, not whether any wording is. Two examples per scenario is acceptable
   under the diversity rule; a third is a signal that generation is falling
-  into a well.
+  into a well. **Read the whole `input` column for this, not just the new
+  batch** — the fourth adversarial re-review did, and found two wells already
+  past the line that nobody had noticed: car-maintenance errands (#48, #85,
+  #94, #102, #132 — five) and garden/tomatoes (#6, #30, #42, #130 — four).
+  Applying the threshold only to scenarios someone happens to notice is not
+  applying it.
 
 Real instance, and the reason this section exists: narratives written in the
 third person ("The author is planning a large spring vegetable garden…",
@@ -298,13 +369,20 @@ for i, r in enumerate(rows[101:], 102):
     print(i, '|', r['category'][:20].ljust(20), '|', r['output']['narrative'][:70])
 "
 
-# and a standing regression check for this specific drift
+# and a standing regression check for this specific drift.
+# NOTE: scans ALL THREE output fields, not just narrative -- the fourth
+# re-review found 8 third-person bullets in 7 records that a narrative-only
+# sweep had missed entirely, three weeks of review passes after the fact.
+# KNOWN FALSE POSITIVE: #98 opens "Notes for the historic society article:"
+# because its INPUT dictates exactly that ("notes for the historic society
+# article colon"). Flagging a note's own words as meta-framing is the kind of
+# false positive that teaches a reviewer to skim; verify before acting.
 python -c "
 import json, re
 rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
-bad = re.compile(r'[Tt]he\s+(author|writer|speaker)|I (noted|wrote|stated|also wrote|also stated)|^\s*(Notes?|Dictated|Voice-recorded|Brainstorming|Rambling)')
+bad = re.compile(r'[Tt]he\s+(author|writer|speaker)|I (noted|wrote|stated|also wrote|also stated)|[Tt]he note (cuts off|is abruptly|breaks off)|while (recording|taking) th|^\s*(Notes?|Dictated|Voice-recorded|Brainstorming|Rambling)')
 for i, r in enumerate(rows, 1):
-    if bad.search(r['output']['narrative']): print(i, r['output']['narrative'][:70])
+    if bad.search(json.dumps(r['output'], ensure_ascii=False)): print(i, r['category'])
 "
 ```
 
@@ -371,6 +449,7 @@ stronger options considered and not adopted.
 | 2026-08-19 | 15 examples (batches 1–4), weighted toward `voice_to_text_artifact`/`contradictory_statement`/`dangling_reference`/`self_correction`/`interrupted_thought` — the categories with the most historical fixes/relabels, plus 2 control examples from never-flagged categories | 10 ACCEPT, 5 FIX, 0 REJECT, 0 hard RELABEL | First run — validated the safeguard itself works (found real, previously-uncaught defects, not just noise) and surfaced a genuine checklist gap: 4 of the 5 fixes shared one root pattern (a hedge in `input` smoothed into unearned certainty in the output) that §4's existing bullets didn't separately name. Added as "No invented certainty" above. The 5 flagged examples were fixed in place directly (not rejected — none were fundamentally unsound, all were narrow wording overreaches). Next run due after batch 6 — product owner tightened the cadence to every 2 batches after this run, rather than every 3. |
 | 2026-08-19 | 12 examples (batches 5–6), all 12 originally reviewed by Claude as "zero issues" — deliberately sampled to stress-test that confidence, weighted toward dense/expert-difficulty examples (multiple hedges, ambiguous cross-person attribution) since that's where a same-reviewer blind spot is most likely | 9 ACCEPT, 3 FIX, 0 REJECT | **The original "zero issues" verdict was not justified for 3 of 12.** Two were the same "No invented certainty" failure mode recurring — both specifically in `action_items`, even where narrative/bullets got the hedge right (one flattened "kinda liked" to "likes"; one silently resolved a genuinely ambiguous conditional — "I'll do it if Greg doesn't," where Greg's only established role was driving, not calling — into a flat, unhedged action item). The third was an unrelated mislabel (`topic_switching` when the structure was textbook `topic_interleaving`, confirmed by direct comparison with a correctly-labeled neighboring example). All 3 fixed in place. §4's "No invented certainty" bullet updated to name `action_items` as the higher-risk field specifically, per the reviewer's diagnosis that the field's terse, imperative format — not narrative fluency pressure — is the actual mechanism. Next run due after batch 8. |
 | 2026-08-23 | 13 examples (batches 7–8), weighted toward `topic_switching` (4 — the category with the most historical relabels) and `voice_to_text_artifact` (2), plus the 3 batch-8 examples touched during first-pass review (reviewer not told which) and 3 never-flagged controls | 2 ACCEPT, 11 FIX, 0 REJECT — plus 1 REJECT and 2 difficulty relabels added on reconciliation | **Found a failure mode none of §4's bullets named: *world-knowledge frame completion*** — the output names an activity, venue, or object class that `input` only implies through its props ("sleeping bag" + "camp stove" → "camping trip"; honey + carboy → "blackberry mead or wine"; "chapter 4" → "chapter 4 of the book"; "primary mirror" → "primary telescope mirror"). 7 of 11 fixes shared this root cause. It survives review precisely because the inference is usually *correct*, and it is distinct from invented causality (no new event asserted) and invented certainty (no hedge smoothed). Added as its own §4 bullet. The reviewer also identified a cheap detector — **the three output fields disagree with each other** when an invention is present (bullets said "for Saturday" where the narrative said "camping trip"; `action_items` reinstated a retraction the narrative had correctly honored) — added as a second new §4 bullet. Notably the first-pass reviewer had *seen* two of these instances and explicitly waved them through as acceptable inference: the blind spot was not failing to notice the instances but failing to recognize them as one mechanism. A third gap — no rule governing what qualifies as an `action_item` — was surfaced to the product owner, who settled it (any named person's commitment, attributed; not past events) and it is now a §4 bullet and a `DATASET_SPEC.md` rule. One finding was a **false positive**: a claimed U+FFFD corruption was a clean U+2014 em dash rendered through a cp1252 console, verified by codepoint dump across the whole corpus; the suggested encoding grep was still adopted into §1, with a note about verifying by codepoint rather than by eye. Dispositions: 9 clear-cut §4 fixes and 8 frame-completion fixes applied in place; `zero_action_items` #107 relabeled `expert`→`medium` and `voice_to_text_artifact` #97 `expert`→`hard` (both single-thread notes failing the tier definition's "dense combination of categories"); one `interrupted_thought` example rejected outright and parked for regeneration — nothing in it was actually cut off, so it taught none of the unfinished-vs-resumed judgment the category exists for. Corpus 116 → 115. Next run due after batch 10. |
+| 2026-08-23 | 13 examples (batches 9–10), weighted toward `voice_to_text_artifact` (3, the most-fixed category this arc), plus the 6 examples touched during first-pass review and 4 never-flagged controls; the reviewer was additionally asked to judge whether §6b earns its place, since every check in it had been written *after* the fact and none had ever found anything new | 3 ACCEPT, 9 FIX, 1 REJECT, plus 4 difficulty relabels and 3 defects found outside the sample | **The most productive run of this exercise so far, and the first to find a defect in the checklist's own incentives.** Headline finding: **`narrative` has an upper bound but no lower bound.** Every §4 bullet is a prohibition on *addition*, so a narrative that copies `input` verbatim passes the entire checklist trivially — inventing nothing, losing nothing and smoothing nothing precisely by doing nothing. Measured input→narrative similarity climbed from a batch 1–7 mean of 0.50 to 0.67 across batches 8–9 as the evidence rules were tightened: generation had found the safe gradient the rules created. Two narratives sat at 0.97–0.98. Added as §4's "No non-recovery" bullet — the first §4 item that is not a prohibition. Second finding: **meta-commentary is not a mutating voice bug but the predictable symptom of an unsolved representation problem.** Three categories (`interrupted_thought`, `contradictory_statement`, `dangling_reference`) ask the output to convey an *absence*; no field has a device for that, so generation describes the note instead. Confirmed: the only meta-commentary hits corpus-wide were all `interrupted_thought`. Banning each new phrasing had produced four successive surface forms. Replaced with a **convention** — preserve the note's own broken-off text verbatim (`"Print the—"`) — which is the note rather than a report about it. Third: **two §4 rules contradicted each other** ("every fragment must appear" vs. `voice_to_text_artifact`'s "don't annotate the noise"), and two examples answered both ways at once; now resolved with an explicit artifact exception. **§6b was vindicated and corrected in the same run.** It found two things items 0–5 cannot reach: bullet terminal punctuation ran 0% in batch 9 and 100% in batch 10, perfectly and oppositely uniform (normalized corpus-wide to bare list items per `DATASET_SPEC` line 68, 274 periods stripped); and the `interrupted_thought` meta-commentary cluster. But its own bolded advice to "check by batch first" was wrong — generalized from one incident — and would have diluted the second finding across three batches. Batch and category are two *different* generators (prompt artifact vs. structural pressure from the category) and neither is primary; §6b rewritten to say so, and given the two axes it was missing, copy ratio and difficulty calibration. Both are purely comparative and therefore invisible per-example — the proof case being #127 and #128, the same note with different nouns carrying different difficulty tiers in the same batch. Also caught: the standing regression grep only scanned `narrative`, and widening it to all three fields immediately found 8 third-person bullets in 7 records that the earlier corpus-wide voice sweep had missed entirely. One rejection (#122): verbatim narrative, two flatly contradictory imperatives in `action_items` that would have a user feed a dog 1½ scoops, and no mood or intention *shift*, so it was never the category — a reversal of the first pass's "borderline, keep it" call, surfaced to the product owner per the reconciliation rule and agreed. **Still open, deferred to the product owner**: what `action_items` should do when a note commits to two incompatible things. The reviewer correctly declined to invent a convention; rejecting #122 removed the only instance, so it is documented rather than decided. Next run due after batch 12. |
 
 ## After review
 
