@@ -353,6 +353,77 @@ review process currently re-checks a corrected example against the full list.
 130 accepted examples total across 9 batches
 (13 + 14 + 14 + 15 + 15 + 15 + 15 + 15 + 15, less 2 rejected on review).
 
+## Depth by category (running total, after batch 10)
+
+Batch 10 (12 requested, 12 accepted, 0 rejected, 6 fixed) targeted the four
+categories that were clustered in one or two difficulty tiers rather than the
+thinnest categories, since depth is no longer the binding constraint.
+
+`minimal_fragment` (8), `dangling_reference` (9), `interrupted_thought` (9),
+`multi_person_note` (9), `rapid_branching` (9), `repeated_reminder` (9),
+`self_correction` (9), `simple_list` (9), `time_ambiguous` (9),
+`topic_switching` (9), `zero_action_items` (9), `contradictory_statement`
+(11), `long_rambling` (11), `topic_interleaving` (11),
+`voice_to_text_artifact` (11).
+
+**Difficulty distribution, full corpus**: easy 25, medium 48, hard 42,
+expert 27 (142 total).
+
+**The exemplar experiment.** Batch 9 established that a heavily-constrained
+prompt buys spec compliance at the cost of realism — its inputs read as
+illustrations of categories rather than notes. Batch 10 tested the opposite
+lever: roughly half the prompt length, the evidence rules compressed to a
+single paragraph pointing at
+[`DATASET_SPEC.md`](../../training/DATASET_SPEC.md), and five real `input`
+values from the corpus shown as the standard for the field, chosen from
+categories the batch was *not* generating so they would demonstrate texture
+without pulling content toward themselves.
+
+It worked on the axis it targeted. The resulting inputs are the most natural
+in the corpus — tangles that are incidental and uneven rather than end to end,
+which is the property batch 9's examples could not produce. The load-bearing
+sentence appears to have been *"do not write a note that demonstrates its
+category; write a note a person would actually type, which happens to have
+that property"*, reinforced by quoting batch 9's two worst inputs back as
+negative examples.
+
+**It was a trade, not a free win.** The defect rate rose from 0.44 per example
+in batch 9 to 0.58 in batch 10. Fewer stated rules meant slightly weaker rule
+compliance. Worth accepting — realism cannot be recovered later by editing,
+while an evidence-rule slip can — but worth tracking rather than assuming the
+shorter prompt is strictly better.
+
+**Meta-commentary appeared in a third distinct surface form**: not third
+person ("The author is planning…"), not first-person reporting ("I noted
+that… but I also wrote…"), but a parenthetical narrating the recording
+session — "(I heard a strange noise while recording this note.)" Three
+different shapes across three batches, each one appearing after the previous
+shape was banned by name. The durable fix is the principle rather than the
+pattern list: the narrative *is* the note rewritten, never a report about it.
+The regression grep helps but will always trail the newest form.
+
+**A defect fixed in the corpus recurred in generation.** Batch 10's #2
+flattened "he said" to "I was told" — the exact defect fixed in batch 9's #3
+earlier the same day. The corpus is not a feedback loop into the prompt;
+nothing carries a lesson forward except writing it into `DATASET_SPEC.md` or
+the prompt template. This is worth treating as a standing risk rather than a
+one-off: **every fix applied only to the data will recur** unless the reason
+for it also lands in the generation instructions.
+
+**New structural gap: scenario repetition is invisible to
+`check_duplicates.py`.** The batch produced a "40 gal tank setup" note and a
+"the magic system is based on…" note, both scenarios the corpus already had.
+Measured lexical similarity was 0.14 and 0.15 against a 0.55 threshold,
+because the two versions share almost no wording — it is the *situation* that
+repeats, not the phrasing. The checker is lexical by design and cannot catch
+this; its own docstring already notes that embeddings would be needed for
+paraphrase, and this is adjacent but distinct. Both examples were kept (two
+per scenario is inside the diversity rule) and a scenario-level read is now
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md) §6b.
+
+142 accepted examples total across 10 batches
+(13 + 14 + 14 + 15 + 15 + 15 + 15 + 15 + 15 + 12, less 2 rejected on review).
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s

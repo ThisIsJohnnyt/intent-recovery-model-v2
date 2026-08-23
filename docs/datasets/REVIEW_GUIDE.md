@@ -249,6 +249,15 @@ they still agree on:
 - **Depth of transcription/artifact commentary**, for
   `voice_to_text_artifact` specifically — recover intent through the noise,
   don't annotate the noise.
+- **Scenario repetition.** `check_duplicates.py` is lexical and cannot see
+  this: two notes can describe the same situation while sharing almost no
+  wording. Batch 10 produced a "40 gal tank setup" note and a "the magic
+  system is based on…" note, both of which the corpus already had; measured
+  similarity was 0.14 and 0.15 against a 0.55 threshold. Read the batch's
+  `input` values as a list and ask whether any *situation* is already in the
+  corpus, not whether any wording is. Two examples per scenario is acceptable
+  under the diversity rule; a third is a signal that generation is falling
+  into a well.
 
 Real instance, and the reason this section exists: narratives written in the
 third person ("The author is planning a large spring vegetable garden…",
