@@ -154,6 +154,88 @@ now close to easy, only medium still leads by a real margin.
 101 accepted examples total across 7 batches
 (13 + 14 + 14 + 15 + 15 + 15 + 15).
 
+## Depth by category (running total, after batch 8)
+
+Batch 8 (15/15 accepted, 0 relabeled, 3 narrative fixes) closed the
+`topic_switching` gap that had persisted across two consecutive batches.
+All 4 requested examples came back structurally correct — a strict A→B
+sequence with exactly one transition and zero returns to subject A — and
+the category went 5 → 9, from clear outlier to joint-highest.
+
+The batch also surfaced a likely root cause that goes beyond "the category
+definition was too weak," the explanation carried since batch 7.
+[`TAXONOMY.md`](TAXONOMY.md) defines `expert` as a "dense combination of
+categories, longer note, more restated/branching content" — which is
+*structurally* alternation, and therefore structurally
+`topic_interleaving`. Batches 6 and 7 both deliberately skewed hard/expert,
+so for this one category the difficulty instruction and the category
+instruction were pulling in opposite directions, and Gemini resolved the
+conflict toward difficulty both times. That also explains why batch 4's
+contrastive fix worked immediately for `contradictory_statement` and
+`dangling_reference`: neither is at odds with density. Batch 8 removed the
+conflict by capping the `topic_switching` examples at `hard` and routing
+the expert quota elsewhere, and specifying where their difficulty should
+come from instead (jarring subject pairs, low-salience fragments, an
+unresolved reference inside one block, hedged time language).
+
+**Generalizable lesson**: before blaming a recurring mislabel on a weak
+category definition, check whether some *other* instruction in the same
+prompt structurally contradicts that category. A contrastive definition
+fixes ambiguity; it does not fix a prompt that asks for two incompatible
+things at once.
+
+`simple_list` (7), `interrupted_thought` (7), `topic_switching` (9),
+`topic_interleaving` (8), `dangling_reference` (7), `repeated_reminder`
+(7), `zero_action_items` (9), `contradictory_statement` (7),
+`rapid_branching` (7), `minimal_fragment` (7), `long_rambling` (7),
+`multi_person_note` (9), `voice_to_text_artifact` (8), `self_correction`
+(7), `time_ambiguous` (9).
+
+Depth is tightly banded at 7–9 across all 15 categories — no category is
+thin relative to the others, and there is no longer an obvious targeting
+priority. Future batches can weight toward difficulty balance and
+subject-matter variety rather than category coverage.
+
+**Difficulty distribution, full corpus**: easy 22, medium 36, hard 34,
+expert 23 (115 total, post-adversarial-review). Hard has nearly caught
+medium; medium's lead is the smallest it has been.
+
+**Review note**: all 3 defects this batch were invented content confined to
+`narrative`, with `bullets` and `action_items` clean in every case — the
+inverse of batch 7's pattern, where `action_items` was the weak field.
+Worth watching whether the heavy `action_items`-specific prompt guidance
+has shifted the failure mode upstream into narrative prose rather than
+eliminating it.
+
+115 accepted examples total across 8 batches
+(13 + 14 + 14 + 15 + 15 + 15 + 15 + 15, less 1 rejected by the third
+adversarial re-review).
+
+**Third adversarial re-review (2026-08-23), applied to this corpus.** Run
+immediately after batch 8 per the every-2-batches cadence; full findings in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. It found a failure mode none of
+§4's bullets named — *world-knowledge frame completion*, the output naming an
+activity or object class the input only implies through its props — which
+accounted for 7 of its 11 fixes and is now its own checklist item, a
+`DATASET_SPEC.md` rule, and a standing instruction in the generation prompt.
+Net corpus effect: 17 in-place fixes across 9 examples, 2 difficulty
+relabels (`zero_action_items` #107 `expert`→`medium`,
+`voice_to_text_artifact` #97 `expert`→`hard`), and 1 rejection — an
+`interrupted_thought` example in which nothing was actually cut off, so it
+taught none of the unfinished-vs-resumed judgment the category exists for.
+That rejection is why `interrupted_thought` reads 7 here rather than 8; it
+is parked for regeneration in a future batch rather than replaced by
+editing.
+
+**Still open, product-owner call deferred**: the two `voice_to_text_artifact`
+narratives (#96, #97) are written in third person ("A dictated shopping list
+for…") while all other categories use first person. This conflicts with the
+schema's "same meaning and tone as the input," and both spend their opening
+clause describing the transcription rather than recovering the note. Left
+as-is for now — changing it is a prompt change for the category, and doing it
+piecemeal would leave old and new examples inconsistent. Worth settling
+before the next `voice_to_text_artifact`-weighted batch.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s

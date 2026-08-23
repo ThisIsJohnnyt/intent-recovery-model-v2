@@ -106,6 +106,8 @@ Rules for `output`:
 - `narrative`: rewrites `input` as a coherent narrative. Same meaning and tone as the input, just organized. Not therapy-speak, not generic — it should clearly be about the specific things mentioned in `input`.
 - `bullets`: one short key point per source-supported idea in `input`, up to 7. Source-determined count — use fewer than 7 when `input` supports fewer ideas; never add, split, or repeat content to reach a target count. A one-idea input gets one bullet.
 - `action_items`: concrete tasks/next steps mentioned in `input`. Use an empty array `[]` when the input has none — never invent one.
+  **Ownership** (settled 2026-08-23, after the third adversarial re-review found the corpus teaching two conventions at once): an entry may be a task committed to by *any* person named in `input`, attributed to them — `"Uncle Bob to handle the catering"` is a valid action item, not only the writer's own tasks. A note-organizer that silently drops other people's commitments loses real planning information, and `multi_person_note` is a whole category. What does **not** belong is a past event carrying no forward commitment (`"Dr. Patel called"` is not an action item). A third party's expected arrival (`"plumber is supposed to come by"`) does belong, since it is a commitment — but it keeps its hedge, exactly like any other field.
+- **No inferred setting or frame** (applies to all three output fields): never name an activity, venue, occasion, relationship, domain, or object class that `input` only implies through its props. "Sleeping bag" and "camp stove" do not license "camping trip"; "chapter 4" does not license "chapter 4 of the book". The inference is usually correct — that is exactly why it has to be checked deliberately rather than trusted. See [`REVIEW_GUIDE.md`](../docs/datasets/REVIEW_GUIDE.md) §4.
 
 `difficulty` and `category` are optional annotations, not part of what the
 model trains on — `prepare_data.py` will only read `input`/`output` and
@@ -231,6 +233,20 @@ example teaches — one of: "simple_list", "interrupted_thought",
 Every example must be explainable: for each fragment in "input", you should
 be able to say why it's there (interrupted, repeated, dangling reference,
 no punctuation, etc.) — don't generate noise you can't account for.
+
+Never name a setting the input only implies. If the input says "sleeping bag"
+and "camp stove", the output says "for Saturday" — not "the camping trip". If
+it says "chapter 4", the output says "chapter 4" — not "chapter 4 of the
+book". If it says "the primary mirror", don't call it "the telescope mirror".
+The inference is usually correct; that is not the test. The test is whether
+the writer actually said it. Naming the frame is guessing on the writer's
+behalf about the one thing they already knew and so didn't write down.
+
+Cross-check your three output fields against each other before emitting an
+example: if the narrative names a setting the bullets don't, the narrative
+invented it. If action_items reinstates something the narrative treats as
+retracted, action_items is wrong. Any disagreement between the three fields
+about the same fragment means at least one of them is wrong.
 
 Hard rule, no exceptions: never generate content depicting, instructing, or
 normalizing self-harm, suicide, violence toward oneself or others, or other

@@ -59,7 +59,29 @@ lives outside `training/` — a Windows path-length limit, not a change of
 convention worth remembering as "just how it is.")
 
 If this throws, the batch has a schema problem (missing field, wrong type)
-— fix before anything else. This Python validator is authoritative (it's
+— fix before anything else.
+
+Schema validity does not catch text corruption: a replacement character or
+stray control character is a perfectly valid JSON string and will pass both
+this validator and `training_data.schema.json`, then go straight into
+training. Grep the batch for U+FFFD, control characters, and common mojibake
+sequences (`â€"`, `Â`) before accepting — two seconds, and neither tool above
+can do it by construction:
+
+```bash
+python -c "
+import json, unicodedata
+for i, l in enumerate(open('datasets/synthetic.jsonl', encoding='utf-8'), 1):
+    for ch in l:
+        if ch == '�' or (unicodedata.category(ch) == 'Cc' and ch != '	'):
+            print('line', i, 'suspicious char', hex(ord(ch)))
+"
+```
+
+(Note: a console that cannot render an em dash will *display* one as a
+replacement character. Verify a suspected hit by printing the codepoint, not
+by eye — the third adversarial re-review reported a corrupted em dash that
+turned out to be a clean U+2014 rendered through a cp1252 terminal.) This Python validator is authoritative (it's
 literally what gates training) once `prepare_data.py` exists;
 [`training_data.schema.json`](training_data.schema.json) is a
 machine-checkable mirror of the same contract, useful for a self-check with
@@ -129,6 +151,42 @@ don't just eyeball for a general sense of accuracy:
   established threads) getting silently resolved to one reading instead of
   flagged as unresolved — a distinct but related trap from smoothing a
   literal hedge word.
+- **No inferred setting or frame**: the output never names an activity,
+  venue, occasion, relationship, domain, or object class that `input` only
+  implies through its props. "Sleeping bag" and "camp stove" do not license
+  "camping trip"; "honey" and "carboy" do not license "mead"; "chapter 4"
+  and "discussion questions" do not license "the book" or "the group";
+  "primary mirror" does not license "telescope". The test is **not** whether
+  the inference is probably right — it usually is, which is exactly why this
+  survives a fluency read — but whether the writer actually said it. A
+  note-organizer that names the frame is guessing on the writer's behalf
+  about the one thing the writer already knew and therefore didn't bother to
+  write down. Distinct from invented causality (no new event or link is
+  asserted) and from invented certainty (no hedge is smoothed); this is
+  supplying a *category* for something the input left unnamed. Identified by
+  the third periodic adversarial re-review (2026-08-23) — see this file's
+  "Periodic adversarial re-review" log.
+- **Fields must agree with each other**: after checking `narrative`,
+  `bullets`, and `action_items` against `input` individually, check the three
+  against *each other*. A disagreement about the same fragment means at least
+  one of them is wrong, and it is the fastest way to locate an invention —
+  the field carrying prose-fluency pressure (`narrative`) typically names an
+  inferred frame first while the others stay literal, and `action_items` can
+  contradict a retraction that `narrative` correctly honored. Two real
+  instances: a narrative saying "Saturday's camping trip" where its own
+  bullets said only "for Saturday"; an `action_items` entry leading with
+  "Clean (or maybe just air dust) the primary mirror" where the narrative
+  correctly honored the input's "actually maybe just air dust it" retraction.
+- **`action_items` ownership**: an entry may be a task committed to by *any*
+  person named in `input`, attributed to them ("Uncle Bob to handle the
+  catering") — not only the writer's own tasks. What does **not** belong is a
+  past event with no forward commitment ("Dr. Patel called" is not an action
+  item). A third party's expected arrival ("plumber is supposed to come by")
+  does belong, since it is a commitment, but must keep its hedge. Settled by
+  the product owner 2026-08-23 after the third adversarial re-review found
+  the corpus teaching two conventions at once; see
+  [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s "File
+  format" rules for `output`.
 
 These categories of failure carried real, observed instances in the
 predecessor project — use this list as a concrete checklist against real
@@ -213,6 +271,7 @@ stronger options considered and not adopted.
 |---|---|---|---|
 | 2026-08-19 | 15 examples (batches 1–4), weighted toward `voice_to_text_artifact`/`contradictory_statement`/`dangling_reference`/`self_correction`/`interrupted_thought` — the categories with the most historical fixes/relabels, plus 2 control examples from never-flagged categories | 10 ACCEPT, 5 FIX, 0 REJECT, 0 hard RELABEL | First run — validated the safeguard itself works (found real, previously-uncaught defects, not just noise) and surfaced a genuine checklist gap: 4 of the 5 fixes shared one root pattern (a hedge in `input` smoothed into unearned certainty in the output) that §4's existing bullets didn't separately name. Added as "No invented certainty" above. The 5 flagged examples were fixed in place directly (not rejected — none were fundamentally unsound, all were narrow wording overreaches). Next run due after batch 6 — product owner tightened the cadence to every 2 batches after this run, rather than every 3. |
 | 2026-08-19 | 12 examples (batches 5–6), all 12 originally reviewed by Claude as "zero issues" — deliberately sampled to stress-test that confidence, weighted toward dense/expert-difficulty examples (multiple hedges, ambiguous cross-person attribution) since that's where a same-reviewer blind spot is most likely | 9 ACCEPT, 3 FIX, 0 REJECT | **The original "zero issues" verdict was not justified for 3 of 12.** Two were the same "No invented certainty" failure mode recurring — both specifically in `action_items`, even where narrative/bullets got the hedge right (one flattened "kinda liked" to "likes"; one silently resolved a genuinely ambiguous conditional — "I'll do it if Greg doesn't," where Greg's only established role was driving, not calling — into a flat, unhedged action item). The third was an unrelated mislabel (`topic_switching` when the structure was textbook `topic_interleaving`, confirmed by direct comparison with a correctly-labeled neighboring example). All 3 fixed in place. §4's "No invented certainty" bullet updated to name `action_items` as the higher-risk field specifically, per the reviewer's diagnosis that the field's terse, imperative format — not narrative fluency pressure — is the actual mechanism. Next run due after batch 8. |
+| 2026-08-23 | 13 examples (batches 7–8), weighted toward `topic_switching` (4 — the category with the most historical relabels) and `voice_to_text_artifact` (2), plus the 3 batch-8 examples touched during first-pass review (reviewer not told which) and 3 never-flagged controls | 2 ACCEPT, 11 FIX, 0 REJECT — plus 1 REJECT and 2 difficulty relabels added on reconciliation | **Found a failure mode none of §4's bullets named: *world-knowledge frame completion*** — the output names an activity, venue, or object class that `input` only implies through its props ("sleeping bag" + "camp stove" → "camping trip"; honey + carboy → "blackberry mead or wine"; "chapter 4" → "chapter 4 of the book"; "primary mirror" → "primary telescope mirror"). 7 of 11 fixes shared this root cause. It survives review precisely because the inference is usually *correct*, and it is distinct from invented causality (no new event asserted) and invented certainty (no hedge smoothed). Added as its own §4 bullet. The reviewer also identified a cheap detector — **the three output fields disagree with each other** when an invention is present (bullets said "for Saturday" where the narrative said "camping trip"; `action_items` reinstated a retraction the narrative had correctly honored) — added as a second new §4 bullet. Notably the first-pass reviewer had *seen* two of these instances and explicitly waved them through as acceptable inference: the blind spot was not failing to notice the instances but failing to recognize them as one mechanism. A third gap — no rule governing what qualifies as an `action_item` — was surfaced to the product owner, who settled it (any named person's commitment, attributed; not past events) and it is now a §4 bullet and a `DATASET_SPEC.md` rule. One finding was a **false positive**: a claimed U+FFFD corruption was a clean U+2014 em dash rendered through a cp1252 console, verified by codepoint dump across the whole corpus; the suggested encoding grep was still adopted into §1, with a note about verifying by codepoint rather than by eye. Dispositions: 9 clear-cut §4 fixes and 8 frame-completion fixes applied in place; `zero_action_items` #107 relabeled `expert`→`medium` and `voice_to_text_artifact` #97 `expert`→`hard` (both single-thread notes failing the tier definition's "dense combination of categories"); one `interrupted_thought` example rejected outright and parked for regeneration — nothing in it was actually cut off, so it taught none of the unfinished-vs-resumed judgment the category exists for. Corpus 116 → 115. Next run due after batch 10. |
 
 ## After review
 
