@@ -227,14 +227,23 @@ That rejection is why `interrupted_thought` reads 7 here rather than 8; it
 is parked for regeneration in a future batch rather than replaced by
 editing.
 
-**Narrative-voice drift in `voice_to_text_artifact` — found and fixed
-2026-08-23.** Initially logged as a two-example nit; listing all 8 examples in
-the category side by side showed it was the category majority and had been
-drifting for four batches. Narratives were first person in batches 2–3 (#18,
-#28, #29), turned to third-person meta-description from batch 5 (#69, #70) and
-stayed that way through batch 7 (#96, #97, #98) — "Voice-recorded reminders
-regarding tennis equipment preparation. The speaker needs to…" rather than "I
-need to get my racket restrung…".
+**Narrative-voice drift — corpus-wide, found and fixed 2026-08-23.** This was
+diagnosed twice and got smaller each time it was looked at properly. It was
+first logged as a two-example nit in `voice_to_text_artifact`; listing that
+category side by side made it look like a category problem beginning at batch
+5. Scanning the whole corpus by batch showed the actual shape: **26 of 115
+examples, spanning nine categories, with batch 4 affected 15/15 — every
+narrative in it.** The drift originated at batch 4, not batch 5, and was never
+category-specific at all. It tracks the *prompt used for a batch*, which is
+why it spreads across whatever categories that batch contained.
+
+Affected: all of batch 4 (#42–#56), #59 and #65 and #67 from batch 5, #84,
+#86, #88, #90, #91 from batch 6–7, #94 and #95 from batch 7, and the five
+`voice_to_text_artifact` examples fixed earlier the same day. Third-person
+narration ("The author is planning a large spring vegetable garden…") and
+meta-framing openers ("Notes on houseplant care…", "Brainstorming food options
+for…") are the same defect in two shapes: the narrative describing the note
+rather than being it.
 
 All 5 were rewritten to first person, with the transcription commentary
 removed: the category's lesson is recovering intent *through* transcription
@@ -247,15 +256,37 @@ asterisk"). The rewrite also caught two frame completions the new §4 rule had
 not yet been applied to: "tennis" in #70 (the input says only "racket", "pro
 shop", "tournament") and "freelance" in #98.
 
+The rewrite also cleared eight further defects that had gone unnoticed inside
+those narratives — six frame completions ("houseplant care", "freelance work",
+"kombucha brewing", "Dobsonian telescope", "bioactive terrarium", "donations
+of towels"), one invented certainty (#56 asserting a coffee chat "will happen"
+where the input said only "sometime soon maybe"), and one added emphasis
+("The critical first step is"). Fragment coverage was re-verified
+token-by-token across all 26; the only input tokens absent afterward are
+ordinary normalizations (`uhaul`→"U-Haul", `idk`→"I don't know",
+`tmrw`→"tomorrow").
+
 **Why no review caught it for four batches**: every check in
 [`REVIEW_GUIDE.md`](REVIEW_GUIDE.md) items 0–5 evaluates one example against
 its own `input`, and each of these narratives was individually defensible.
-Convention drift is invisible to a per-example check by construction. This is
-the same shape as the frame-completion blind spot found the same day — both
-only appear when you look *across* examples. Added as new checklist section
-6b (cross-example consistency), and the first-person rule is now pinned in
-[`DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s `output` rules and in
-the generation prompt template.
+Convention drift is invisible to a per-example check by construction — the
+first adversarial re-review sampled 15 examples from batches 1–4 and did not
+flag it. This is the same shape as the frame-completion blind spot found the
+same day: both only appear when you look *across* examples. Added as new
+checklist section 6b, which after this correction checks **by batch first**
+and by category second — the earlier version had the axis wrong, which is what
+made the first diagnosis undercount the problem by a factor of five. The
+first-person rule is pinned in
+[`DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s `output` rules and in the
+generation prompt template.
+
+**Also corrected 2026-08-23**: `minimal_fragment` #65 relabeled
+`expert`→`medium`. A 9-word, two-fragment note cannot satisfy the `expert`
+tier's "dense combination of categories, longer note, more state to hold";
+comparable 6-word notes in the same category are labeled `medium`. This is the
+same instruction conflict as `topic_switching` in batch 8 — a global
+difficulty skew applied to a category whose definition resists it — and the
+batch 9 prompt now bars `minimal_fragment` from `expert` explicitly.
 
 ## Cognitive / emotional / structural states covered
 

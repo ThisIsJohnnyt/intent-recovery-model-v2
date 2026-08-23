@@ -216,9 +216,21 @@ has a blind spot: a *convention* can drift across batches while every
 individual example remains defensible against its own input, so no per-example
 check ever fires. Items 0–5 cannot catch this by construction.
 
-So, once per batch, compare the new examples against **older examples in the
-same category** — not against their own inputs — and ask whether they still
-agree on:
+**Check by batch first, then by category.** A convention artifact tracks the
+*prompt*, not the taxonomy — so it appears in whatever categories that batch
+happened to contain and is uniform within the batch. Looking down a single
+category shows it faintly in several places and obviously in none. This was
+learned the hard way: the drift described below was first diagnosed as a
+`voice_to_text_artifact` problem starting at batch 5, and an earlier version
+of this section said to compare within a category. Scanning by batch showed
+the real shape — batch 4 was affected 15/15, every narrative in it, spanning
+nine different categories.
+
+So, once per batch: read the new batch's narratives (or bullets, or
+`action_items`) as a **column**, all of them together, and ask whether the
+batch as a whole has adopted a convention the rest of the corpus doesn't
+share. Then do the same down each category the batch touched. Ask whether
+they still agree on:
 
 - **Narrative voice.** First person throughout, per
   [`DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s `output` rules. Never
@@ -231,27 +243,42 @@ agree on:
   `voice_to_text_artifact` specifically — recover intent through the noise,
   don't annotate the noise.
 
-Real instance, and the reason this section exists:
-`voice_to_text_artifact` narratives were first person in batches 2–3, drifted
-to third-person meta-description ("Voice-recorded reminders regarding tennis
-equipment preparation. The speaker needs to…") from batch 5 onward, and by
-batch 7 the drift was the category majority — 5 of 8. Neither routine review
-nor either of the first two adversarial re-reviews caught it, because each
-of those narratives was individually fine against its own input. It was found
-only by listing every example in the category side by side. All 5 were
-rewritten to first person on 2026-08-23 and the rule pinned in
-`DATASET_SPEC.md`.
+Real instance, and the reason this section exists: narratives written in the
+third person ("The author is planning a large spring vegetable garden…",
+"Voice-recorded reminders regarding tennis equipment preparation. The speaker
+needs to…") instead of the writer's own voice. **26 of 115 examples were
+affected — batch 4 in its entirety (15/15), plus 2 from batch 5, 2 from batch
+7, and 7 more carrying meta-framing openers ("Notes on houseplant care…",
+"Brainstorming food options for…").** Nine different categories.
+
+Neither routine review nor any of the three adversarial re-reviews caught it —
+the first re-review sampled 15 examples from batches 1–4 and did not flag it —
+because every check in items 0–5 evaluates one example against its own
+`input`, and each of those narratives was individually faithful. The first
+attempt to diagnose it also got the shape wrong, reading it as one category's
+problem because that was the only category listed side by side at the time.
+All 26 were rewritten to first person on 2026-08-23, the rule pinned in
+`DATASET_SPEC.md`, and this section rewritten to check by batch first.
 
 Cheap way to run this: dump one field for every example in a category and
 read the column, rather than reading examples one at a time.
 
 ```bash
+# by batch — the primary axis. Adjust the slice to the batch under review.
 python -c "
 import json
 rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
+for i, r in enumerate(rows[101:], 102):
+    print(i, '|', r['category'][:20].ljust(20), '|', r['output']['narrative'][:70])
+"
+
+# and a standing regression check for this specific drift
+python -c "
+import json, re
+rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
+bad = re.compile(r'[Tt]he\s+(author|writer|speaker)|^\s*(Notes?|Dictated|Voice-recorded|Brainstorming|Rambling)')
 for i, r in enumerate(rows, 1):
-    if r['category'] == 'voice_to_text_artifact':
-        print(i, '|', r['output']['narrative'][:90])
+    if bad.search(r['output']['narrative']): print(i, r['output']['narrative'][:70])
 "
 ```
 

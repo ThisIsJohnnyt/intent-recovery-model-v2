@@ -227,8 +227,12 @@ recover the intent through the transcription noise rather than annotating
 the noise. "bullets" = one key point per source-supported idea, up
 to 7, fewer when the input supports fewer ideas -- never added, split, or
 repeated to reach a target count. "action_items" = concrete
-tasks mentioned, or [] if none — never invent tasks that aren't implied by
-the input. "difficulty" is your judgment of how hard this example is to
+tasks or next steps stated in the input, or [] if none — never invent tasks
+that aren't implied by the input. An entry may be a task committed to by ANY
+person named in the note, attributed to them ("Uncle Bob to handle the
+catering") — not only the writer's own tasks. What does NOT belong is a past
+event carrying no forward commitment ("Dr. Patel called" is not an action
+item). "difficulty" is your judgment of how hard this example is to
 recover correctly. "category" is the one specific recovery skill this
 example teaches — one of: "simple_list", "interrupted_thought",
 "topic_switching", "topic_interleaving", "dangling_reference",
@@ -239,7 +243,21 @@ example teaches — one of: "simple_list", "interrupted_thought",
 
 Every example must be explainable: for each fragment in "input", you should
 be able to say why it's there (interrupted, repeated, dangling reference,
-no punctuation, etc.) — don't generate noise you can't account for.
+no punctuation, etc.) — don't generate noise you can't account for. Every
+fragment must appear somewhere in the output, however minor.
+
+No invented certainty: if the input hedges ("maybe", "I think", "should
+probably", "around six-ish", "or so", "not sure"), the output must preserve
+that hedge. This applies with equal force inside "action_items", not just in
+narrative and bullets — a terse imperative task line must not harden "should
+probably call the dentist" into "Call the dentist." An imperative,
+decided-sounding field pulls hedged input toward false certainty on its own,
+so check it harder than the prose, not less. Likewise, never silently resolve
+a genuinely ambiguous referent to one reading; leave it ambiguous.
+
+No invented causality: adjacency in the note is not evidence of a
+relationship. If two fragments sit next to each other, don't join them with
+"so", "which led to", or "because" unless the input actually says so.
 
 Never name a setting the input only implies. If the input says "sleeping bag"
 and "camp stove", the output says "for Saturday" — not "the camping trip". If
