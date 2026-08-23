@@ -209,6 +209,52 @@ sections, once those exist. Does this batch fill a gap, or does it pile onto
 an already-covered category/state? Update `CATEGORY_REFERENCE.md` after
 review with whatever this batch newly covers.
 
+### 6b. Cross-example consistency (not covered by items 0–5)
+
+Everything above judges one example against its own `input`. That structure
+has a blind spot: a *convention* can drift across batches while every
+individual example remains defensible against its own input, so no per-example
+check ever fires. Items 0–5 cannot catch this by construction.
+
+So, once per batch, compare the new examples against **older examples in the
+same category** — not against their own inputs — and ask whether they still
+agree on:
+
+- **Narrative voice.** First person throughout, per
+  [`DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s `output` rules. Never
+  "the speaker", "the author", "dictated notes about…".
+- **`action_items` ownership.** Same convention as the rest of the corpus
+  (any named person's commitment, attributed; not past events) — see §4.
+- **Field register.** Bullets phrased consistently rather than switching
+  between imperative, impersonal, and first-person within a category.
+- **Depth of transcription/artifact commentary**, for
+  `voice_to_text_artifact` specifically — recover intent through the noise,
+  don't annotate the noise.
+
+Real instance, and the reason this section exists:
+`voice_to_text_artifact` narratives were first person in batches 2–3, drifted
+to third-person meta-description ("Voice-recorded reminders regarding tennis
+equipment preparation. The speaker needs to…") from batch 5 onward, and by
+batch 7 the drift was the category majority — 5 of 8. Neither routine review
+nor either of the first two adversarial re-reviews caught it, because each
+of those narratives was individually fine against its own input. It was found
+only by listing every example in the category side by side. All 5 were
+rewritten to first person on 2026-08-23 and the rule pinned in
+`DATASET_SPEC.md`.
+
+Cheap way to run this: dump one field for every example in a category and
+read the column, rather than reading examples one at a time.
+
+```bash
+python -c "
+import json
+rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
+for i, r in enumerate(rows, 1):
+    if r['category'] == 'voice_to_text_artifact':
+        print(i, '|', r['output']['narrative'][:90])
+"
+```
+
 ## 7. Design notes match the data
 
 For gold-tier batches specifically: does the `*_design_notes.md` file

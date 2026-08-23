@@ -227,14 +227,35 @@ That rejection is why `interrupted_thought` reads 7 here rather than 8; it
 is parked for regeneration in a future batch rather than replaced by
 editing.
 
-**Still open, product-owner call deferred**: the two `voice_to_text_artifact`
-narratives (#96, #97) are written in third person ("A dictated shopping list
-for…") while all other categories use first person. This conflicts with the
-schema's "same meaning and tone as the input," and both spend their opening
-clause describing the transcription rather than recovering the note. Left
-as-is for now — changing it is a prompt change for the category, and doing it
-piecemeal would leave old and new examples inconsistent. Worth settling
-before the next `voice_to_text_artifact`-weighted batch.
+**Narrative-voice drift in `voice_to_text_artifact` — found and fixed
+2026-08-23.** Initially logged as a two-example nit; listing all 8 examples in
+the category side by side showed it was the category majority and had been
+drifting for four batches. Narratives were first person in batches 2–3 (#18,
+#28, #29), turned to third-person meta-description from batch 5 (#69, #70) and
+stayed that way through batch 7 (#96, #97, #98) — "Voice-recorded reminders
+regarding tennis equipment preparation. The speaker needs to…" rather than "I
+need to get my racket restrung…".
+
+All 5 were rewritten to first person, with the transcription commentary
+removed: the category's lesson is recovering intent *through* transcription
+noise, not annotating the noise, and a narrative that opens by classifying
+itself as "dictated notes" is describing the input rather than reorganizing
+it. Fragment coverage was re-verified token-by-token for all 5 afterward —
+including the garbled asterisk dictation in #96, which the meta-description
+had been carrying and which now resolves in-voice ("…buy a moon filter —
+asterisk"). The rewrite also caught two frame completions the new §4 rule had
+not yet been applied to: "tennis" in #70 (the input says only "racket", "pro
+shop", "tournament") and "freelance" in #98.
+
+**Why no review caught it for four batches**: every check in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md) items 0–5 evaluates one example against
+its own `input`, and each of these narratives was individually defensible.
+Convention drift is invisible to a per-example check by construction. This is
+the same shape as the frame-completion blind spot found the same day — both
+only appear when you look *across* examples. Added as new checklist section
+6b (cross-example consistency), and the first-person rule is now pinned in
+[`DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s `output` rules and in
+the generation prompt template.
 
 ## Cognitive / emotional / structural states covered
 

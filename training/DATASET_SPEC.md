@@ -104,6 +104,8 @@ One JSON object per line (JSONL), UTF-8:
 
 Rules for `output`:
 - `narrative`: rewrites `input` as a coherent narrative. Same meaning and tone as the input, just organized. Not therapy-speak, not generic — it should clearly be about the specific things mentioned in `input`.
+  **Always written in the writer's own voice — first person, never third.** Never "the speaker needs to…", "the author notes that…", "dictated notes about…". The narrative reorganizes the note; it does not describe, classify, or comment on it. This applies to every category including `voice_to_text_artifact`, where the temptation is strongest: the lesson that category teaches is recovering intent *through* transcription noise, not annotating the noise. A narrative opening "Dictated notes containing spoken punctuation commands…" is describing the input instead of recovering it, and reads wrong to a user seeing their own note organized. Pinned 2026-08-23 after the drift below.
+  *History*: `voice_to_text_artifact` narratives were first person in batches 2-3, drifted to third-person meta-description from batch 5 onward, and by batch 7 the drift was the category majority (5 of 8). No review pass caught it — including two adversarial re-reviews — because every check evaluates one example against its own `input`, and each of those narratives was individually defensible. All 5 were rewritten to first person on 2026-08-23. Cross-example consistency is not covered by the per-example checklist; see [`REVIEW_GUIDE.md`](../docs/datasets/REVIEW_GUIDE.md) §6.
 - `bullets`: one short key point per source-supported idea in `input`, up to 7. Source-determined count — use fewer than 7 when `input` supports fewer ideas; never add, split, or repeat content to reach a target count. A one-idea input gets one bullet.
 - `action_items`: concrete tasks/next steps mentioned in `input`. Use an empty array `[]` when the input has none — never invent one.
   **Ownership** (settled 2026-08-23, after the third adversarial re-review found the corpus teaching two conventions at once): an entry may be a task committed to by *any* person named in `input`, attributed to them — `"Uncle Bob to handle the catering"` is a valid action item, not only the writer's own tasks. A note-organizer that silently drops other people's commitments loses real planning information, and `multi_person_note` is a whole category. What does **not** belong is a past event carrying no forward commitment (`"Dr. Patel called"` is not an action item). A third party's expected arrival (`"plumber is supposed to come by"`) does belong, since it is a commitment — but it keeps its hedge, exactly like any other field.
@@ -217,7 +219,12 @@ no markdown fences, no commentary) for a note-organizing app. Each line:
 "input" = realistic scattered, messy personal notes a real person would
 jot down (voice-to-text or quick typing), NOT polished writing. "narrative"
 = the same content rewritten as one coherent paragraph, same meaning/tone,
-easier to read. "bullets" = one key point per source-supported idea, up
+easier to read, ALWAYS in the writer's own first-person voice. Never write
+the narrative as a description of the note ("Dictated notes about...", "The
+speaker needs to...", "The author notes that..."). Reorganize the note; do
+not describe or classify it. This holds for voice-to-text examples too --
+recover the intent through the transcription noise rather than annotating
+the noise. "bullets" = one key point per source-supported idea, up
 to 7, fewer when the input supports fewer ideas -- never added, split, or
 repeated to reach a target count. "action_items" = concrete
 tasks mentioned, or [] if none — never invent tasks that aren't implied by
