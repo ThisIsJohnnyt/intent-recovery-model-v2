@@ -234,7 +234,14 @@ they still agree on:
 
 - **Narrative voice.** First person throughout, per
   [`DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s `output` rules. Never
-  "the speaker", "the author", "dictated notes about…".
+  "the speaker", "the author", "dictated notes about…". **First person is not
+  sufficient on its own** — "I noted that…", "I wrote that…", "I also
+  stated…" are first person and still describe the note rather than being it.
+  Batch 9 produced exactly this after the third-person forms were banned, in
+  `contradictory_statement` specifically, where presenting two conflicting
+  statements creates pressure to narrate the conflict instead of simply
+  stating both halves. The test is not the pronoun; it is whether the
+  narrative is the note reorganized or a report about the note.
 - **`action_items` ownership.** Same convention as the rest of the corpus
   (any named person's commitment, attributed; not past events) — see §4.
 - **Field register.** Bullets phrased consistently rather than switching
@@ -260,6 +267,16 @@ problem because that was the only category listed side by side at the time.
 All 26 were rewritten to first person on 2026-08-23, the rule pinned in
 `DATASET_SPEC.md`, and this section rewritten to check by batch first.
 
+**Re-check every corrected example against the full checklist, not just the
+item that prompted the correction.** A fix applied to satisfy one item can
+introduce a violation of another. Real instance: the second adversarial
+re-review correctly caught #77 silently resolving the ambiguous conditional
+"I'll do it if Greg doesn't"; the fix applied then preserved the ambiguity but
+introduced meta-commentary ("I noted I'd take care of it") and an invented
+causal link ("since Greg is frequently late"), neither of which existed
+before. Both survived two further review passes and were only found when batch
+9's widened voice pattern was run over the corpus.
+
 Cheap way to run this: dump one field for every example in a category and
 read the column, rather than reading examples one at a time.
 
@@ -276,7 +293,7 @@ for i, r in enumerate(rows[101:], 102):
 python -c "
 import json, re
 rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
-bad = re.compile(r'[Tt]he\s+(author|writer|speaker)|^\s*(Notes?|Dictated|Voice-recorded|Brainstorming|Rambling)')
+bad = re.compile(r'[Tt]he\s+(author|writer|speaker)|I (noted|wrote|stated|also wrote|also stated)|^\s*(Notes?|Dictated|Voice-recorded|Brainstorming|Rambling)')
 for i, r in enumerate(rows, 1):
     if bad.search(r['output']['narrative']): print(i, r['output']['narrative'][:70])
 "

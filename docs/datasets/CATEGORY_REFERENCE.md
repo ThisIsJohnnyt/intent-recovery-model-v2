@@ -288,6 +288,71 @@ same instruction conflict as `topic_switching` in batch 8 — a global
 difficulty skew applied to a category whose definition resists it — and the
 batch 9 prompt now bars `minimal_fragment` from `expert` explicitly.
 
+## Depth by category (running total, after batch 9)
+
+Batch 9 (16 requested, 15 accepted, 1 rejected, 6 fixed) cleared every
+category that was sitting at the depth floor of 7. Depth is now banded 8-9
+across all 15 categories, the tightest the corpus has ever been, and category
+coverage is no longer a meaningful targeting axis at all.
+
+`contradictory_statement` (8), `long_rambling` (8), `minimal_fragment` (8),
+`topic_interleaving` (8), `voice_to_text_artifact` (8), `dangling_reference`
+(9), `interrupted_thought` (9), `multi_person_note` (9), `rapid_branching`
+(9), `repeated_reminder` (9), `self_correction` (9), `simple_list` (9),
+`time_ambiguous` (9), `topic_switching` (9), `zero_action_items` (9).
+
+**Difficulty distribution, full corpus**: easy 23, medium 41, hard 40,
+expert 26 (130 total). Hard has effectively caught medium.
+
+**First batch to assign difficulty per category instead of as a batch-wide
+skew.** This followed directly from batch 8's finding that a global
+hard/expert push can structurally contradict a category's own definition.
+Pulling the per-category difficulty breakdown for the first time showed the
+corpus-wide "medium leads" framing had been misleading: the imbalance is
+substantially structural, because some categories are intrinsically low
+difficulty (`simple_list` was easy 6 / medium 1) and others intrinsically
+high (`long_rambling` was expert 6 / medium 1). Asking every batch to skew
+hard was therefore asking several categories to become something they aren't.
+Batch 9 instead asked each category for the tier it was actually missing —
+`rapid_branching` at medium (it had no low end at all), `long_rambling` at
+hard (it was nearly all expert) — and returned 16/16 on category *and*
+difficulty, which no prior batch had managed.
+
+**The main lesson from batch 9 is about prompt design, not the examples.**
+It ran the most heavily constrained prompt yet, seven distinct rule blocks,
+and bought that perfect compliance at a visible cost in realism. Several
+inputs read as engineered to demonstrate a category rather than as something
+a person actually typed: two adjacent sentences manufacturing a contradiction
+with no reason a writer would produce them, five restatements of "email Dave"
+in one short note, bare comma-separated lists with none of the mess that
+defines the `input` field. A corpus of engineered notes trains a model that
+works on engineered notes. **Batch 10 should state fewer rules more briefly
+and add an explicit realism requirement** — the rules are now in
+`DATASET_SPEC.md`'s template and don't all need restating inline.
+
+**The voice drift returned in a new surface form.** Two
+`contradictory_statement` examples narrated the act of writing — "I noted that
+the dog needs half a scoop... but I also wrote..." — which is first person and
+therefore passed the rule as written, while still describing the note rather
+than being it. It appeared only in that category, where presenting two
+conflicting statements creates pressure to narrate the conflict rather than
+simply state both halves. The regression pattern in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md) §6b has been widened to catch "I
+noted / I wrote / I stated" alongside the third-person forms.
+
+Running that widened pattern over the existing corpus immediately found #77,
+a `multi_person_note` example whose *previous* fix — applied by the second
+adversarial re-review, which had correctly caught it silently resolving the
+ambiguous conditional "I'll do it if Greg doesn't" — had introduced this exact
+meta-commentary while fixing the original defect, plus an invented causal
+link. Now corrected, with the ambiguous conditional kept verbatim rather than
+paraphrased. Worth noting as a general caution: **a fix applied to satisfy one
+checklist item can introduce a violation of another**, and nothing in the
+review process currently re-checks a corrected example against the full list.
+
+130 accepted examples total across 9 batches
+(13 + 14 + 14 + 15 + 15 + 15 + 15 + 15 + 15, less 2 rejected on review).
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
