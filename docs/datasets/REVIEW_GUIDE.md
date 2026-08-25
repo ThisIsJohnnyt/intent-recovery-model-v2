@@ -110,6 +110,25 @@ don't just eyeball for a general sense of accuracy:
 - **Preserved uncertainty**: uncertain references (e.g. "the blue folder")
   or genuinely open questions in `input` stay uncertain/open in the
   output — never resolved with a guessed answer.
+- **Unmarked ambiguity** (a detection problem, not a new prohibition): the
+  bullet above, and "No invented certainty" below, both find ambiguity by its
+  *markers* — "i think", "maybe", a deliberately vague noun phrase ("the blue
+  folder"), a pronoun with two candidate antecedents. A note can also be
+  underdetermined with **no marker at all**, because the writer was not
+  uncertain: they knew what they meant, wrote it plainly, and only a *reader*
+  is left guessing. "get the silicone one" — silicone caulk, or a silicone
+  caulk remover? — reads as flat and decided as any other imperative and trips
+  no hedge-word check. The output then picks a reading and states it as fact,
+  and every marker-based bullet in this section passes it, because nothing new
+  is *named*: what was added is the confidence. **Test by reading `input`
+  alone, as a stranger who does not already know the answer.** If a phrase has
+  more than one plausible referent under that reading, the output may not
+  choose one — carry the writer's own words through instead ("get the silicone
+  one"). Note that the categories most prone to this are *not* the ones
+  labelled for it: `dangling_reference` examples handle their marked reference
+  correctly because the label announces it, while an unmarked ambiguity
+  sitting inside a `topic_interleaving` note goes unexamined. Identified by
+  the product owner's hand spot check, 2026-08-25.
 - **No invented chronology**: the output never asserts an order of events
   that `input` doesn't state.
 - **No invented causality**: the output never asserts one fragment caused
@@ -139,6 +158,19 @@ don't just eyeball for a general sense of accuracy:
   distinct fragment disappears into a vaguer, more general statement.
 - **No unsupported tasks**: `action_items` never contains a task that
   isn't implied by `input`.
+- **No dropped imperatives** (the only under-extraction rule in this
+  section): every other `action_items` bullet here constrains what must *not*
+  go in — "No unsupported tasks" above, "No invented certainty" below. None of
+  them required a task the input genuinely *does* state to actually appear. An
+  explicit imperative in `input` is a committed next step and belongs in
+  `action_items` **even when its object is an unresolved reference**: "don't
+  forget the framework from that one article" becomes "Remember the article's
+  framework for behavioral questions", not nothing. Being hard to act on is
+  not a reason to omit it — carry the imperative through with its reference
+  still unresolved. This failure passes review because preserving the fragment
+  in `bullets` alone already satisfies "No lost low-salience reminders" while
+  still losing the commitment. Identified by the product owner's hand spot
+  check, 2026-08-25.
 - **No misattribution**: when a note mentions more than one person, a
   fragment belonging to one of them is never reassigned to another.
 - **No invented certainty**: a hedge in `input` ("i think," "maybe," "if
@@ -347,6 +379,33 @@ problem because that was the only category listed side by side at the time.
 All 26 were rewritten to first person on 2026-08-23, the rule pinned in
 `DATASET_SPEC.md`, and this section rewritten to check by batch first.
 
+**That fix did not take, and the check written to guard it was the reason.**
+The product owner's hand spot check on 2026-08-25 found third-person bullets in
+a record whose bullets had been edited during that very sweep. A positive test
+(does the narrative contain a first-person pronoun at all?) then found **15
+narratives still not in the writer's voice, none of them touched by the
+26-example rewrite**, plus 26 records carrying third-person bullets and 9
+narratives still carrying meta-commentary — in `interrupted_thought` and
+`contradictory_statement`, exactly where the paragraph above predicts, and
+sitting alongside correct exemplars (#80, #81, #117) so the corpus was teaching
+both conventions at once. The banned-form regex returned **one** hit on all of
+that, and it was a false positive: `the\s+author` matching "the authorization
+form" in #83. Zero true positives, for three weeks, while reading clean.
+
+**The lesson is about the shape of the check, not this defect.** A test that
+enumerates forms already seen goes quiet exactly as generation moves to the
+next form — the same mechanism §4's "Representing an absence" describes for
+prohibitions. Prefer a positive test for the property you actually want. The
+checks below were rewritten on that principle 2026-08-25.
+
+**Fixing voice raises the copy ratio.** All 24 narratives rewritten that day
+moved *up* on input→narrative similarity (corpus mean 0.535 → 0.582, worst
+case 0.67 → 0.93), because the cheapest way to stop describing a note is to
+start reciting it. Twelve had to be reorganized a second time to bring them
+back (mean settled at 0.561). **Measure the copy ratio after any voice fix**;
+the two rules pull against each other and satisfying one silently breaks the
+other.
+
 **Re-check every corrected example against the full checklist, not just the
 item that prompted the correction.** A fix applied to satisfy one item can
 introduce a violation of another. Real instance: the second adversarial
@@ -370,17 +429,49 @@ for i, r in enumerate(rows[101:], 102):
 "
 
 # and a standing regression check for this specific drift.
-# NOTE: scans ALL THREE output fields, not just narrative -- the fourth
-# re-review found 8 third-person bullets in 7 records that a narrative-only
-# sweep had missed entirely, three weeks of review passes after the fact.
-# KNOWN FALSE POSITIVE: #98 opens "Notes for the historic society article:"
-# because its INPUT dictates exactly that ("notes for the historic society
-# article colon"). Flagging a note's own words as meta-framing is the kind of
-# false positive that teaches a reviewer to skim; verify before acting.
+#
+# The regex that lived here until 2026-08-25 tested for BANNED SURFACE FORMS
+# ("the author", "I noted", openers starting "Notes|Dictated|..."). It scored
+# 1 hit on a 141-record corpus that a positive test found 15 defects in -- and
+# that single hit was a FALSE POSITIVE, matching "the authorization form" on an
+# unbounded `the\s+author`. Zero true positives. Banning forms by name is the
+# same losing game §4's "Representing an absence" describes: each ban teaches
+# generation the next surface form, and the check goes quiet while the corpus
+# gets worse. TEST FOR THE PROPERTY YOU WANT, NOT THE FORMS YOU HAVE SEEN.
+#
+# (1) POSITIVE TEST -- the load-bearing one. A narrative in the writer's own
+# voice essentially always contains a first-person pronoun. This catches
+# subject-elided third person ("Needs to check if Adobe price increased"),
+# which no banned-form list ever will.
 python -c "
 import json, re
 rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
-bad = re.compile(r'[Tt]he\s+(author|writer|speaker)|I (noted|wrote|stated|also wrote|also stated)|[Tt]he note (cuts off|is abruptly|breaks off)|while (recording|taking) th|^\s*(Notes?|Dictated|Voice-recorded|Brainstorming|Rambling)')
+fp = re.compile(r\"\b(I|I'm|I'd|I'll|I've|my|me|mine|we|we're|our|us)\b\", re.I)
+for i, r in enumerate(rows, 1):
+    if not fp.search(r['output']['narrative']): print(i, r['category'], '|', r['output']['narrative'][:70])
+"
+
+# (2) Same property, applied to bullets and action_items. Third-person leads
+# only; \"Need to X\" is elided first person and is the corpus register.
+python -c "
+import json, re
+rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
+third = re.compile(r'^\s*(Needs to|Plans to|Intends to|Wants to|Feels|Suspects|Hopes|Thinks|Finds|Has to|Notes)\b')
+for i, r in enumerate(rows, 1):
+    for f in ('bullets', 'action_items'):
+        bad = [x for x in r['output'][f] if third.match(x)]
+        if bad: print(i, r['category'], f, bad)
+"
+
+# (3) Meta-commentary: the output reporting ON the note instead of being it.
+# Note \b on author/writer/speaker -- without it this matches \"authorization\".
+# KNOWN FALSE POSITIVE: #98 opens \"Notes for the historic society article:\"
+# because its INPUT dictates exactly that. Flagging a note's own words is the
+# kind of false positive that teaches a reviewer to skim; verify before acting.
+python -c "
+import json, re
+rows = [json.loads(l) for l in open('datasets/synthetic.jsonl', encoding='utf-8') if l.strip()]
+bad = re.compile(r\"[Tt]he\s+(author|writer|speaker)\b|I (?:\w+ly )?(?:noted|wrote|stated)|contradict\w*|didn't finish|lost my train|got distracted|my planning was|was brainstorming|[Tt]he note (cuts off|is abruptly|breaks off)|thought was (left )?(incomplete|interrupted)|opinions were shared|^\s*(Dictated|Voice-recorded|Rambling|A (brief|short|basic) (note|reminder))\", re.I)
 for i, r in enumerate(rows, 1):
     if bad.search(json.dumps(r['output'], ensure_ascii=False)): print(i, r['category'])
 "

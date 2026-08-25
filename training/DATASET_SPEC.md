@@ -233,7 +233,10 @@ that aren't implied by the input. An entry may be a task committed to by ANY
 person named in the note, attributed to them ("Uncle Bob to handle the
 catering") — not only the writer's own tasks. What does NOT belong is a past
 event carrying no forward commitment ("Dr. Patel called" is not an action
-item). "difficulty" is your judgment of how hard this example is to
+item). An explicit imperative in the input is always an action item, even
+when its object is an unresolved reference — "don't forget the framework from
+that one article" becomes "Remember the article's framework", not nothing.
+"difficulty" is your judgment of how hard this example is to
 recover correctly. "category" is the one specific recovery skill this
 example teaches — one of: "simple_list", "interrupted_thought",
 "topic_switching", "topic_interleaving", "dangling_reference",
@@ -254,7 +257,11 @@ narrative and bullets — a terse imperative task line must not harden "should
 probably call the dentist" into "Call the dentist." An imperative,
 decided-sounding field pulls hedged input toward false certainty on its own,
 so check it harder than the prose, not less. Likewise, never silently resolve
-a genuinely ambiguous referent to one reading; leave it ambiguous.
+a genuinely ambiguous referent to one reading; leave it ambiguous. A note can
+also be ambiguous with no hedge word in it anywhere — the writer knew what
+they meant, so they wrote it plainly ("get the silicone one"). Read your own
+"input" back as a stranger who doesn't know the answer: if a phrase has more
+than one plausible referent, keep the writer's words instead of picking one.
 
 No invented causality: adjacency in the note is not evidence of a
 relationship. If two fragments sit next to each other, don't join them with
