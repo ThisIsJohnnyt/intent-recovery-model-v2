@@ -340,6 +340,17 @@ they still agree on:
   `narrative`, read as a distribution rather than per example: a single high
   value may be inherent to a category, a whole batch shifting upward is
   generation retreating into non-recovery (see §4's "No non-recovery").
+  **Two records sit above 0.85 permanently, by decision, 2026-08-25**: #127
+  (`simple_list`/easy, 0.87) and #118 (`dangling_reference`/medium, 0.91).
+  Both inputs are already single well-formed sentences, so there is no
+  structure left for the narrative to recover and the extraction work is
+  entirely the bullets' -- #118's narrative correctly leaves both "he" and
+  "it" unresolved. A high ratio is the *right* answer for a short,
+  already-ordered note, and forcing it down would mean padding. Don't
+  re-open these two. Do re-open any other record that climbs: the four fixed
+  that day (#67, #83, #94, #125) were all `long_rambling`,
+  `dangling_reference` and `rapid_branching` at hard or expert, where
+  tracking the note's own order means no recovery happened at all.
 - **Difficulty calibration.** `difficulty` is a purely comparative judgment —
   it means nothing against one input and everything against the corpus — and
   so it is the most cross-example field in the schema. The proof case: #127

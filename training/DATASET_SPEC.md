@@ -135,6 +135,67 @@ Three files:
   above. Evaluated only by a separate, explicit holdout-evaluation script.
   Not trained on.
 
+  **First split, 2026-08-25**, via
+  [`training/split_real_holdout.py`](split_real_holdout.py): 27 real notes
+  existed (all product-owner-authored, converted through
+  `convert_real_notes.py`); 12 were sealed into `real_holdout.jsonl`, 15 stay
+  in `real_validation.jsonl`. The product owner's own call, made deliberately
+  early rather than waiting for the original ~35-40 target -- current volume
+  still supports a holdout of value while he keeps adding examples.
+  Seed `8112748308428165860`, drawn from `os.urandom()` at run time so no
+  person (including whoever ran the script) chose it; shuffled with
+  `random.Random(seed)` over the 27 lines in the order
+  `convert_real_notes.py` wrote them. Sealed into `real_holdout.jsonl`
+  (by original line index): 4, 5, 8, 9, 10, 11, 14, 18, 19, 21, 24, 26.
+  Everything else stayed in `real_validation.jsonl`: 0, 1, 2, 3, 6, 7, 12,
+  13, 15, 16, 17, 20, 22, 23, 25. Recorded here, not in either data file,
+  because both are gitignored and this is the only durable record that the
+  split was a genuine random draw.
+
+  **Future real notes**, once converted, land in `real_validation.jsonl`
+  only -- the holdout stays sealed and is not the intended target for
+  `split_real_holdout.py`'s normal path (it refuses to run against a
+  non-empty holdout file without `--reseal`).
+
+**The one permitted piece of tooling** for those two files is
+[`training/convert_real_notes.py`](convert_real_notes.py): a mechanical
+text-shape converter from the product owner's plain-text notes to JSONL, plus
+schema validation. It parses, passes text through unchanged apart from
+stripping readability indentation, and refuses anything ambiguous by name so
+the human fixes the source. It does not draft, correct, complete, or suggest --
+a converter that repaired a typo or inferred a missing section would be
+generative assistance wearing a different hat, and would destroy the exact
+property these two files exist to have. `--verify` re-checks that promise
+character by character.
+
+It also **refuses any entry matching `datasets/synthetic.jsonl`** at
+`check_duplicates.py`'s own 0.55 threshold. Drafting real notes by copying a
+spot-check or review file as a template is a natural way to work, and it
+leaves synthetic examples sitting in the file looking exactly like entries;
+converted silently, they would fill the validation set with the corpus it
+exists to validate, and the result would look fine. Found live on 2026-08-25:
+9 of the 10 entries in the first draft of the real-notes file were verbatim
+spot-check examples. The gate is a refusal, never a silent skip.
+
+**That gate has a hard limit, and it is the more dangerous kind of
+contamination.** It compares against `datasets/synthetic.jsonl` and nothing
+else, so it can only see contamination that already lives in this repo. A note
+the product owner drafted, spot-checked, pasted, or talked through in *any*
+model session -- this project's or an unrelated chat -- is contaminated under
+the "uncontaminated by any generative model" rule above, and no in-repo check
+can detect it. The text may be entirely his own and still fail the standard,
+because the standard is about what has touched the note, not who typed it.
+Real instance, 2026-08-25: the product owner withdrew his own first real note
+because he had used it as a spot-check example in a separate Claude
+conversation -- caught by him, invisible to the converter and to every check
+in `REVIEW_GUIDE.md`. **Provenance of the real tier is the product owner's
+call alone, and the tooling cannot back him up on it.** When in doubt, drop
+the note; they are cheap to replace and the tier is worthless if it is wrong.
+
+`difficulty` is discarded even when the source tags it, per the product
+owner's call that he will underrate his own notes; `category` is carried
+through when tagged, and is meant to be added after the fact.
+
 ## Hard content boundary (non-negotiable)
 
 No example — generated or hand-written — may depict, instruct, or normalize
