@@ -661,6 +661,212 @@ narrow definition of a scenario well.
 
 167 accepted examples after twelve batches and five adversarial re-reviews.
 
+## Depth by category (running total, after batch 13)
+
+Batch 13 (18 requested, 18 accepted, 0 rejected, 2 relabeled, 3 fixed) —
+first batch generated under `TAXONOMY.md`'s new "structural ceiling on
+`expert`" principle, written up 2026-09-01 after batch 12's `minimal_fragment`
+gap was the third independent instance of the same finding. Targeted
+`minimal_fragment` (the last category below 11, missing `hard`/`expert`
+entirely) with a differently-shaped instruction — ambiguity density in very
+few words, explicit ban on if/then branching — rather than another plain
+retry at higher difficulty.
+
+`topic_switching` (11), `contradictory_statement` (11), `dangling_reference`
+(14), `interrupted_thought` (12), `long_rambling` (12), `minimal_fragment`
+(12), `multi_person_note` (12), `rapid_branching` (12), `repeated_reminder`
+(12), `self_correction` (14), `simple_list` (14), `time_ambiguous` (12),
+`topic_interleaving` (13), `voice_to_text_artifact` (12),
+`zero_action_items` (12).
+
+**Difficulty distribution, full corpus**: easy 39, medium 55, hard 59,
+expert 32 (185 total).
+
+**The ceiling-aware instruction worked on the first attempt.** All 4
+`minimal_fragment` examples came back genuinely thin — one line, no
+conditional structure — with the difficulty carried entirely in unstated
+referents ("the blue one", "the other middle one", "the last batch"). No
+relabel needed; the category's last open gap is closed. `simple_list`'s 3
+new `hard` examples similarly stayed flat lists with a genuine wrinkle
+(a restated item, an ambiguous entry) rather than accreting branching
+structure toward `expert` — consistent with the same principle's `hard`
+cap for this category.
+
+**Two relabels, both category mismatches this project has hit before.**
+A paint-color note requested as `topic_switching` returns to its original
+subject after an oven-related aside — the textbook `interrupted_thought`
+shape (cut off, resumed), not a permanent switch. A meeting-time note
+requested as `contradictory_statement` resolves to one consistent final
+stance (2pm, after briefly considering 3pm) rather than preserving an
+unresolved tension — the same `contradictory_statement`-vs-`self_correction`
+mismatch the fifth adversarial re-review found in `#153` five days earlier,
+this time in fresh generation rather than legacy data. Both relabeled
+rather than rejected; both examples otherwise sound.
+
+**Three fixes, one repeating a defect fixed corpus-wide five days
+earlier.** One `simple_list` example listed a restated item ("grab
+measuring tape" / "grab measuring tape again but the long one") as two
+separate bullets/action_items instead of merging per the repeated-item
+convention. One `simple_list` example's `bullets` merged a restated errand
+("buy caffeine" / "get coffee again") into one line while `action_items`
+kept it as two — a `bullets`/`action_items` disagreement on the same
+fragment, a §4 "fields must agree" violation. Most notable: a
+`rapid_branching` example's bullets used the passive "`X` needs to be
+`Y`-ed" shape (`"the guest room needs to be cleared out"`, `"Jamie needs
+to be asked..."`) — the exact pattern the fifth re-review had corpus-wide
+fixed five days earlier. **Confirms the standing warning not to assume one
+fix means a shape can't reappear in fresh generation** — the fix lives in
+the corpus, not in the prompt, so nothing prevented it recurring. Both
+bullets rewritten to active voice; the full three-check voice-regression
+suite re-run afterward, 0/185 clean.
+
+No near-duplicates (`check_duplicates.py` run against the full 185-record
+corpus), no scenario-well repetition, no mojibake.
+
+185 accepted examples after thirteen batches and five adversarial
+re-reviews. Next periodic adversarial re-review due after batch 14.
+
+## Depth by category (running total, after batch 14)
+
+Batch 14 (18 requested, 18 accepted, 0 rejected, 2 relabeled, 3 fixed)
+targeted `topic_switching` and `contradictory_statement`, tied at the
+depth floor (11) after batch 13, each with an explicit contrastive-
+definition instruction rather than a plain re-request.
+
+`minimal_fragment` (12), `rapid_branching` (12), `interrupted_thought`
+(13), `multi_person_note` (13), `repeated_reminder` (13), `time_ambiguous`
+(13), `voice_to_text_artifact` (13), `zero_action_items` (13),
+`contradictory_statement` (14), `long_rambling` (14), `simple_list` (14),
+`topic_switching` (14), `dangling_reference` (15), `self_correction` (15),
+`topic_interleaving` (15).
+
+**Difficulty distribution, full corpus**: easy 40, medium 61, hard 64,
+expert 38 (203 total).
+
+**Both contrastive-definition instructions worked cleanly on the first
+attempt.** All 3 `topic_switching` examples came back strict A-A-B with
+exactly one transition and zero returns to the first subject, capped at
+easy/medium as instructed — no relabels needed, unlike batches 6 and 7's
+repeated failures on this exact category. All 3 `contradictory_statement`
+examples genuinely stayed unresolved at the end (no closing "let's just go
+with X"), correctly distinct from `self_correction` — this is the same
+defect batch 13 found recurring in fresh generation days after the fifth
+re-review fixed a legacy instance of it, and the explicit "the note must
+stay split, not resolve" instruction held on the first retry.
+
+**Two relabels, unrelated to the two targeted categories.** A
+`dangling_reference` example requested at `expert` was a short flat list
+(four unrelated errands) with one embedded unresolved reference — no
+dense or branching combination, matching the same structural-ceiling
+principle already applied to `minimal_fragment`/`simple_list`; downgraded
+to `hard`. A `rapid_branching` example was actually a flat dump of
+unrelated meeting-note facts (hero image, logo size, server migration,
+copywriter, vendor, a cancelled meeting) with no idea spawning the next —
+`long_rambling`'s shape (many small points, none load-bearing), not this
+category's (one idea branching into related sub-ideas); relabeled.
+
+**Three fixes.** A `multi_person_note` example had a stated third-party
+commitment ("David said he would pay for the drinks") sitting in
+`bullets` but missing from `action_items` — the ownership-rule
+dropped-commitment failure mode named in `REVIEW_GUIDE.md` §4, added. A
+`zero_action_items` example was tagged `hard` for a note with no genuine
+ambiguity or near-miss task language anywhere in it — nothing a reviewer
+could plausibly have mistaken for a task — downgraded to `medium`. An
+`interrupted_thought` example elevated a real-time in-scene request
+("honey, get the door") into two forward-looking `action_items`; it's an
+already-resolved momentary aside captured mid-dictation, the same class as
+"Dr. Patel called" (a past event, not a forward commitment) — removed
+from `action_items`, kept in `bullets` where the interruption itself is
+already represented.
+
+No near-duplicates, no scenario-well repetition, no voice/meta-commentary
+regressions (0/203 on the full three-check suite, re-run after fixes).
+
+203 accepted examples after fourteen batches and five adversarial
+re-reviews. Periodic adversarial re-review now due, per the
+every-2-batches cadence.
+
+## Sixth adversarial re-review (2026-09-01) — corpus 203 → 203
+
+Due after batch 14. 14 examples: 10 touched (relabeled or fixed) during
+batches 13-14's own first-pass review, 4 never-touched controls. Gemini
+reviewed first against the full checklist, then a genuinely fresh Claude
+subagent — spawned with no exposure to this session's reasoning — as the
+independent second pass, per `PDR-006`'s amendment. Full findings in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. Result: 7 confirmed fixes, 0
+relabels, several claims from each reviewer declined after reconciliation.
+
+**The two passes disagreed on 6 of 14 examples, and the disagreement
+itself is what surfaced the real defects — this run's whole point.**
+Gemini flagged 11 of 14, including two claims that contradicted this
+project's own settled precedent: extending the verbatim-preservation
+"representing an absence" convention to `self_correction` (already
+excluded by the fifth re-review's own finding), and flagging gerund
+bullets like "Feeling tired of X" as a register violation when that shape
+is the corpus's sanctioned convention, not one of the two actually-banned
+shapes. The fresh Claude pass, given the same checklist with those two
+boundaries stated explicitly, held the line on both — the value of
+stating settled precedent in the prompt rather than assuming a reviewer
+has absorbed project history it never saw.
+
+**Confirmed by both passes:** a `simple_list` example silently merged two
+distinct fragments ("buy caffeine" / "get coffee again") into one item
+across both `bullets` and `action_items`, asserting an equivalence
+`input` never states — reverted to two separate items. A
+`multi_person_note` example flattened "David said he would pay for the
+drinks" into the flat action item "David to pay for the drinks," dropping
+the reported-speech hedge — restored. A `long_rambling` example opened
+with "These are my notes from the website redesign meeting" — the exact
+banned meta-framing shape this file's history already named — rewritten,
+and the standing regression regex widened to catch this phrase going
+forward. An `interrupted_thought` example inferred "my partner" from the
+input's bare "honey" — the same class of violation as "sleeping bag" →
+"camping trip" — reverted to the input's own word.
+
+**Confirmed by one pass alone, and held up on inspection anyway** — the
+reconciliation step doing real work, not just averaging two votes. The
+fresh Claude pass alone caught a `self_correction` example whose narrative
+dropped an entire stated fragment: the input gives two separate objections
+to 2pm (an unstated one — "actually 2pm is no good" — and a stated one —
+"3pm conflicts with the all-hands"), and the output kept only the second,
+erasing that the first was ever raised; restored as its own bullet. The
+fresh Claude pass alone also caught a `rapid_branching`/`expert` example
+that was a single mechanism (nested conditionals) with nothing genuinely
+combined from a second category — precisely the "structural ceiling on
+`expert`" principle this session wrote into `TAXONOMY.md` two batches
+earlier, independently re-derived by a reviewer who never saw that
+write-up; downgraded to `hard`.
+
+**One finding needed real judgment, not a mechanical fix.** A
+`contradictory_statement` example has a genuinely ambiguous "them" (Japan
+flights or hotels, both recently mentioned) that the original output
+silently resolved to hotels, while `action_items` dropped the stated
+flight-booking intent without ever contradicting it. This is the same
+still-open question the fourth adversarial re-review left for the product
+owner — what `action_items` should do when a note's own ending swallows
+an earlier intent into unresolved indecision with no explicit retraction.
+Resolved narrowly for this one instance (kept "them" genuinely ambiguous,
+left `action_items` at the note's actual behavioral outcome) without
+generalizing a rule, matching that question's own disposition.
+
+**One finding read and left undecided.** Both reviewers independently
+flagged the same `interrupted_thought` example (paint color / oven-check
+aside / return to paint) on different grounds — Gemini on voice, the
+fresh pass on category fit, since nothing in it is literally cut off
+mid-clause the way the category's own worked example is. Neither specific
+complaint held up alone, and no better-fitting category exists among the
+15 for "a fully-resolved aside interrupts, then the note returns to the
+original point" — but two independent reviewers flagging the same record
+for different reasons is itself the disagreement-is-the-signal pattern
+this process exists to catch. Recorded as a borderline case worth
+watching, not relabeled.
+
+Full three-check voice-regression suite, schema validation, and duplicate
+check all clean at 203/203 after the 7 fixes. No rejections, no relabels
+— every fix applied in place. 203 accepted examples after fourteen
+batches and six adversarial re-reviews. Next periodic re-review due after
+batch 16.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
