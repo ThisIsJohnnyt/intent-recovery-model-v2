@@ -867,6 +867,163 @@ check all clean at 203/203 after the 7 fixes. No rejections, no relabels
 batches and six adversarial re-reviews. Next periodic re-review due after
 batch 16.
 
+## Depth by category (running total, after batch 15)
+
+Batch 15 (18 requested, 18 accepted, 0 rejected, 2 relabeled, 1 fixed)
+targeted `rapid_branching` and `minimal_fragment`, tied at the depth floor
+(12) after batch 14.
+
+`voice_to_text_artifact` (13), `contradictory_statement` (14),
+`interrupted_thought` (14), `multi_person_note` (14), `repeated_reminder`
+(14), `simple_list` (14), `time_ambiguous` (14), `topic_switching` (14),
+`long_rambling` (15), `minimal_fragment` (15), `topic_interleaving` (16),
+`rapid_branching` (16), `dangling_reference` (17), `self_correction` (17).
+
+**Difficulty distribution, full corpus**: easy 41, medium 65, hard 72,
+expert 43 (221 total).
+
+**The `rapid_branching`/`expert` instruction worked immediately** —
+requested with the exact "genuine second-category combination, not
+branching alone" wording the sixth re-review's fresh-Claude pass had
+independently re-derived hours earlier. The one `expert`-tagged example
+combined branching with a second person's input, a hedge, and an
+unresolved venue decision; the other 3 stayed correctly capped at
+medium/hard as single-mechanism branching chains, with no over-claim.
+
+**Two relabels, one repeating a known failure mode.** A `minimal_fragment`
+example ("buy the grey one for him not the big one unless it's on sale")
+included a conditional ("unless") despite the prompt explicitly barring
+branching structure for this category — the same mistake batch 12 made;
+relabeled to `dangling_reference`, whose actual lesson (multiple
+genuinely unresolved referents — which grey one, which big one) is what
+the example teaches. A Chicago-packing note requested as
+`contradictory_statement` resolved cleanly on every point it raised
+(light jackets over heavy coats, blue sweater over green) with nothing
+left unresolved at the end — the **fourth** instance of this exact
+category-vs-`self_correction` mismatch this project has hit (see the
+fifth and sixth re-review logs, plus batch 13); relabeled.
+
+**One fix, applying a principle within hours of it being confirmed.** An
+`interrupted_thought` example (Q3 goals document drafting cleanly
+interrupted by a finished laundry cycle, then explicitly resumed) was
+tagged `expert` for what is structurally a single clean
+interruption-and-resume mechanism with nothing else genuinely combined —
+downgraded to `hard`, the same call the sixth re-review's fresh-Claude
+pass made on a different record the same day.
+
+Full voice-regression suite, schema validation, and duplicate check clean
+at 221/221 after fixes. No scenario-well repetition; car-maintenance,
+garden, dentist, and budget-spreadsheet scenarios also excluded this
+round as newly well-represented.
+
+221 accepted examples after fifteen batches and six adversarial
+re-reviews.
+
+## Depth by category (running total, after batch 16)
+
+Batch 16 (18 requested, 18 accepted, 0 rejected, 3 relabeled, 1 fixed)
+targeted `voice_to_text_artifact`, the sole category at the depth floor
+(13) after batch 15, with each of the 5 requested examples using a
+genuinely different transcription-layer artifact type rather than
+repeating one shape.
+
+`topic_switching` (14), `contradictory_statement` (15), `interrupted_thought`
+(15), `multi_person_note` (15), `repeated_reminder` (15), `simple_list`
+(15), `time_ambiguous` (15), `zero_action_items` (15), `minimal_fragment`
+(15), `long_rambling` (16), `rapid_branching` (17), `dangling_reference`
+(18), `self_correction` (18), `topic_interleaving` (18),
+`voice_to_text_artifact` (18).
+
+**Difficulty distribution, full corpus**: easy 42, medium 69, hard 80,
+expert 48 (239 total).
+
+**This batch's prompt carried three category-specific traps as explicit
+standing instructions for the first time, rather than only fixing them
+after the fact** — and all three held. `contradictory_statement` and
+`interrupted_thought` both came back correctly shaped, with no repeat of
+the mismatches found in batches 13-15. `voice_to_text_artifact` hit its
+target exactly: 5 examples, 5 genuinely distinct artifact types
+(mishearing, run-on, filler words, a spoken self-correction, and a
+mishearing combined with a hedge and conditional for the one `expert`
+example), closing the last open depth gap.
+
+**Three relabels, one a category-fit issue and two the now-familiar
+`expert` over-claim.** A `topic_switching` example was structurally
+A-B-A (pottery class → passport reminder → a return to pottery detail) —
+a real return to the first subject, which this category's own zero-returns
+definition (settled at batch 8) rules out; relabeled to
+`topic_interleaving`. Two `expert`-tagged examples — a `self_correction`
+built on a single paint-color pivot, and a `topic_interleaving` built on
+two flat threads with nothing else combined in — were each a single
+mechanism, however elaborate; downgraded to `hard`, the same principle
+the sixth re-review's fresh-Claude pass surfaced and batch 15 first
+applied, now caught within the same batch that stated it as an explicit
+prompt instruction rather than discovered after the fact.
+
+**One fix**: a `voice_to_text_artifact` bullet ("Asking Sarah if the
+sitting times need to be adjusted") tripped the passive-voice regression
+check via an embedded subordinate clause — not the blatant
+subjectless-passive shape the check was written for, but rephrased
+anyway rather than arguing the check's judgment case-by-case.
+
+Full voice-regression suite, schema validation, and duplicate check clean
+at 239/239 after fixes. No scenario-well repetition.
+
+239 accepted examples after sixteen batches and six adversarial
+re-reviews. Periodic adversarial re-review due, per the every-2-batches
+cadence.
+
+## Seventh adversarial re-review (2026-09-01) — corpus 239 → 239
+
+Due after batch 16. 13 examples: 7 touched (relabeled or fixed) during
+batches 15-16's own first-pass review, 6 never-touched controls. Gemini
+first, then a genuinely fresh Claude subagent as the independent second
+pass, per `PDR-006`'s amendment. Gemini's API returned three consecutive
+`503`/fetch errors before a fourth attempt succeeded. Full findings in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. Result: 3 confirmed fixes, 0
+relabels.
+
+**Gemini ran hot in a specific, identifiable way this run**: it flagged
+ordinary causal connectives ("so", "since", "because") as invented
+causality in 7 of 13 examples, even where the input's own text already
+stated that exact reasoning ("it's basically empty right now" as the
+stated reason for buying more flour). The "no invented causality" rule
+targets asserting a relationship between genuinely unrelated fragments —
+adjacency between two facts already part of the same stated thought isn't
+the violation it exists to catch. The fresh Claude pass, given the same
+checklist with that boundary stated explicitly, independently reached the
+same accept/fix split on all but one soft note — a clean instance of a
+reviewer extending a real rule past its documented scope at volume,
+caught by the second independent pass rather than compounding into the
+corpus.
+
+**The 3 fixes both passes converged on, separate from the causality
+noise, were all real.** A `self_correction` example (Chicago packing, two
+coat/sweater pivots) was tagged `expert` for a single mechanism run
+twice — made sharper this time because another record in the *same
+13-example sample* (a paint-color pivot) is the identical category at the
+identical complexity and was already correctly capped at `hard`, making
+the inconsistency directly comparable within one small sample rather than
+needing corpus-wide memory. Downgraded to `hard`. An `interrupted_thought`
+example (Q3 goals document, literal `"by--"` mid-clause cutoff) had its
+broken-off text smoothed into a complete sentence in every field — the
+exact case the "representing an absence" convention exists to prevent,
+missed during first-pass review because the causal story (laundry
+interrupting drafting) reads as obviously recovered even though the
+literal broken text never survives anywhere. Fixed by preserving `"by--"`
+verbatim. A `topic_interleaving` example (gym membership / quarterly
+report) narrated `"For work, I need to draft the quarterly report..."` —
+a domain label `input` never states, matching this project's own worked
+example of a banned inference almost verbatim, missed during first-pass
+review despite being the clearest defect in the sample by both reviewers'
+independent read. Fixed by removing the frame.
+
+Full three-check voice-regression suite, schema validation, and duplicate
+check clean at 239/239 after the 3 fixes. No rejections, no relabels —
+every fix applied in place. 239 accepted examples after sixteen batches
+and seven adversarial re-reviews. Next periodic re-review due after
+batch 18.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
