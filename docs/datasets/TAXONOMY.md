@@ -65,6 +65,25 @@ problem: **Basic / Moderate / Complex / High Cognitive Load**, mapping to
 | Complex | `hard` | Multiple categories combined in one note (e.g. `topic_interleaving` + `dangling_reference`). |
 | High Cognitive Load | `expert` | Dense combination of categories, longer note, more restated/branching content — more state to hold to recover correctly. |
 
+**Structural ceiling on `expert` for single-mechanism categories.** By this
+table's own definition, `expert` requires *combined* complexity — multiple
+categories' worth of structure stacked in one note. A category built around
+one clean mechanism (a short fragment, a flat list) has nothing to combine:
+pushing it toward `expert` either fakes complexity the category doesn't
+have, or the example accretes enough real structure that review correctly
+relabels it into whatever combined category it actually became. Confirmed
+three times independently — `topic_switching` (batch 8), `minimal_fragment`
+(batch 12: two attempts at `hard`/`expert` both got relabeled to
+`dangling_reference` on review), `simple_list` (batch 11: its one `expert`
+example was downgraded to `hard` on re-review, since length alone isn't the
+density this table asks for) — so this is now a standing principle, not a
+per-category surprise to rediscover: **if a category is defined by having
+little structure, treat its difficulty ceiling as `hard`, and don't keep
+retrying `expert` for it without a fundamentally different prompt angle**
+(e.g., ambiguity *density in what's unsaid*, not branching structure).
+`minimal_fragment` and `simple_list` are the two known instances as of
+2026-09-01; record any further one found the same way.
+
 ## Boundary categories
 
 Design-notes-only (see [`DESIGN_NOTES_TEMPLATE.md`](DESIGN_NOTES_TEMPLATE.md)'s
