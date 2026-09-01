@@ -122,23 +122,43 @@ def deserialize_target(text: str) -> dict:
     """Inverse of serialize_target() -- text -> dict. Used to check real
     model output at eval time against the same logic that built the
     training targets, rather than a second hand-written parser that could
-    silently drift from what training actually used."""
+    silently drift from what training actually used.
+
+    Does NOT split on literal "\\n". flan-t5's SentencePiece tokenizer
+    normalizes "\\n" to a plain space at *encode* time -- confirmed by
+    tokenizing "X\\nY" and "X Y" and getting identical token ids -- so a
+    real generated sequence never contains a newline to split on in the
+    first place, and neither did the training targets built by
+    serialize_target() above once they passed through the tokenizer. A
+    trained checkpoint's raw output looks like:
+        "###NARRATIVE### text here ###BULLETS### - one - two ###ACTIONS### - a1"
+    all on one line. Found 2026-08-25 when the first real eval run showed
+    every example failing to parse despite the raw output visibly
+    containing all three markers in order with real content -- the parser
+    was checking for a newline that no longer existed anywhere in the
+    pipeline, not a model or data defect.
+
+    Splits on the marker strings directly instead, then splits each
+    list section on " - " (matching how serialize_target's own "- {item}"
+    lines get glued back-to-back by the same normalization). This is a
+    heuristic, not lossless: an item whose own text contains a literal
+    " - " substring will be split apart. Accepted for now since it matches
+    what the model was actually trained to produce; revisit if that
+    collision shows up in practice."""
+    import re
     parts = {"narrative": "", "bullets": [], "action_items": []}
-    section = None
-    for line in text.split("\n"):
-        if line == "###NARRATIVE###":
-            section = "narrative"
-            continue
-        if line == "###BULLETS###":
-            section = "bullets"
-            continue
-        if line == "###ACTIONS###":
-            section = "action_items"
-            continue
-        if section == "narrative":
-            parts["narrative"] = line
-        elif section in ("bullets", "action_items") and line.startswith("- "):
-            parts[section].append(line[2:])
+    chunks = re.split(r"###NARRATIVE###|###BULLETS###|###ACTIONS###", text)
+    markers = re.findall(r"###NARRATIVE###|###BULLETS###|###ACTIONS###", text)
+    # chunks[0] is whatever precedes the first marker (should be empty/junk);
+    # chunks[i+1] is the content following markers[i].
+    for marker, content in zip(markers, chunks[1:]):
+        content = content.strip()
+        if marker == "###NARRATIVE###":
+            parts["narrative"] = content
+        else:
+            field = "bullets" if marker == "###BULLETS###" else "action_items"
+            items = [i.strip() for i in re.split(r"(?:^|\s)-\s", content)]
+            parts[field] = [i for i in items if i]
     return parts
 
 

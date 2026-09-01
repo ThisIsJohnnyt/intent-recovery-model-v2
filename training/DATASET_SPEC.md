@@ -73,6 +73,21 @@ Rules:
 - Round-trip: `prepare_data.py` exposes both `serialize_target()` (dict →
   this text) and `deserialize_target()` (text → dict), so the same logic
   used to build training targets can validate model output at eval time.
+- **The `\n` between sections above is a spec convenience, not something
+  that survives to a real model.** flan-t5's SentencePiece tokenizer
+  normalizes `\n` to a plain space at *encode* time — confirmed by
+  tokenizing `"X\nY"` and `"X Y"` and getting identical token ids — so it
+  is already gone from the training targets themselves, not just from
+  generated output. A real checkpoint's raw output looks like
+  `"###NARRATIVE### text ###BULLETS### - one - two ###ACTIONS### - a1"`,
+  all on one line. `deserialize_target()` splits on the marker strings
+  directly and then on `" - "` within each section, not on `\n` — found
+  2026-08-25 when the first real eval run showed every example failing to
+  parse despite visibly-correct, well-formed output; the parser was
+  checking for a newline that no longer existed anywhere in the pipeline,
+  not a model or data defect. Anyone reusing the model's raw generation
+  output directly (rather than through `deserialize_target()`) needs to
+  know this too.
 
 ## Task prefix (model input, not just the raw note)
 
