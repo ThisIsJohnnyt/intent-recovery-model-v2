@@ -1351,6 +1351,174 @@ every fix applied in place. 325 accepted examples after twenty batches
 and nine adversarial re-reviews. Next periodic re-review due after
 batch 22.
 
+## Depth by category (running total, after batch 21)
+
+Batch 21 (25 requested, 25 accepted, 0 rejected, 1 relabeled, 3 fixed) —
+third batch at size 25 — targeted 6 categories tied at the depth floor
+(21) with exactly 3 examples each, plus 7 more, and folded the ninth
+re-review's sharpened per-field hedge-check and named-combination
+requirements directly into the prompt for the first time.
+
+`long_rambling` (22), `time_ambiguous` (22), `contradictory_statement`
+(23), `minimal_fragment` (23), `multi_person_note` (23), `repeated_reminder`
+(23), `simple_list` (23), `topic_interleaving` (23), `dangling_reference`
+(24), `interrupted_thought` (24), `rapid_branching` (24), `self_correction`
+(24), `topic_switching` (24), `voice_to_text_artifact` (24),
+`zero_action_items` (24).
+
+**Difficulty distribution, full corpus**: easy 59, medium 108, hard 124,
+expert 59 (350 total).
+
+**The per-field hedge-preservation instruction worked cleanly across the
+whole batch** — every hedge checked landed correctly inside its own
+bullet/action_item, not just the narrative, the exact discipline the
+ninth re-review had to enforce after the fact five separate times just
+one batch earlier.
+
+**One relabel and one difficulty downgrade, both caught during first-pass
+review rather than needing a later re-review.** A `simple_list` example
+(folded laundry, fed dog, wiped counters — all completed past actions,
+correctly empty action_items) was actually teaching `zero_action_items`'s
+specific lesson — recognizing a list-shaped note has nothing to add —
+rather than `simple_list`'s baseline list-recovery lesson; relabeled. A
+`rapid_branching`/`expert` career-daydream example was elaborate
+branching with emotional flavor but no second nameable mechanism — the
+same single-mechanism pattern the ninth re-review had just downgraded
+five examples for; downgraded to `hard`.
+
+**Two more fixes.** The duplicate checker flagged a genuine
+phrasing-pattern match between a new antibiotics-reminder example and an
+existing corpus record — different content (antibiotics vs. trash bins)
+but the identical "don't forget to X... seriously remember the Y"
+rhetorical template, matching `TAXONOMY.md`'s "same phrasing pattern"
+prohibition directly even though the words themselves barely overlap;
+reworded rather than declined. A `contradictory_statement` example (app
+update status) had zero first-person pronoun in its narrative — genuine
+content, not the documented bare-fragment exception, so a real voice
+gap; fixed with minimal framing.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean after fixes — one remaining flagged pair confirmed
+as a false positive (13% word overlap, coincidental short-sentence
+structure).
+
+350 accepted examples after twenty-one batches and nine adversarial
+re-reviews.
+
+## Depth by category (running total, after batch 22)
+
+Batch 22 (25 requested, 25 accepted, 0 rejected, 1 relabeled, 4 fixed)
+closed `long_rambling`/`time_ambiguous`, tied at the depth floor, with
+exactly 4 examples each, plus 17 more, weighted toward both `easy` and
+`expert` (the two tied-thinnest difficulty tiers at once, rather than one
+at a time). Prompt added a pre-emptive rhetorical-template check after
+batch 21's phrasing-pattern duplicate finding — no repeat this round.
+
+`contradictory_statement` (23), `minimal_fragment` (24), `multi_person_note`
+(24), `repeated_reminder` (24), `simple_list` (24), `topic_interleaving`
+(24), `dangling_reference` (25), `interrupted_thought` (25), `topic_switching`
+(25), `long_rambling` (26), `rapid_branching` (26), `time_ambiguous` (26),
+`voice_to_text_artifact` (26), `zero_action_items` (26), `self_correction`
+(27).
+
+**Difficulty distribution, full corpus**: easy 67, medium 114, hard 131,
+expert 63 (375 total).
+
+**One relabel, the same recurring category mismatch.** A note requested
+as `contradictory_statement` resolves cleanly to one settled decision
+("I have to text Mark that I cannot help him") — it never stays
+unresolved, which is `self_correction`'s shape instead; relabeled.
+
+**Four fixes, three matching the exact single-mechanism pattern the
+ninth re-review spent a full pass finding.** A `long_rambling`/`expert`
+(passport panic) and a `self_correction`/`expert` (duck-pond sketch
+correction) were each one elaborate mechanism with mood flavor but no
+genuinely separate second structure, both downgraded to `hard`; a
+`minimal_fragment` tagged `hard` ("need sleep now") had no actual
+ambiguity at all, downgraded to `easy` to match an equivalent
+already-accepted example. One hedge-drop: "I think I need to stop and
+make a cup of tea" was flattened to a bare action item; restored.
+
+**Two `expert` tags held up on inspection with real, distinct
+combinations.** A `time_ambiguous` example combined its own date hedge
+with a genuinely unresolved pronoun ("remind him") that has no
+antecedent anywhere in the input — a real `dangling_reference` layered
+on top. A `multi_person_note` hit the category's specific 3+-person
+mixed-certainty carve-out exactly: a self-hedge, a firm assertion, and a
+reported hedge, three different registers in one note.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 375/375 after fixes (the one remaining flagged
+pair is the already-confirmed false positive from batch 21).
+
+375 accepted examples after twenty-two batches and nine adversarial
+re-reviews. Periodic adversarial re-review due, per the every-2-batches
+cadence.
+
+## Tenth adversarial re-review (2026-09-01) — corpus 375 → 375
+
+Due after batch 22. 14 examples: 9 touched (relabeled/fixed) during
+batches 21-22's own first-pass review, 5 never-touched controls. Gemini
+first, then a genuinely fresh Claude subagent as the independent second
+pass, per `PDR-006`'s amendment. Full findings in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. Result: 9 confirmed fixes, 0
+relabels.
+
+**A new, previously-undiscovered systemic pattern.** Both passes
+independently found that batch 22's own emotional-state diversity
+instruction had created pressure to invent a named feeling with zero
+textual basis, in the same shape three times — "because I am completely
+spent," "I feel sheepish because...," "I am confident and ready" /
+"confidently" — each removed since the input gave no seed for it at all.
+Two further candidates were correctly *declined*: "I am feeling serene"
+(the input's own "it's just so peaceful here" is a direct textual seed)
+and "preparing confidently" ("fully prepared" already implies it). **This
+distinction — zero textual seed versus a close paraphrase of one the
+input already states — is now the operative test**, not whether the
+exact word appears in the input.
+
+**Two more content fixes.** A `long_rambling` example asserted a uniform
+"tonight" for milk-disposal and general fridge-emptying when the input
+only explicitly times the leftovers that way; reworded to keep the
+specific timing where actually stated. A second `long_rambling` example's
+hedge "I think I just need to stop and make a cup of tea" had been
+converted into the action item "Think about stopping to make a cup of
+tea" — changing the task from *doing* the thing to *thinking about* it,
+distinct from a plain dropped hedge; restored to "Probably stop and make
+a cup of tea."
+
+**Two `expert` overclaims the fresh pass caught that Gemini hadn't
+precisely named.** A `voice_to_text_artifact` example's mistranscription
+fumbling and its resolution are both manifestations of the *same* single
+category mechanism, not two combined structures — downgraded to `hard`,
+correcting this session's own earlier judgment that treated
+"self-correction-style name recall" as a second element when it wasn't.
+A `multi_person_note` example was tagged `expert` under the category's
+"3+ named people, mixed certainty" carve-out, but literally only 2 people
+were named — the narrator's own unnamed "I" doesn't satisfy "named," so
+the carve-out's literal bar wasn't met; downgraded to `hard`. One
+`dangling_reference`/`expert` (single mechanism) was downgraded the same
+way both passes agreed on directly.
+
+**Two of Gemini's claims were confirmed as overreach, both instructive.**
+Gemini argued a `voice_to_text_artifact` example should preserve its
+mistranscription fragments verbatim because the category field isn't
+literally "self_correction" — the fresh pass correctly identified the
+noise-as-effect convention as a property of `voice_to_text_artifact`
+itself, not gated on matching a different category's name. Gemini also
+argued a `rapid_branching` example's hedged musings shouldn't be
+`action_items` at all since nothing is truly committed to — directly
+contradicting this project's own settled, extensively-reinforced
+convention that a hedged intention belongs in `action_items` with the
+hedge preserved.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 375/375 after all 9 fixes (one remaining
+flagged pair is the already-confirmed false positive from batch 21). No
+rejections, no relabels — every fix applied in place. 375 accepted
+examples after twenty-two batches and ten adversarial re-reviews. Next
+periodic re-review due after batch 24.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
