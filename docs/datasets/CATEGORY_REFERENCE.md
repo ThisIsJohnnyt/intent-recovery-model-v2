@@ -1024,6 +1024,174 @@ every fix applied in place. 239 accepted examples after sixteen batches
 and seven adversarial re-reviews. Next periodic re-review due after
 batch 18.
 
+## Depth by category (running total, after batch 17)
+
+Batch 17 (18 requested, 18 accepted, 0 rejected, 0 relabeled, corpus-wide
+capitalization fix applied) targeted `topic_switching`, the sole category
+at the depth floor (14), and `easy` difficulty, the thinnest tier
+corpus-wide after several expert-weighted batches.
+
+`contradictory_statement` (16), `interrupted_thought` (16),
+`minimal_fragment` (16), `multi_person_note` (16), `repeated_reminder`
+(16), `simple_list` (16), `time_ambiguous` (16), `zero_action_items`
+(16), `long_rambling` (17), `rapid_branching` (17), `dangling_reference`
+(19), `self_correction` (19), `topic_interleaving` (19), `topic_switching`
+(19), `voice_to_text_artifact` (19).
+
+**Difficulty distribution, full corpus**: easy 48, medium 75, hard 85,
+expert 49 (257 total).
+
+**First batch this session with a completely clean category/difficulty
+read on first-pass review — zero relabels.** All four standing traps
+(topic_switching zero-returns/no-expert, contradictory_statement must end
+unresolved, interrupted_thought needs a preserved verbatim cutoff, expert
+requires named cross-category combination) held without exception. All 5
+`topic_switching` examples came back strict single-transition/zero-return,
+correctly capped, with 2 genuinely `easy`. The `interrupted_thought`
+example's literal dash cutoff ("I can't do the --") survived verbatim in
+every field — the exact gap the sixth and seventh re-reviews found
+missing elsewhere, now correctly applied at generation time.
+
+**The real finding this batch was structural, not content-level, and it
+reached backward into the existing corpus rather than staying contained
+to the new batch.** Reading the batch's `action_items` column found
+nearly every entry started lowercase against the corpus's established
+capitalized convention — a fresh batch-tracking drift, fixed before
+acceptance. Checking whether the same shape already existed elsewhere in
+the corpus (the standing lesson: a detector gap is rarely confined to
+where it was first noticed) found **7 pre-existing records with the
+identical pattern, apparently dating to early batches and invisible to
+every prior review pass because no check for it existed until this
+session built one**. One of the 7 was `#151`, the "knock box" record the
+fifth re-review fixed for passive voice — that fix corrected the
+grammar but never re-capitalized the result, so the defect had been
+sitting one layer beneath an already-applied fix. All 7 corrected. One
+lowercase entry was deliberately left alone: `#167`'s bullet preserves an
+interruption verbatim in the input's own lowercase, run-on style, per the
+absence-representation convention — capitalizing it would have broken
+the very rule it satisfies, confirmed by checking the record's `input`
+before treating it as a defect rather than assuming the pattern-match
+was automatically right.
+
+Full voice-regression suite, schema validation, and duplicate check clean
+at 257/257. No scenario-well repetition.
+
+257 accepted examples after seventeen batches and seven adversarial
+re-reviews.
+
+## Depth by category (running total, after batch 18)
+
+Batch 18 (18 requested, 18 accepted, 0 rejected, 0 relabeled, 1 systemic
+fix across 3 records) targeted all 8 categories tied at the depth floor
+(16) after batch 17, exactly 2 examples each, weighted overall toward
+easy/medium difficulty.
+
+`long_rambling` (17), `rapid_branching` (17), `contradictory_statement`
+(18), `interrupted_thought` (18), `minimal_fragment` (18),
+`multi_person_note` (18), `repeated_reminder` (18), `simple_list` (18),
+`time_ambiguous` (18), `zero_action_items` (18), `topic_switching` (19),
+`dangling_reference` (19), `self_correction` (19), `topic_interleaving`
+(20), `voice_to_text_artifact` (20).
+
+**Difficulty distribution, full corpus**: easy 52, medium 83, hard 90,
+expert 50 (275 total).
+
+**Exact category-count compliance and correct capitalization
+throughout** — the explicit capitalization instruction added after
+batch 17's discovery held cleanly, with one correct, deliberate
+exception: a verbatim-preserved interruption kept its original lowercase,
+matching the absence-representation convention rather than breaking it.
+
+**The one real finding was a first-person-voice gap in bare, verb-less
+fragments, not a repeat of prior meta-commentary drift.** Two
+`minimal_fragment` examples ("cat food chicken flavor", "jennifer's old
+scarf") and one `zero_action_items` example (a third-person
+creative-writing critique with no personal referent at all) produced
+narratives with zero first-person pronoun. This is the genuine edge case
+the standing check's "essentially always contains a first-person
+pronoun" phrasing already anticipated — an input with no verb and no
+personal referent has nothing for a faithful recovery to attach a
+pronoun to without inventing one. Fixed with minimal, non-inventive
+framing that adds only the implicit personal frame every such note
+carries ("I need cat food in chicken flavor"; "Jennifer's old scarf is
+on my mind"; "I think the protagonist's motivation feels a bit weak..."),
+not a specific action or reason the input never stated.
+
+Full voice-regression suite, schema validation, and duplicate check
+clean at 275/275 after fixes. Noted, not actioned: "streaming
+subscription cancellation" (batches 17-18) and "quarterly report due
+Friday" (batches 16, 18) are each now at 2 instances — within the
+diversity rule's tolerance, but at the line; avoid both in future
+batches.
+
+275 accepted examples after eighteen batches and seven adversarial
+re-reviews. Periodic adversarial re-review due, per the every-2-batches
+cadence.
+
+## Eighth adversarial re-review (2026-09-01) — corpus 275 → 275
+
+Due after batch 18. 13 examples: 7 touched (relabeled/fixed) during
+batches 17-18's own first-pass review, 6 never-touched controls. Gemini
+first, then a genuinely fresh Claude subagent as the independent second
+pass, per `PDR-006`'s amendment. Full findings in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. Result: 2 confirmed fixes
+from the formal sample, plus 10 corpus-wide fixes from a self-directed
+catch before the sample was even sent out.
+
+**A pre-review catch found a corpus-wide gap in the standing passive-voice
+check itself.** The fifth re-review's check (2026-08-25) only matched
+regular `-ed` past participles ("X must be checked"); an irregular
+participle ("X must be told/given/drawn/sent/found/written...") is the
+identical passive-with-no-actor shape in different verb morphology, and
+slipped through entirely. A corpus-wide scan found **10 lines across 10
+records, spanning nearly every category, some dating to early batches** —
+the same "detector enumerates a shape instead of testing the underlying
+pattern" mechanism as the original discovery. All 10 rewritten to active
+voice; the standing check widened to cover both participle types in one
+pattern.
+
+**The formal sample produced the widest Gemini/fresh-Claude divergence of
+any re-review so far, and it was entirely Gemini overreach.** Gemini
+flagged 4 of 13 examples, 2 at REJECT severity; the fresh pass
+independently declined all 4: extending the banned-bullet-shape rule to
+ordinary declarative sentences with explicit subjects that match neither
+documented shape; misreading a stative sentence ("mopping is left for the
+morning crew") as a modal-passive obligation, which requires the literal
+verb "be" the sentence doesn't have; claiming a `voice_to_text_artifact`
+example lost content by not keeping "comma"/"period" as literal text —
+directly contradicting this project's own documented noise-exception for
+that category, traced to an incomplete checklist this session's own
+review prompt sent to Gemini rather than a new Gemini failure mode; and
+calling a correctly-unattributed action item ("someone needs to email the
+prof") wrongly assigned.
+
+**Both passes agreed on two real, different findings.** A
+`topic_switching` example (vacuum the stairs / clean the sink / order pet
+food) is actually three independent, unrelated items — A-B-C, not a
+coherent two-subject A-A-B transition — relabeled to `simple_list` rather
+than stretching the category's own strict definition to fit, a call this
+session had left as a defensible-but-borderline stretch back in batch 17.
+A `long_rambling`/`expert` example (three hours staring at a canvas, one
+item mentioned twice) was tagged `expert` for what both reviewers
+concluded is a single mechanism — rambling drift and internal repetition
+are native to *how the category works*, not a second structure layered
+on top — downgraded to `hard`.
+
+**Explicitly confirmed rather than merely accepted**: a
+`voice_to_text_artifact`/`expert` example was specifically re-examined
+per this session's own request, and both of its component mechanisms (a
+destination self-correction correctly treated as transcription noise; a
+drive-vs-fly deliberation correctly treated as real, preserved content)
+verified as genuinely distinct and handled differently — the difficulty
+tag holds, unlike the canvas example carrying the same nominal tag for a
+shallower reason.
+
+Full three-check voice-regression suite (now including the widened
+passive check), schema validation, and duplicate check clean at 275/275
+after all 12 fixes this round. No rejections — every fix applied in
+place. 275 accepted examples after eighteen batches and eight adversarial
+re-reviews. Next periodic re-review due after batch 20.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
