@@ -502,6 +502,165 @@ four). Worth avoiding in batches 11+.
 
 141 accepted examples after ten batches and four adversarial re-reviews.
 
+## Depth by category (running total, after batch 11)
+
+Batch 11 (12 requested, 12 accepted, 0 rejected, 4 fixed) targeted the six
+difficulty-tier gaps left after batch 10: `rapid_branching`,
+`multi_person_note`, `time_ambiguous`, and `topic_interleaving` all had zero
+`easy` examples; `simple_list` had zero `hard` or `expert`;
+`contradictory_statement` had zero `expert`. First batch generated after
+2026-08-23's voice sweep, spot-check fixes, and the double-review
+calibration — also the first whose prompt carries the two rules that run
+landed (unmarked ambiguity, no dropped imperatives).
+
+`minimal_fragment` (8), `topic_switching` (9), `dangling_reference` (9),
+`repeated_reminder` (9), `zero_action_items` (9), `self_correction` (9),
+`interrupted_thought` (9), `simple_list` (11), `rapid_branching` (11),
+`long_rambling` (11), `multi_person_note` (11), `time_ambiguous` (11),
+`voice_to_text_artifact` (11), `contradictory_statement` (12),
+`topic_interleaving` (13).
+
+**Difficulty distribution, full corpus**: easy 34, medium 48, hard 43,
+expert 28 (153 total).
+
+**All six requested gaps closed exactly as requested** — 12/12 on category
+and difficulty tier both, matching batches 9 and 10's mechanical compliance.
+
+**Two API calls returned `503 UNAVAILABLE`** before a third succeeded — the
+model was under high demand, not a problem with the prompt; the product
+owner authorized a retry rather than falling back to `flash` mid-corpus.
+
+**The telemetry `batch_starting()` checkpoint was missed** — noted here
+rather than quietly dropped, per this project's standing practice of owning
+process misses directly. `batch_finished()` still ran at completion; full
+detail in `COST_LEDGER.md`'s new row.
+
+**Four fixes, two of one shape**: `action_items` flattening a genuine
+dependency into unconditional flat tasks ("greg will do the grocery run if
+I text him a list" → two separate unconditional items) — the same fix
+`#125` needed the same day, from the calibration run. One dropped fragment
+(`bullets` correctly listed milk/eggs, `action_items` didn't). One
+reinstated two superseded instructions in `action_items` next to the two
+still-live ones — the exact contradictory-imperatives shape `#122` was
+rejected for, caught this time before it reached the corpus rather than
+after.
+
+**Batch mean copy ratio (0.75) ran well above the corpus's 0.56, but mostly
+for a structural reason rather than a defect one.** The four newly-covered
+`easy`-tier categories sit at 0.71–0.83: an easy-tier `rapid_branching`,
+`multi_person_note`, `time_ambiguous`, or `topic_interleaving` note is short
+and already close to spoken order, so there's genuinely less to reorganize
+— not the same failure as a longer note copying itself. The two
+`contradictory_statement`/`expert` examples were the real exception: both
+at 0.88, above the documented 0.85 line and not covered by the
+short-input exception (dense, multi-position notes with real structure to
+recover available), so both were rewritten to actually reorganize —
+0.88/0.88 → 0.61/0.53. Worth watching whether `easy`-tier requests in
+reorganization-heavy categories keep running structurally high; one batch
+isn't enough to call it a pattern.
+
+153 accepted examples after eleven batches and four adversarial re-reviews.
+
+## Depth by category (running total, after batch 12)
+
+Batch 12 (14 requested, 14 accepted, 0 rejected, 2 relabeled, 1 fixed),
+same day as batch 11 — floor-raising for the 7 categories still at 8–9
+after batch 11, rather than chasing a new difficulty ceiling.
+
+`minimal_fragment` (8), `simple_list` (11), `topic_switching` (11),
+`repeated_reminder` (11), `zero_action_items` (11), `self_correction`
+(11), `rapid_branching` (11), `long_rambling` (11), `multi_person_note`
+(11), `time_ambiguous` (11), `interrupted_thought` (11),
+`voice_to_text_artifact` (11), `contradictory_statement` (12),
+`topic_interleaving` (13), `dangling_reference` (13).
+
+**Difficulty distribution, full corpus**: easy 38, medium 50, hard 48,
+expert 31 (167 total).
+
+**`minimal_fragment` is now the only category below 11, and the only one
+still missing `hard`/`expert` entirely** — both requested examples were
+relabeled to `dangling_reference` instead. The prompt asked for
+`minimal_fragment` to reach higher difficulty "through how much ambiguity
+packs into very few words," and what came back were dense conditional
+decision trees with real structure — directly contradicting the
+category's own "little structure" definition. Same shape as batch 8's
+`topic_switching`/`expert` finding: a requested difficulty tier can
+structurally contradict a category's own definition, and asking harder
+doesn't fix that, a differently-shaped request does. Both relabeled rather
+than rejected, since what they actually teach (preserving several
+unresolved referents without guessing) is sound. Needs a future batch
+with a `minimal_fragment`-specific instruction that keeps genuinely
+minimal — very few words, plainly stated, no conditional branches — while
+still finding a way to be hard to recover.
+
+167 accepted examples after twelve batches and four adversarial re-reviews.
+
+## Fifth adversarial re-review (2026-08-25) — first Gemini-first run, corpus 167 → 167
+
+The first re-review under `PDR-006`'s 2026-08-25 amendment: Gemini reviews
+first against the full 0–8 checklist, Claude second, following the
+calibration run's finding that a same-family reviewer under-detects this
+project's own characteristic defects. 13 examples — 7 edited or relabeled
+during this session's first-pass review (the calibration's worst-case
+stratum), 6 never-touched controls. Full findings in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. Result: 6 ACCEPT, 7 FIX, 0
+REJECT, 3 further 6b findings (1 confirmed corpus-wide, 2 declined).
+
+**The amendment's premise held on its second data point.** Gemini found real
+defects in examples Claude's own first-pass review had cleared minutes
+earlier, including a category mismatch: #153 was labelled
+`contradictory_statement`, which requires an unresolved tension preserved
+verbatim, but the note is a mistaken belief corrected within itself,
+resolving to one consistent stance — `self_correction`'s shape. Relabeled;
+Gemini's own separate reasoning about a different example (self_correction
+permits narrating the pivot, unlike the three verbatim-preservation
+categories) independently confirms the relabel is what makes the existing
+narrative correct.
+
+**A fix introduced a regression that a second check caught immediately.**
+#163's frame-completion fix (removing an unstated "*my* basement drywall")
+briefly stripped every first-person pronoun from the narrative, regressing
+the exact voice defect fixed corpus-wide earlier the same day. Caught by
+re-running the standing checks right after applying the fix — the first
+concrete case of this section's own "re-check the full checklist, not just
+the item that prompted the correction" rule doing its job in real time
+rather than being cited after the fact.
+
+**The largest finding: the field-register regression check only ever
+covered one grammatical shape.** It tested for subject-led third-person
+bullets ("Needs to check X") but never passive constructions with no
+subject at all ("X must be checked") — a different shape entirely. Gemini's
+flag on #151 ("The knock box must be emptied") exposed this, and a
+corpus-wide scan found **19 lines across 18 records, spanning nearly every
+category**, not confined to recent batches. All rewritten to
+active/imperative, matching the register `action_items` already used
+correctly throughout — the defect concentrated entirely in `bullets`. The
+check itself now covers both shapes.
+
+**#151 also lost its `expert` tag**, downgraded to `hard`: `TAXONOMY.md`
+defines `expert` as a dense combination of categories with branching or
+restated content, and this is a long flat enumeration with a few appended
+exceptions — structurally identical to #150 (already `hard`), differing
+only in raw length, which the definition doesn't credit. `simple_list` is
+without an `expert` example again, the same open gap `minimal_fragment` has
+for `hard`/`expert` — a third instance of the same pattern as batch 8's
+`topic_switching`/`expert` conflict: a requested difficulty tier can
+structurally contradict what a category is built to hold.
+
+**Two findings read and declined, not silently dropped**: an alleged
+ambiguity in #155's "wipe it" (USB vs. envelope) — declined, since "wipe"
+pragmatically constrains to the USB strongly enough that the envelope isn't
+a *plausible* second reading, not just an unlikely one. #157's "make sure
+the slide deck has the updated margins" read as verification rather than
+authoring — declined as ordinary inference for someone presenting their own
+deck. A third claim, that domestic-chore and grocery themes recurring
+across examples signals scenario-well over-reliance, was declined outright
+— the flagged examples don't share an actual situation, only a broad
+household-task theme, which doesn't meet this project's established
+narrow definition of a scenario well.
+
+167 accepted examples after twelve batches and five adversarial re-reviews.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
