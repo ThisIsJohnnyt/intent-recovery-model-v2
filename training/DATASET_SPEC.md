@@ -283,9 +283,12 @@ not that scattered = distressed.
 
 ## Prompt to give Gemini
 
-Generate in batches (ask for ~15-20 at a time, run it multiple times to
-reach a few hundred total). Paste this, adjusting the "batch categories"
-line each time to steer toward under-represented states:
+Generate in batches (ask for ~25 at a time — raised from the original
+~15-20 at batch 19, 2026-09-01, after several consecutive low-defect
+batches showed no quality drop at the larger size; revisit if a future
+batch's defect rate rises — run it multiple times to reach a few hundred
+total). Paste this, adjusting the "batch categories" line each time to
+steer toward under-represented states:
 
 ```
 Generate 15 training examples in JSONL format (one JSON object per line,

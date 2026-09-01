@@ -1192,6 +1192,165 @@ after all 12 fixes this round. No rejections — every fix applied in
 place. 275 accepted examples after eighteen batches and eight adversarial
 re-reviews. Next periodic re-review due after batch 20.
 
+## Depth by category (running total, after batch 19)
+
+Batch 19 (25 requested, 25 accepted, 0 rejected, 0 relabeled, 0 fixes) —
+first batch run at increased size (25, up from the 15-20 range this
+project used since batch 1), tested after several consecutive low-defect
+batches rather than assumed safe by default. Targeted `rapid_branching`
+and `long_rambling`, tied at the depth floor (17).
+
+`contradictory_statement` (19), `minimal_fragment` (19), `multi_person_note`
+(19), `repeated_reminder` (19), `time_ambiguous` (19), `zero_action_items`
+(19), `dangling_reference` (20), `interrupted_thought` (20), `self_correction`
+(20), `simple_list` (20), `topic_switching` (20), `topic_interleaving` (21),
+`voice_to_text_artifact` (21), `long_rambling` (22), `rapid_branching` (22).
+
+**Difficulty distribution, full corpus**: easy 55, medium 93, hard 101,
+expert 51 (300 total).
+
+**The size increase produced no visible quality drop — first batch this
+session with zero relabels and zero fixes of any kind.** All 5
+`rapid_branching` and all 5 `long_rambling` examples came back correctly
+capped at medium/hard except one `expert` each, and both `expert`
+examples had a genuinely named second mechanism rather than density
+alone (branching combined with a hedged third-party commitment and an
+unattributed task; rambling combined with a dependent scheduling
+decision). Capitalization, the ownership-hedge convention, and the
+widened passive-voice check all held with no manual correction needed.
+
+One judgment call worth recording rather than silently deciding either
+way: a `minimal_fragment` example ("laundry detergent") got a filled
+action item where an equivalently bare fragment in batch 18 ("cat food
+chicken flavor") was left empty. Read as a genuine difference in
+ambiguity — an unqualified grocery noun has essentially one plausible
+reading, while a flavor-qualified one plausibly reads as either a
+shopping note or a description of what's already being fed — not an
+inconsistency needing correction.
+
+Full voice-regression suite, schema validation, and duplicate check
+clean at 300/300 on first pass. No scenario-well repetition.
+
+**Recommend keeping 25 as the new standing batch size** given this
+result; revisit only if a future batch's defect rate rises.
+
+300 accepted examples after nineteen batches and eight adversarial
+re-reviews.
+
+## Depth by category (running total, after batch 20)
+
+Batch 20 (25 requested, 25 accepted, 0 rejected, 0 relabeled, 2 fixed) —
+second batch at the increased size (25) — targeted 6 categories tied at
+the depth floor (19) with exactly 3 examples each, plus 7 more, and
+deliberately weighted toward `expert` difficulty (the corpus's thinnest
+tier) with the requirement that every `expert` example name its two
+combined structural elements before being tagged.
+
+`dangling_reference` (21), `interrupted_thought` (21), `self_correction`
+(21), `simple_list` (21), `topic_switching` (21), `voice_to_text_artifact`
+(21), `contradictory_statement` (22), `long_rambling` (22),
+`minimal_fragment` (22), `multi_person_note` (22), `repeated_reminder`
+(22), `time_ambiguous` (22), `topic_interleaving` (22), `zero_action_items`
+(22), `rapid_branching` (23).
+
+**Difficulty distribution, full corpus**: easy 57, medium 101, hard 109,
+expert 58 (325 total).
+
+**The expert-weighting instruction landed close to target (7 of 25) with
+every single one carrying a genuinely nameable combination** —
+`repeated_reminder` + `dangling_reference` (a repeated wool order plus an
+unresolved "that other thing"), `contradictory_statement` + a second
+person's conflicting input (a gecko-vs-dragon disagreement that never
+resolves), `time_ambiguous` + `dangling_reference` (a vague pickup window
+plus an unnamed "backing fee"), and others in the same shape. Naming the
+two elements before tagging, rather than tagging on density alone,
+continues to hold up as the right instruction.
+
+**Two fixes.** A `multi_person_note`/`expert` example flattened "Dave is
+supposed to bring the folding tables" (an expectation, not a settled
+fact) into "Dave to bring the folding tables" in `action_items` —
+restored the hedge, the same convention this session has repeatedly
+reinforced and previously fixed elsewhere. A `simple_list` example's
+narrative invented "For the beach day" as a frame — the input (sunscreen,
+towels, cooler, sunglasses) never states "beach" anywhere, matching this
+project's own canonical banned-inference example almost exactly; removed.
+
+**Noted, not actioned**: a `topic_interleaving` example's
+Python-syntax-error-on-line-42 scenario is suspiciously close to batch
+19's own Python debugging example one batch earlier. Still only the
+second instance, and the surrounding content diverges enough (cooking
+dinner vs. a cat knocking over a glass) to stay within the diversity
+rule's tolerance — but "Python debugging" / "line 42" specifically
+should be excluded from future batch prompts given it recurred
+immediately rather than after several batches.
+
+Full voice-regression suite, schema validation, and duplicate check
+clean at 325/325 after fixes. 325 accepted examples after twenty batches
+and eight adversarial re-reviews. Periodic adversarial re-review due,
+per the every-2-batches cadence.
+
+## Ninth adversarial re-review (2026-09-01) — corpus 325 → 325
+
+Due after batch 20. 14 examples: 2 touched (fixed) during batch 20's own
+first-pass review, 12 never-touched controls, deliberately weighted
+toward the batch's own `expert`-tagged examples. Gemini first, then a
+genuinely fresh Claude subagent as the independent second pass, per
+`PDR-006`'s amendment. Full findings in
+[`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. Result: 5 confirmed difficulty
+downgrades, 7 confirmed content fixes, 0 relabels.
+
+**The sharpest, most convergent reconciliation this project has run.**
+Both passes independently found the same core defects. Both flagged the
+same two inferred-frame violations, matching this project's own canonical
+examples almost exactly: a `multi_person_note` narrative invented
+"community" for a note that only ever said "cleanup day"; a
+`topic_interleaving` narrative invented "cooking dinner" for a note that
+only ever listed boiling rice, checking stove heat, and chopping onions.
+Both independently found a hedge-dropping pattern spanning 4 examples —
+"not sure... Tuesday or Wednesday" flattened into a bare scheduling
+imperative; "maybe" dropped twice in a home-hub example; "I think I
+should" dropped from a scan-the-cards action item; and a `time_ambiguous`
+example's `bullets` field stating "the backing fee" as settled while its
+own narrative correctly hedged "possibly" — the same defect the fifth
+re-review named by title recurring in a new field, five re-reviews later.
+All 7 fixed with minimal, faithful hedge restoration or frame removal.
+
+**The two passes diverged sharply on `self_correction`, and the
+divergence is instructive.** Gemini REJECTed the antique-fair-directions
+example on the theory that retracted content and dictation noise must
+survive somewhere in the output — directly contradicting this project's
+own settled convention that `self_correction`'s entire purpose is
+dropping retracted content. The fresh pass, given that exemption stated
+explicitly, found the *actual* defect instead: the narrative said "exit
+15, rather than 14," reintroducing the retracted number that `bullets`
+and `action_items` had already correctly dropped — a genuine
+field-disagreement, narrower and better-targeted than Gemini's blanket
+claim. Fixed by removing the reintroduced number from the narrative
+alone.
+
+**On `expert`-difficulty calibration, the fresh pass's example-by-example
+reasoning proved more reliable than either its own blanket instinct or
+Gemini's.** Gemini claimed 6 examples were single-mechanism; the fresh
+pass, checking each individually, confirmed only 5 (a branching note with
+one incidental hedged line from a second person, the kitten rambling
+note, a repeated wool order with one incidental unresolved referent, a
+reptile-expo disagreement newly caught rather than previously suspected,
+and the self-correction example), while explicitly defending three others
+Gemini had also flagged: a `multi_person_note` combining 3+ named people
+at genuinely different certainty registers (a stated fact, a reported
+hedge, a stated expectation, plus an unassigned task) is exactly the
+carve-out this project's own difficulty rule names for that category, not
+density; a second `multi_person_note` combining a literal interruption
+with mixed registers; and a `topic_interleaving` example's branching
+conditional genuinely combining with the interleaving structure. 5
+downgraded to `hard`, 4 confirmed as correctly `expert`.
+
+Full three-check voice-regression suite, schema validation, and duplicate
+check clean at 325/325 after all 12 fixes. No rejections, no relabels —
+every fix applied in place. 325 accepted examples after twenty batches
+and nine adversarial re-reviews. Next periodic re-review due after
+batch 22.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
