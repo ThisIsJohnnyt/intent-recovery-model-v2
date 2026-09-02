@@ -26,10 +26,18 @@ from transformers import (
 PREPARED_DIR = Path(__file__).resolve().parent / "prepared"
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "checkpoints" / "flan-t5-base-v2.0"
 
-# Below this many training examples, a run is a pipeline correctness check,
-# not a deployable checkpoint -- see training/DATASET_SPEC.md and
-# docs/datasets/CATEGORY_REFERENCE.md for actual corpus size/target.
-SMALL_CORPUS_WARNING_THRESHOLD = 500
+# Warn when the best validation loss exceeds the final training loss by
+# this ratio. Overfitting is what we actually care about, so measure it
+# directly rather than using corpus size as a proxy for it.
+#
+# Replaced SMALL_CORPUS_WARNING_THRESHOLD = 500 on 2026-09-02 (external
+# review, finding M8). That constant was calibrated to the corpus *target*
+# rather than to observed overfitting, which made it useless twice over:
+# the corpus passed 500 so it could never fire again, and the run that
+# motivated it -- train 0.4654 / eval 1.6 after 8 epochs, a 3.4x gap --
+# had exactly 500 examples, so it would not have fired for that run
+# either. A ratio needs no recalibration as the corpus grows.
+OVERFIT_RATIO_WARNING = 1.5
 
 
 class TokenizedDataset(Dataset):
@@ -71,6 +79,61 @@ def load_meta() -> dict:
     return json.loads(meta_path.read_text(encoding="utf-8"))
 
 
+def report_overfit(trainer, is_smoke_test: bool) -> None:
+    """Post-run check on the signal we actually care about: how far the
+    best validation loss sits above the final training loss.
+
+    Reads trainer.state.log_history rather than recomputing anything --
+    the Trainer already logged every eval. Also names the epoch that
+    produced the best eval_loss, because with load_best_model_at_end that
+    is the checkpoint actually being saved: a best epoch well before the
+    last one is direct evidence the later epochs were overfitting, and
+    that the checkpoint-selection is earning its keep.
+    """
+    history = getattr(trainer.state, "log_history", None) or []
+    evals = [(h["eval_loss"], h.get("epoch")) for h in history if "eval_loss" in h]
+    if not evals:
+        return  # no validation set; the no-val warning already fired
+
+    finals = [h["train_loss"] for h in history if "train_loss" in h]
+    if not finals:
+        finals = [h["loss"] for h in history if "loss" in h][-1:]
+    if not finals:
+        return
+    train_loss = finals[-1]
+    best_eval, best_epoch = min(evals, key=lambda t: t[0])
+    last_eval = evals[-1][0]
+
+    print()
+    ep = f"{best_epoch:.2f}" if isinstance(best_epoch, float) else str(best_epoch)
+    print(f"final train_loss {train_loss:.4f}   best eval_loss {best_eval:.4f}"
+          f" (epoch {ep})   last eval_loss {last_eval:.4f}")
+    if len(evals) > 1 and best_epoch is not None and evals[-1][1] != best_epoch:
+        print(f"  eval_loss was still improving at epoch {ep} and got worse "
+              f"after -- the saved checkpoint is that epoch, not the last one.")
+
+    if is_smoke_test:
+        print("  (smoke test -- loss numbers are not meaningful)")
+        return
+    if train_loss <= 0:
+        return
+    ratio = best_eval / train_loss
+    if ratio > OVERFIT_RATIO_WARNING:
+        print(
+            f"\n  WARNING: best eval_loss is {ratio:.1f}x the final train_loss "
+            f"(threshold {OVERFIT_RATIO_WARNING}x). The model fits the training "
+            f"corpus substantially better than held-out data, which is what "
+            f"overfitting looks like. load_best_model_at_end has kept the "
+            f"least-overfit checkpoint available, but that only picks the best of "
+            f"epochs actually run -- it does not remove the gap. Read the eval "
+            f"output before treating this checkpoint as deployable; see "
+            f"training/evaluate_real.py.\n"
+        )
+    else:
+        print(f"  eval/train loss ratio {ratio:.1f}x, under the "
+              f"{OVERFIT_RATIO_WARNING}x warning threshold.")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--epochs", type=float, default=8.0)
@@ -96,16 +159,6 @@ def main():
 
     if len(train_ds) == 0:
         raise SystemExit("No training examples -- run prepare_data.py first.")
-
-    if len(train_ds) < SMALL_CORPUS_WARNING_THRESHOLD and args.max_steps == -1:
-        print(
-            f"\nWARNING: only {len(train_ds)} training examples (threshold "
-            f"for this warning: {SMALL_CORPUS_WARNING_THRESHOLD}). A run "
-            f"this small will overfit -- treat the resulting checkpoint as "
-            f"a pipeline correctness check, not a deployable model. Pass "
-            f"--max-steps to make that explicit, or ignore this if that's "
-            f"exactly what you're doing.\n"
-        )
 
     if len(val_ds) == 0:
         print(
@@ -153,6 +206,8 @@ def main():
     )
 
     trainer.train()
+
+    report_overfit(trainer, is_smoke_test=args.max_steps != -1)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     trainer.save_model(str(args.output_dir))
