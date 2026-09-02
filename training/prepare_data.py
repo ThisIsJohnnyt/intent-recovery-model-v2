@@ -22,6 +22,7 @@ Usage (from training/):
 """
 import argparse
 import json
+import os
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -203,6 +204,39 @@ def tokenize_examples(examples: list, tokenizer) -> list:
             "labels": labels,
         })
     return prepared
+
+
+def write_jsonl_atomic(records: list, path: Path) -> None:
+    """Write JSONL via temp-file + validate + os.replace(), never truncating
+    the destination until the replacement is known good.
+
+    Exists for datasets/real_validation.jsonl and datasets/real_holdout.jsonl
+    specifically. Those two files are gitignored, hand-written by the product
+    owner, and the only artifacts in this project that cannot be regenerated
+    -- DATASET_SPEC.md's real tier is defined by never having been touched by
+    a generative model, so a lost record cannot be rebuilt, only replaced by
+    a different note. The scripts that rewrite them (split_real_holdout.py,
+    backfill_categories.py) previously opened the destination in "w" mode
+    directly, which truncates on open: an exception, an interrupt, or a full
+    disk between opening and finishing left a partial or empty file, and
+    backfill_categories.py writes TWO such files in sequence, so a failure
+    between them left the pair inconsistent. Flagged by an external review,
+    2026-09-02.
+
+    Validation happens on the temp file BEFORE the swap, so a schema-invalid
+    write can never land on the real path (the previous code validated only
+    after it had already overwritten the original).
+    """
+    tmp = path.with_name(path.name + ".tmp")
+    try:
+        with tmp.open("w", encoding="utf-8", newline="\n") as f:
+            for r in records:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        load_jsonl(tmp)  # schema-gate the replacement before it lands
+        os.replace(tmp, path)  # atomic on POSIX and Windows (same filesystem)
+    except BaseException:
+        tmp.unlink(missing_ok=True)  # leave the original untouched
+        raise
 
 
 def write_prepared(records: list, path: Path) -> None:

@@ -1,5 +1,6 @@
 # Fine-tuning pipeline dependencies. Nothing else in training/ needs these
-# (check_duplicates.py and telemetry.py are deliberately stdlib-only).
+# (check_duplicates.py, check_copy_ratio.py and telemetry.py are deliberately
+# stdlib-only).
 #
 # DO NOT just `pip install -r requirements.txt` -- that pulls the CPU-only
 # torch build silently, which works but throws away the GPU. See
@@ -10,7 +11,37 @@
 # google/flan-t5-base is a T5 model -- sentencepiece is required for its
 # tokenizer, not optional. accelerate is required by transformers'
 # Seq2SeqTrainer as of recent versions, even for single-device CPU/GPU runs.
-torch>=2.2
-transformers>=4.40
-sentencepiece>=0.2
-accelerate>=0.30
+#
+# BOUNDS, and why both ends matter (external review, 2026-09-02 -- the
+# previous file declared floor-only ranges where NEITHER endpoint worked):
+#
+#   Floor: transformers was declared >=4.40, but train.py passes
+#   `eval_strategy=` to Seq2SeqTrainingArguments. That argument was named
+#   `evaluation_strategy` until it was renamed in 4.41, so a clean install at
+#   the declared minimum raised TypeError before training a single step.
+#
+#   Ceiling: every pin was unbounded, so a fresh install resolves to whatever
+#   is current -- transformers 5.x, which requires accelerate >= 1.1.0 while
+#   this file declared accelerate>=0.30. The declared set could not co-install.
+#
+# Upper bounds are next-major, not exact pins: this project runs on one
+# machine and re-pinning on every patch release is friction without benefit,
+# but a major version bump is exactly where the eval_strategy-class breakage
+# happens and should be a deliberate upgrade, not a surprise.
+torch>=2.2,<3
+transformers>=4.41,<6
+sentencepiece>=0.2,<0.3
+accelerate>=1.1,<2
+
+# Exact versions of the verified-working environment, as of the first real
+# training run and its evaluation (2026-09-02, corpus 500, commit 78d5ae8).
+# If something breaks after an upgrade, this is the known-good set to fall
+# back to -- reproduce it with:
+#   pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cu132
+#   pip install transformers==5.15.1 sentencepiece==0.2.2 accelerate==1.14.0
+#
+#   python        3.11.9
+#   torch         2.13.0+cu132   (RTX 5060, CUDA 13.2 build)
+#   transformers  5.15.1
+#   sentencepiece 0.2.2
+#   accelerate    1.14.0

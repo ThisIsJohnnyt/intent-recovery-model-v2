@@ -51,12 +51,36 @@ def main():
     ap.add_argument("--holdout", type=int, required=True,
                     help="number of records to seal into real_holdout.jsonl")
     ap.add_argument("--reseal", action="store_true",
-                    help="allow re-splitting an already-sealed (non-empty) holdout file")
+                    help="REFUSED BY DESIGN -- prints why; see SEALING in the module docstring")
     args = ap.parse_args()
+    NL = chr(10)
 
-    if args.holdout_file.exists() and args.holdout_file.stat().st_size > 0 and not args.reseal:
-        print(f"error: {args.holdout_file} is already sealed (non-empty). "
-              f"Pass --reseal to override -- this is not the normal path.", file=sys.stderr)
+    if args.holdout_file.exists() and args.holdout_file.stat().st_size > 0:
+        print(f"error: {args.holdout_file} is already sealed (non-empty).",
+              file=sys.stderr)
+        if args.reseal:
+            print(
+                NL + "--reseal is refused by design. Its previous behaviour was a "
+                "data-loss bug (external review, 2026-09-02): this script reads ONLY "
+                "--validation, and after the first split the sealed records are no "
+                "longer in that file. Re-running therefore drew a NEW holdout from "
+                "the remainder and overwrote real_holdout.jsonl, permanently "
+                "discarding the previously sealed records -- which are hand-written, "
+                "gitignored, and unreproducible." + NL + NL +
+                "Re-splitting the UNION of both files is not a safe automatic fix "
+                "either: records now in real_validation.jsonl have been evaluated "
+                "against repeatedly during development, so moving one into the "
+                "holdout would seal a record that has already shaped development -- "
+                "exactly what DATASET_SPEC.md's 'never consulted for routine "
+                "development' rule exists to prevent." + NL + NL +
+                "If the real tier genuinely needs re-splitting, that is a "
+                "product-owner methodology decision, not a flag: back up both files "
+                "first, then decide explicitly which records may enter the holdout.",
+                file=sys.stderr)
+        else:
+            print("This script is not the way to add to an already-sealed holdout; "
+                  "future real notes land in real_validation.jsonl only "
+                  "(DATASET_SPEC.md, 'Where files go').", file=sys.stderr)
         return 2
 
     records = prepare_data.load_jsonl(args.validation)
@@ -83,16 +107,13 @@ def main():
     for i in validation_idx:
         print(f"  [{i:>3}] {records[i]['input'][:76]}")
 
-    with args.holdout_file.open("w", encoding="utf-8", newline="\n") as f:
-        for i in holdout_idx:
-            f.write(json.dumps(records[i], ensure_ascii=False) + "\n")
-    with args.validation.open("w", encoding="utf-8", newline="\n") as f:
-        for i in validation_idx:
-            f.write(json.dumps(records[i], ensure_ascii=False) + "\n")
-
-    prepare_data.load_jsonl(args.holdout_file)
-    prepare_data.load_jsonl(args.validation)
-    print(f"\nWrote and validated both files.")
+    # Atomic: temp file + schema validation + os.replace, so an interrupt or
+    # exception cannot leave either irreplaceable file truncated. Holdout
+    # written first -- if the second write fails, real_validation.jsonl still
+    # holds every record and nothing is lost.
+    prepare_data.write_jsonl_atomic([records[i] for i in holdout_idx], args.holdout_file)
+    prepare_data.write_jsonl_atomic([records[i] for i in validation_idx], args.validation)
+    print(f"\nWrote and validated both files (atomically).")
     return 0
 
 

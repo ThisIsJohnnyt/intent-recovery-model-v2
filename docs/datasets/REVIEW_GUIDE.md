@@ -351,6 +351,20 @@ they still agree on:
   that day (#67, #83, #94, #125) were all `long_rambling`,
   `dangling_reference` and `rapid_branching` at hard or expert, where
   tracking the note's own order means no recovery happened at all.
+  **Now enforced by `training/check_copy_ratio.py`, 2026-09-02 — run it on
+  every batch.** For most of this project's life the rule above lived only in
+  this document: nothing in `training/` computed the distribution, so it was
+  recomputed by hand inside review sessions and drifted invisibly between
+  them. An external review measured the damage at commit `78d5ae8`: the mean
+  had gone from the 0.561 recorded here to **0.647**, with **60** records
+  above 0.85 rather than the two named above, and a monotonic climb by corpus
+  position (0.497 in the first 75 records, 0.706 in the most recent 75).
+  Reproduced exactly, including both anchor values, before being accepted.
+  The script names every breaching record, prints per-category and
+  per-position means, carries #118 and #127 in an allowlist keyed by content
+  hash (not line number, which shifts), and exits non-zero on any other
+  breach. `check_duplicates.py` does **not** cover this — it measures
+  input↔input similarity between records, a different quantity.
 - **Difficulty calibration.** `difficulty` is a purely comparative judgment —
   it means nothing against one input and everything against the corpus — and
   so it is the most cross-example field in the schema. The proof case: #127
@@ -499,6 +513,13 @@ bad = re.compile(r\"[Tt]he\s+(author|writer|speaker)\b|I (?:\w+ly )?(?:noted|wro
 for i, r in enumerate(rows, 1):
     if bad.search(json.dumps(r['output'], ensure_ascii=False)): print(i, r['category'])
 "
+
+# (4) COPY RATIO -- the one check in this section that is a real script
+# rather than an inline one-liner, because it needs an allowlist and a
+# non-zero exit code. See the copy-ratio bullet above for why it exists.
+# Run it on every batch; it gates on the whole corpus, not just the new
+# records, because the failure it catches is drift across batches.
+python training/check_copy_ratio.py
 ```
 
 ## 7. Design notes match the data

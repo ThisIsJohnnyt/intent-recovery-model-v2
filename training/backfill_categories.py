@@ -86,6 +86,8 @@ def main():
               f"(see training/category_quick_reference.md)")
     tagged = [e for e in tagged if e not in bad_cat]
 
+    val_existed = args.validation.exists()
+    hold_existed = args.holdout.exists()
     val_records = load_target(args.validation)
     hold_records = load_target(args.holdout)
     by_input = {}
@@ -134,16 +136,22 @@ def main():
     for e, src_name, rec in matched:
         rec["category"] = e["record"]["category"]
 
-    with args.validation.open("w", encoding="utf-8", newline="\n") as f:
-        for rec in val_records:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-    with args.holdout.open("w", encoding="utf-8", newline="\n") as f:
-        for rec in hold_records:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    # Atomic writes (external review, 2026-09-02): these two files are
+    # gitignored, hand-written, and unreproducible, and this function writes
+    # BOTH -- the old truncate-on-open pair could leave one written and the
+    # other truncated if anything failed between them.
+    #
+    # A file that did not exist is skipped rather than created: load_target()
+    # returns [] for a missing path, so the previous code created a 0-byte
+    # real_holdout.jsonl on any run before the split had happened.
+    for path, records, existed in ((args.validation, val_records, val_existed),
+                                   (args.holdout, hold_records, hold_existed)):
+        if not existed:
+            print(f"skipped {path.name} (did not exist -- not creating it)")
+            continue
+        prepare_data.write_jsonl_atomic(records, path)
 
-    prepare_data.load_jsonl(args.validation)
-    prepare_data.load_jsonl(args.holdout)
-    print(f"\nWrote categories to {args.validation.name} and {args.holdout.name}; both validate.")
+    print(f"\nWrote categories atomically; all written files validate.")
     return 0
 
 
