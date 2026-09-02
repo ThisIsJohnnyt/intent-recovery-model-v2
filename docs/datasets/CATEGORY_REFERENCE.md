@@ -1904,6 +1904,73 @@ relabels — every fix applied in place. 500 accepted examples after
 twenty-seven batches and twelve adversarial re-reviews. Next periodic
 re-review due after batch 28.
 
+## Depth by category (running total, after batch 28) — targeted at a real eval failure, not a corpus gap
+
+Batch 28 (25 requested, 25 accepted, 0 rejected, 2 relabeled) — the
+first batch generated in direct response to the first real training
+run's evaluation results (`training/eval_run_2026-09-02.log`), not a
+depth-tracking gap. The trained checkpoint repeatedly promoted hedged
+reflection into invented `action_items` on real (non-synthetic) input.
+Targeted: 6× `zero_action_items` built as pure reflection with
+genuinely zero nameable task, 6× deliberate near-miss contrasts (same
+reflective tone, but containing one real hedged task, correctly
+categorized as whatever they actually teach rather than forced into
+`zero_action_items`), 4× `contradictory_statement` + 2×
+`rapid_branching` + 2× `long_rambling` each with a hedged task buried in
+otherwise uncertain content, plus 5 free-mix examples deliberately
+written longer and messier than this corpus's average register — closer
+to the real notes' own style — without ever consulting
+`real_validation.jsonl`'s actual content.
+
+`simple_list` (32), `time_ambiguous` (33), `dangling_reference` (34),
+`interrupted_thought` (34), `minimal_fragment` (34), `multi_person_note`
+(34), `repeated_reminder` (34), `topic_interleaving` (34),
+`topic_switching` (34), `voice_to_text_artifact` (34), `long_rambling`
+(35), `rapid_branching` (36), `self_correction` (36),
+`contradictory_statement` (38), `zero_action_items` (42).
+
+**Difficulty distribution, full corpus**: easy 118, medium 143, hard
+158, expert 106 (525 total).
+
+**Two relabels, both the same recurring failure this project has caught
+many times: Gemini defaulting to a structural category name that
+doesn't actually fit.** One example (uninspired → considering old
+sketchbooks) was requested/labeled `topic_switching`, but it's a single
+continuous, thematically-connected train of thought, not an abrupt
+switch to an unrelated subject — relabeled to `rapid_branching`. Another
+(boxes → realizing Greg is out of town) was requested/labeled
+`interrupted_thought`, but "actually he's out of town" is a
+realization-driven pivot, not an external interruption cutting off a
+clause — `self_correction`'s shape instead; relabeled, and per that
+category's own convention, the retracted "ask Greg" mention removed
+from narrative and bullets to match this session's own earlier fix to a
+near-identical case (`#449`).
+
+**One fix matching the established "representing an absence" convention
+exactly**: an `interrupted_thought` example's narrative smoothed over
+the input's actual mid-clause cutoff ("I think I have everything except
+the...") into a vague paraphrase ("thought I had everything") instead of
+preserving the broken-off text verbatim — restored.
+
+**The batch's own deliberate push toward longer, messier, more
+real-feeling input had a real cost, caught before it entered the
+corpus**: 7 of 25 narratives landed above the corpus's 0.85 copy-ratio
+flag line (mean 0.776 for the batch), the same non-recovery failure
+mode the eval itself found in the trained model — training on more
+near-copies would have reinforced the exact behavior this batch exists
+to correct. All 7 rewritten to genuinely reorganize (different sentence
+order, real paraphrase) rather than lightly rephrase in the input's own
+order; batch mean dropped to 0.691, max to 0.83, nothing left above the
+flag line.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 525/525 after fixes.
+
+525 accepted examples after twenty-eight batches and twelve adversarial
+re-reviews. Periodic adversarial re-review due after batch 29, per the
+every-2-batches cadence continuing from the twelfth re-review's baseline
+(after batch 27).
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s

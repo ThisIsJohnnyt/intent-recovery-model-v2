@@ -117,6 +117,16 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(meta["model_name"])
     model = AutoModelForSeq2SeqLM.from_pretrained(meta["model_name"])
 
+    # Keep the best-generalizing checkpoint, not just whatever state exists
+    # after the last epoch. The first real run (2026-09-02, 500 examples)
+    # showed eval_loss (1.6) well above train_loss (0.47) after 8 epochs --
+    # a classic overfitting signature at this corpus size -- and train.py
+    # was evaluating every epoch but never acting on that signal, saving
+    # the final (likely most-overfit) state regardless. Only possible when
+    # there's a validation set to evaluate against; falls back to the old
+    # save-only-at-the-end behavior otherwise, since load_best_model_at_end
+    # requires save_strategy to match eval_strategy.
+    has_val = len(val_ds) > 0
     training_args = Seq2SeqTrainingArguments(
         output_dir=str(args.output_dir),
         num_train_epochs=args.epochs,
@@ -124,8 +134,12 @@ def main():
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         learning_rate=args.lr,
-        eval_strategy="epoch" if len(val_ds) > 0 else "no",
-        save_strategy="no",  # we save explicitly at the end, not per-epoch checkpoints
+        eval_strategy="epoch" if has_val else "no",
+        save_strategy="epoch" if has_val else "no",
+        save_total_limit=2 if has_val else None,  # keep best + most recent only
+        load_best_model_at_end=has_val,
+        metric_for_best_model="eval_loss" if has_val else None,
+        greater_is_better=False if has_val else None,
         logging_steps=1,
         predict_with_generate=False,
         report_to=[],
