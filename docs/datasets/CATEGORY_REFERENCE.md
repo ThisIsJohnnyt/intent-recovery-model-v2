@@ -1674,6 +1674,236 @@ relabels — every fix applied in place. 425 accepted examples after
 twenty-four batches and eleven adversarial re-reviews. Next periodic
 re-review due after batch 26.
 
+## Depth by category (running total, after batch 25)
+
+Batch 25 (25 requested, 25 accepted, 0 rejected, 0 relabeled, 12 records
+fixed) —
+closed the depth floor, `simple_list` (25, structurally capped below
+`expert`), with exactly 5 examples weighted toward its thinnest
+non-structural tier (`hard`). Also 5× `repeated_reminder`/`expert`,
+raising it from 3 to 8 `expert` examples via genuine second-mechanism
+combinations (time-ambiguity, multi-person attribution, embedded
+dangling references) — the first batch generated with the eleventh
+re-review's "one item, not two" rule stated directly in the prompt.
+Remaining 15 free mix weighted toward `expert` in categories thin on
+that tier (`contradictory_statement`, `dangling_reference`,
+`interrupted_thought`, `self_correction`).
+
+`voice_to_text_artifact` (29), `rapid_branching` (29), `contradictory_statement`
+(28), `interrupted_thought` (28), `minimal_fragment` (27),
+`dangling_reference` (30), `multi_person_note` (30), `simple_list` (30),
+`time_ambiguous` (30), `topic_interleaving` (30), `long_rambling` (31),
+`repeated_reminder` (31), `self_correction` (31), `topic_switching` (33),
+`zero_action_items` (33).
+
+**Difficulty distribution, full corpus**: easy 93, medium 127, hard 142,
+expert 88 (450 total).
+
+**Twelve records fixed on this session's own first-pass review, before
+any periodic re-review touched the batch — the "one item, not two" rule
+held cleanly across all 5 `repeated_reminder` examples with no
+violations, first real test of the eleventh re-review's fix.** Found in
+two passes: a manual read caught four instances first, then the
+standing automated checks caught eight more the manual read missed.
+
+Manual read (4 records): three bullets used clinical, report-style
+phrasing ("an unnamed male," "unspecified materials") in place of the
+writer's own referring words ("him," "the stuff") — a new surface form
+of the describing-instead-of-being register violation, rewritten to
+match the narrative's natural register. A `self_correction` example's
+bullet listed all three previously-considered flight dates (14th, 16th,
+week after) as "potential options," reasserting retracted content
+alongside the correction — the exact class of violation the tenth
+re-review's "exit 15, rather than 14" case named; collapsed to the one
+settled outcome (hold off entirely), matching that fix's own precedent
+rather than repeating the mistake fresh.
+
+Automated checks (8 more, across 8 records — one of which needed two
+separate fixes): the standing passive-voice check caught 6 subjectless
+bullets ("The vendor needs to be contacted...", "Milk needs to be
+purchased...") this batch's own generation introduced fresh — rewritten
+to active voice with a clear subject, matching the register
+`action_items` already used correctly throughout. The standing
+meta-commentary check caught one narrative using "my train of thought
+was interrupted" — the exact literal phrase this project's regression
+regex already bans by name — rewritten in the same record as one of the
+six passive-voice fixes.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 450/450 after fixes.
+
+450 accepted examples after twenty-five batches and eleven adversarial
+re-reviews. Periodic adversarial re-review due after batch 26.
+
+## Depth by category (running total, after batch 26)
+
+Batch 26 (25 requested, 25 accepted, 0 rejected, 1 relabeled, 5 fixed) —
+closed the depth floor, `minimal_fragment` (27, structurally capped
+below `expert`), weighted toward `hard` via ambiguity density. Also 5×
+`contradictory_statement` (3 `expert` via a genuine second mechanism, 2
+`easy`) and 5× `interrupted_thought` (3 `easy`, 2 `medium`), both
+addressing thin tiers. Remaining 10 free mix weighted toward `easy` in
+`rapid_branching`/`voice_to_text_artifact` (both very thin on that tier)
+and `expert` generally elsewhere.
+
+`time_ambiguous` (30), `simple_list` (30), `voice_to_text_artifact` (31),
+`repeated_reminder` (31), `minimal_fragment` (31), `multi_person_note`
+(31), `rapid_branching` (31), `topic_interleaving` (31), `dangling_reference`
+(32), `long_rambling` (32), `self_correction` (32), `contradictory_statement`
+(33), `interrupted_thought` (33), `topic_switching` (33),
+`zero_action_items` (34).
+
+**Difficulty distribution, full corpus**: easy 102, medium 131, hard
+147, expert 95 (475 total).
+
+**One relabel: a `minimal_fragment` example requested as `hard` actually
+contained a conditional** ("three if they still have the thing") —
+directly violating this category's own no-branching/no-conditional
+definition, the same recurring failure mode batches 8 and 12 hit on this
+exact category. Relabeled to `dangling_reference`, which correctly holds
+the conditional plus the unresolved "the thing."
+
+**Five fixes, three from a systematic gap and two from the
+structural-ceiling principle.** Two `minimal_fragment` bullets read as
+hedged or conditional intended purchases ("maybe those blue ones for
+him," "eggs milk the big cheese") with empty `action_items`, while two
+sibling records in the very same batch with equally implicit but
+explicit-verb inputs correctly filled theirs — an internal batch
+inconsistency caught by comparing all five side by side, matching the
+established convention that a hedged intention belongs in `action_items`
+with its hedge preserved; all three given a matching hedged/implied
+action item. Two `expert` tags (`zero_action_items`, a solo reflection
+on whether to journal dreams; `long_rambling`, a rambling walk with an
+incidental task) were each a single mechanism elaborated at length with
+no genuine second, distinct structure combined — the same pattern the
+eighth re-review named directly ("rambling drift... [is] a native
+feature of how the category works, not a second, distinct structure");
+both downgraded to `hard`.
+
+**One near-duplicate caught before it entered the corpus**: a new
+`interrupted_thought` example ("need to buy flour sugar and check if
+the—") scored 0.70 against an existing batch-24 record with the same
+opening and grocery items — reworded to a different task entirely rather
+than declined, since the phrasing match was real. One remaining flagged
+pair (0.58, "text Mike about the Thursday thing" / "tell her about the
+tall one") judged incidental — different verbs, different referents, low
+word overlap — same class as the standing #205/#343 false positive.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 475/475 after fixes.
+
+475 accepted examples after twenty-six batches and eleven adversarial
+re-reviews. Periodic adversarial re-review due now, per the
+every-2-batches cadence.
+
+## Depth by category (running total, after batch 27) — corpus hits 500
+
+Batch 27 (25 requested, 25 accepted, 0 rejected, 0 relabeled, 5 fixed) —
+the final batch to close the 500 target. Spread 2 examples each across
+the 8 categories tied lowest (`simple_list`, `time_ambiguous`,
+`topic_interleaving`, `repeated_reminder`, `rapid_branching`,
+`minimal_fragment`, `multi_person_note`, `voice_to_text_artifact`, 16
+total), remaining 9 free mix weighted toward `easy`/`expert`, the two
+overall-thinnest tiers going in.
+
+`simple_list` (32), `time_ambiguous` (32), `dangling_reference` (33),
+`long_rambling` (33), `minimal_fragment` (33), `multi_person_note` (33),
+`rapid_branching` (33), `repeated_reminder` (33), `topic_interleaving`
+(33), `voice_to_text_artifact` (33), `contradictory_statement` (34),
+`interrupted_thought` (34), `self_correction` (34), `topic_switching`
+(34), `zero_action_items` (36).
+
+**Difficulty distribution, full corpus**: easy 118, medium 133, hard
+149, expert 100 (500 total).
+
+**Five fixes.** Two `multi_person_note` bullets attributed a third
+party's task with a colon-label format ("Alex: Clean the bathrooms")
+that doesn't match this corpus's own established convention for
+third-party commitments (`"[Name] to [verb]"`, e.g. "Uncle Bob to handle
+the catering") — a small batch-tracking drift, caught by comparing this
+batch's phrasing against the standing corpus pattern rather than any
+per-example rule; rewritten to match. Three narratives had zero
+first-person pronoun — the standing regression check's genuine edge
+case: bare, verb-less or near-verb-less fragments ("the green one," "the
+meeting got moved to 3:30") with nothing for a faithful recovery to
+attach a pronoun to without inventing content, the same shape batch 18
+first found and fixed; given minimal, non-inventive first-person framing
+matching that precedent.
+
+**No fixes needed on category structure or evidence rules this batch** —
+every `expert` tag checked out with a genuine, nameable second mechanism
+(a factual dispute between two people layered on a contradiction; a
+topic-switch combined with a dangling reference; a self-correction
+combined with a second unresolved referent; a reflection combined with
+an embedded, unrelated task insertion), `repeated_reminder`'s "one item,
+not two" rule held clean again, and `self_correction` correctly dropped
+retracted content throughout.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 500/500 after fixes (one new flagged pair
+judged incidental — a shared "call the [X] about the [Y]" phrase
+template with low word overlap and unrelated topics, the same class as
+the two standing false positives).
+
+**500 accepted examples after twenty-seven batches and eleven
+adversarial re-reviews — the corpus hits `train.py`'s
+`SMALL_CORPUS_WARNING_THRESHOLD` target.** Periodic adversarial re-review
+due now, per the every-2-batches cadence — batches 25-27 haven't had one
+yet (last was after batch 24).
+
+## Twelfth adversarial re-review (2026-09-02) — corpus 500 → 500
+
+Due after batch 27, first run since the corpus hit 500. 13 examples: 8
+touched (fixed) during batches 25-27's own first-pass review, 5
+never-touched controls. Gemini first, then a genuinely fresh Claude
+subagent as the independent second pass, per `PDR-006`'s amendment. Full
+findings in [`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s log. Result: 2
+confirmed content fixes, plus 1 scenario-repetition rework both passes
+found independently, 0 relabels.
+
+**Correction to this section's own batch-27 write-up above**: it claimed
+"self_correction correctly dropped retracted content throughout" — this
+re-review's sample included `#449` (a batch-25 record, reviewed here for
+the first time) and found that claim false for that record; see the fix
+below.
+
+**Both passes independently and strongly flagged the same
+scenario-repetition problem, needing no reconciliation.** `#473`,
+`#436`, and `#497` — three separate records in this one 13-example
+sample — all center on deciding a paint color for a room, a third
+instance past this project's own two-per-scenario tolerance, and found
+within a single review sample rather than only visible spread across
+many batches like prior scenario-well findings. `#497` reworked
+entirely to a different scenario (choosing a font for wedding
+invitations, same long_rambling + interleaved-unrelated-task structure)
+rather than the other two, since its lesson doesn't depend on the
+paint-specific content.
+
+**Two confirmed content fixes.** `#431` (`repeated_reminder`/expert)
+split one restated worry into two bullets — the same "one item, not
+two" violation the eleventh re-review settled by reading `TAXONOMY.md`
+directly; merged. `#449` (`self_correction`/expert) had its narrative
+and a bullet both narrate the retracted "email the vendor" plan instead
+of dropping it — checked against this session's other `self_correction`
+fixes, all of which land directly on the final decision with zero
+mention of the retracted option, confirming this record as the outlier;
+fixed.
+
+**Two Gemini claims declined as overreach, both confirmed wrong by
+checking the input directly.** A REJECT on `#471` argued a hedged
+musing must produce an `action_items` entry, but the input's own closing
+line ("I really don't know if I'll actually do it") is a bare state of
+indecision with nothing committed to — the established exception, not
+an instance of the rule. A FIX on `#442` claimed "sensory input feels
+excessively loud" violates no-diagnosis-framing — declined, since that
+rule targets naming an actual diagnosis, not descriptive paraphrase.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 500/500 after fixes. No rejections, no
+relabels — every fix applied in place. 500 accepted examples after
+twenty-seven batches and twelve adversarial re-reviews. Next periodic
+re-review due after batch 28.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
