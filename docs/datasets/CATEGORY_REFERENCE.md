@@ -1455,6 +1455,107 @@ pair is the already-confirmed false positive from batch 21).
 re-reviews. Periodic adversarial re-review due, per the every-2-batches
 cadence.
 
+## Depth by category (running total, after batch 23)
+
+Batch 23 (25 requested, 25 accepted, 0 rejected, 0 relabeled, 4 fixed) —
+first batch since the tenth re-review's billing interruption, run on the
+exact pre-drafted targeting: `topic_switching`/`expert` x6 (via a second
+category's mechanism layered on the strict A-then-B switch — time
+ambiguity, a repeated reminder, or multiple people's commitments), and
+`zero_action_items`/`expert` x5 (via a second category's structure around
+a genuinely empty task list — topic interleaving, several people
+mentioned with no one committing, or extended reflection), closing both
+categories' `expert` gaps from zero and one respectively. Also
+`contradictory_statement`/`easy` x3 and `long_rambling`/`easy` x3,
+padding both categories' thinnest tier. Remaining 8 free mix. Prompt
+carried the new invented-emotional-content rule from the tenth re-review
+for the first time.
+
+`multi_person_note` (24), `topic_interleaving` (24), `minimal_fragment`
+(25), `repeated_reminder` (25), `simple_list` (25), `contradictory_statement`
+(26), `dangling_reference` (26), `interrupted_thought` (26),
+`self_correction` (27), `rapid_branching` (27), `time_ambiguous` (27),
+`voice_to_text_artifact` (27), `long_rambling` (29), `topic_switching`
+(31), `zero_action_items` (31).
+
+**Difficulty distribution, full corpus**: easy 75, medium 117, hard 136,
+expert 72 (400 total).
+
+**Four fixes found on this session's own first-pass review, before any
+periodic re-review touched the batch.** One `topic_switching`/`expert`
+example ("Q3 slide deck" / walk) returned to the original subject
+("shouldn't leave Marcus hanging") after switching to the second topic —
+violates the category's own zero-returns definition (settled at batch
+8); the returning line was removed rather than relabeling, since the
+rest of the example is a clean A-then-B switch combined with a genuine
+contradictory-tension mechanism. Two invented-causality fixes, both the
+same shape: a `topic_switching` example ("thaw the chicken" / concert
+tickets) added "since" linking two facts the input states only as
+adjacent, no causal word present ("clean the lint trap. the dryer takes
+two cycles now."); a `zero_action_items` example (Dana/Kevin/Maya) added
+"because" linking Kevin's doubt to the client's timeline questions, same
+adjacency-as-causation pattern. Both de-linked back to the input's own
+plain adjacency. One cross-field fix: a `contradictory_statement`/`easy`
+example (old tablet, sell-vs-keep) had `action_items` listing "Sell my
+old tablet online" as a firm task while the narrative correctly ends on
+unresolved indecision — `action_items` reinstating what the ending
+retracts, the exact cross-check violation the generation prompt's own
+rules name directly; removed, leaving only "Decide if I want to get rid
+of it."
+
+**No new near-duplicates.** The duplicate checker's one flagged pair
+(0.57) is both pre-existing corpus lines (#205, #343), unrelated to this
+batch.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 400/400 after fixes.
+
+400 accepted examples after twenty-three batches and ten adversarial
+re-reviews. Periodic adversarial re-review due after batch 24, per the
+every-2-batches cadence.
+
+## Depth by category (running total, after batch 24)
+
+Batch 24 (25 requested, 25 accepted, 0 rejected, 0 relabeled, 1 fixed) —
+closed the depth floor, `topic_interleaving` and `multi_person_note`
+(both tied at 24), with exactly 5 examples each, weighted 3 `easy`/2
+`medium` per category to also close their local `easy` gap (both sat at
+2 `easy` — the same tier thinnest corpus-wide at 75/425 before this
+batch). Remaining 15 free mix, weighted toward `easy` generally across
+`rapid_branching`, `voice_to_text_artifact`, `topic_switching`,
+`long_rambling`, `dangling_reference`, `contradictory_statement`,
+`self_correction`, `repeated_reminder`, `time_ambiguous`.
+
+`simple_list` (25), `minimal_fragment` (26), `repeated_reminder` (26),
+`contradictory_statement` (27), `interrupted_thought` (27),
+`dangling_reference` (28), `rapid_branching` (28), `voice_to_text_artifact`
+(28), `long_rambling` (30), `multi_person_note` (29), `self_correction`
+(29), `time_ambiguous` (29), `topic_interleaving` (29), `topic_switching`
+(32), `zero_action_items` (32).
+
+**Difficulty distribution, full corpus**: easy 93, medium 124, hard 136,
+expert 72 (425 total).
+
+**One fix, found on this session's own first-pass review.** A
+`repeated_reminder`/`easy` example ("wash the guest towels seriously
+wash the guest towels today") collapsed the input's two distinct
+restatements into a single bullet and a single action item — losing the
+exact repetition this category exists to teach, and inconsistent with
+every prior `repeated_reminder` example (including batch 23's landlord
+one), which kept each restatement as its own separate item. Split back
+into two bullets and two action items, matching the standing convention.
+
+**No new near-duplicates.** The duplicate checker's one flagged pair
+(0.57) is the same pre-existing corpus lines (#205, #343) flagged since
+batch 21, unrelated to this batch.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 425/425 after the fix.
+
+425 accepted examples after twenty-four batches and ten adversarial
+re-reviews. Periodic adversarial re-review due now, per the
+every-2-batches cadence.
+
 ## Tenth adversarial re-review (2026-09-01) — corpus 375 → 375
 
 Due after batch 22. 14 examples: 9 touched (relabeled/fixed) during
@@ -1518,6 +1619,60 @@ flagged pair is the already-confirmed false positive from batch 21). No
 rejections, no relabels — every fix applied in place. 375 accepted
 examples after twenty-two batches and ten adversarial re-reviews. Next
 periodic re-review due after batch 24.
+
+## Eleventh adversarial re-review (2026-09-02) — corpus 425 → 425
+
+Due after batch 24, first run after the mid-batch-23 billing
+interruption. 12 examples: 5 touched (fixed) during batches 23-24's own
+first-pass review, 7 never-touched controls. Gemini first, then a
+genuinely fresh Claude subagent as the independent second pass, per
+`PDR-006`'s amendment. Full findings in [`REVIEW_GUIDE.md`](REVIEW_GUIDE.md)'s
+log. Result: 9 confirmed fixes from the sample, plus 2 more found by a
+systemic corpus-wide follow-up check, 0 relabels.
+
+**Settled a direct contradiction between the two passes over
+`repeated_reminder`'s own definition by reading `TAXONOMY.md` itself.**
+Gemini wanted a third restated item added to `#378`; the fresh pass
+argued the opposite for `#416` — that this session's own batch-24 fix,
+which split one restated task into two items, broke the category's
+defined lesson. `TAXONOMY.md` settles it: restated tasks are "one item,
+not two." The fresh pass was right, and **this session's own batch-24
+fix was itself the defect** — reverted. The same standard, checked
+corpus-wide rather than per-instance, found the identical shape in two
+more places outside the sample: batch 23's landlord example (`#400`, 3
+items for one repeated instruction) and `#220` (vitamins reminder split
+across two items). All four collapsed to one item each.
+
+**A second finding only the side-by-side comparison caught.** `#387`
+("I don't know if I should do green or just keep it white") correctly
+produced empty `action_items`. `#389` ("I can't decide if I want to get
+rid of it"), the identical ending shape, had an invented "Decide if I
+want to get rid of it" task left over from this session's own earlier
+batch-23 fix, which hadn't gone far enough. Reverted to `[]` to match
+`#387`'s precedent.
+
+Three more real fixes: `#376`'s bullet described an interrupted
+fragment as "an unfinished thought about... an unspecified thing"
+instead of preserving it, while the record's own narrative correctly
+kept the input's broken-off text verbatim — rewritten. `#384`'s bullet
+dropped a stated "I think" hedge its own narrative had correctly kept —
+restored. `#396`'s bullet read as a settled preference where the input
+only asks a question — reworded. `#377` lost its `expert` tag as a
+direct consequence of this session's own earlier fix removing its
+return-to-subject-A line: correct on the zero-returns rule, but it also
+removed the only candidate for a second combined mechanism, leaving a
+single-mechanism switch — downgraded to `medium`. Two Gemini claims
+declined as overreach, both on `#384`: an invented-hedge claim
+("I suspect Kevin was...") where the input's line was already a
+character judgment, not a fact-claim; and a missing-second-mechanism
+claim where the three-named-people/zero-commitment structure is exactly
+the combination this project's own batch-23 targeting asked for.
+
+Full three-check voice-regression suite, schema validation, and
+duplicate check clean at 425/425 after all 11 fixes. No rejections, no
+relabels — every fix applied in place. 425 accepted examples after
+twenty-four batches and eleven adversarial re-reviews. Next periodic
+re-review due after batch 26.
 
 ## Cognitive / emotional / structural states covered
 
