@@ -45,3 +45,10 @@ accelerate>=1.1,<2
 #   transformers  5.15.1
 #   sentencepiece 0.2.2
 #   accelerate    1.14.0
+
+# Dev-only. Not needed to prepare data, train, or evaluate -- only to run
+# training/tests/. Added 2026-09-02 with the first tests (external review,
+# finding M7: no tests, no CI). The test file also runs standalone with
+# plain `python training/tests/test_serialization.py`, so the suite is never
+# blocked on this being installed.
+pytest>=8,<10

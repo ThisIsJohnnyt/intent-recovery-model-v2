@@ -279,6 +279,10 @@ def main():
                     help="synthetic corpus to check contamination against")
     ap.add_argument("--threshold", type=float, default=0.55,
                     help="contamination threshold, matching check_duplicates.py (default 0.55)")
+    ap.add_argument("--no-corpus-check", action="store_true",
+                    help="proceed even though the contamination gate could not run "
+                         "(missing --corpus). Prints exactly what is being waived. "
+                         "Without this flag a missing corpus is fatal.")
     args = ap.parse_args()
 
     if not args.source.exists():
@@ -292,7 +296,26 @@ def main():
 
     hits, gate_warning = contamination(entries, args.corpus, args.threshold)
     if gate_warning:
-        print(f"WARNING: {gate_warning}\n")
+        # A gate that a typo'd --corpus path silently disables is not a gate.
+        # This one exists because 9 of the 10 entries in the first draft of the
+        # real-notes file were verbatim spot-check examples (2026-08-25); it
+        # previously printed a warning and wrote real_validation.jsonl anyway.
+        # External review, 2026-09-02 (M5).
+        if not args.no_corpus_check:
+            print(f"error: {gate_warning}", file=sys.stderr)
+            print("The contamination gate is the only automated protection the",
+                  "real tier has", file=sys.stderr)
+            print("against synthetic examples being converted into it.",
+                  "Refusing rather than writing unchecked.", file=sys.stderr)
+            print("Fix the --corpus path, or pass --no-corpus-check to waive it",
+                  "deliberately.", file=sys.stderr)
+            return 2
+        print(f"WARNING: {gate_warning}")
+        print("WAIVED via --no-corpus-check: entries are being converted WITHOUT any")
+        print("check that they are absent from the synthetic corpus. Provenance of the")
+        print("real tier is now entirely manual -- see DATASET_SPEC.md's note that the")
+        print("tooling cannot back you up on it.")
+        print()
     if hits:
         print(f"REFUSED -- {len(hits)} entr{'y' if len(hits) == 1 else 'ies'} already in "
               f"{args.corpus.name}. These are synthetic examples, not real notes;\n"
