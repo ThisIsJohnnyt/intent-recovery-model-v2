@@ -1971,6 +1971,79 @@ re-reviews. Periodic adversarial re-review due after batch 29, per the
 every-2-batches cadence continuing from the twelfth re-review's baseline
 (after batch 27).
 
+## Copy-ratio remediation pass (2026-09-02) — corpus 525 → 525
+
+Not a batch and not a re-review: a corpus-wide data-quality pass closing
+the external review's finding C1, after the product owner reviewed and
+approved all 58 proposed dispositions in
+[`../reviews/2026-09-02-copy-ratio-disposition.md`](../reviews/2026-09-02-copy-ratio-disposition.md).
+
+**The finding being closed.** `REVIEW_GUIDE.md` §6b calls input→narrative
+similarity "the strongest quantitative signal available" and recorded the
+corpus mean as 0.561 with exactly two records permanently above 0.85.
+Nothing in `training/` ever computed it, so it drifted invisibly: the
+measured mean at commit `78d5ae8` was **0.647 with 60 records above 0.85**,
+climbing monotonically by corpus position (0.497 in the earliest 75 records,
+0.706 in the most recent 75). This is the same non-recovery behaviour the
+first real training run's evaluation found in the trained model, which
+echoed its input at 0.77 on real notes — the corpus taught it that.
+
+**29 records rewritten** to genuinely reorganize: lead with different
+content, group related items, compress. Every rewrite preserves hedges
+exactly as stated, leaves ambiguous referents unresolved, and keeps
+`interrupted_thought` cutoffs (`"the—"`, `"hallw-"`, `"befo—"`) verbatim —
+no cutoff was touched. Bullets and action_items were left alone except for
+one record (`#365`), whose narrative *and* first bullet both narrated a
+retraction ("I initially thought I was definitely free...") instead of
+dropping it, which `self_correction`'s own convention forbids; flagged in
+the disposition as a separate non-copy-ratio issue and fixed here.
+
+**29 records allowlisted** in `check_copy_ratio.py`, each with its own
+recorded rationale, as the same shape as the two pre-existing entries: the
+input is already short, already in the correct narrative order, or a single
+continuous reflection where reordering would be artificial rather than
+recovery. Several short `interrupted_thought` records qualify for a
+structural reason worth naming — almost all their content *is* the verbatim
+cutoff, so there is nothing left to reorganize around it, the same argument
+that allowlists `#118` for `dangling_reference`.
+
+**Result:** corpus mean 0.647 → **0.631**, max non-allowlisted breach
+eliminated, `check_copy_ratio.py` exits 0. The metric is now enforced by
+code rather than by prose, so the next drift is visible immediately.
+
+**Two scenario wells broken** (external review M6, surfaced by the rebuilt
+`check_duplicates.py`): `#291` was the third prescription-pickup note and
+`#146` one of two dry-cleaning-plus-contact-Mom notes. `TAXONOMY.md`
+tolerates two examples per scenario and calls a third a signal that
+generation is falling into a well. Both replaced with fresh scenarios (a
+parcel-locker pickup code; returning a spare key and watering plants),
+category, difficulty and lesson preserved in each. Prescription is now a
+pair (`#22`/`#122`) and dry-cleaning no longer flags at all.
+
+**PROVENANCE NOTE, recorded deliberately rather than left silent:** those
+two replacement `input` values are **Claude-authored**, unlike the rest of
+`synthetic.jsonl`, which is Gemini-generated per batch. Generating
+replacements through Gemini would have required the product owner's
+per-batch authorization for a billed call, which was not in hand at the
+time. Anyone auditing batch provenance should know these two records belong
+to no batch.
+
+**Caught during the pass, worth recording as a live instance of a
+documented trap.** `REVIEW_GUIDE.md` §6b warns that the copy-ratio rule and
+the first-person-voice rule pull against each other — "the cheapest way to
+stop describing a note is to start reciting it," and the inverse. Three of
+the rewrites (`#146`, `#231`, `#338`) dropped every first-person pronoun
+while chasing a lower ratio, and were caught by the standing voice check,
+not by eye. Fixing `#338`'s voice pushed its ratio straight back to 0.917;
+it took three attempts to land a version that satisfies both rules at 0.73
+while keeping "maybe"/"could" and the verbatim cutoff. Re-measure both axes
+after any narrative edit — that instruction is load-bearing, not
+theoretical.
+
+Full three-check voice-regression suite, schema validation, duplicate
+check, copy-ratio check, and the 17-test serialization suite all clean at
+525/525. No `<unk>`-producing records.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s

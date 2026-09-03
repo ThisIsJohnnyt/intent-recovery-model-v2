@@ -66,6 +66,129 @@ ALLOWLIST = {
         "simple_list/easy, 0.87 -- REVIEW_GUIDE.md ss6b: same rationale. A high "
         "ratio is the RIGHT answer for a short, already-ordered note."
     ),
+
+    # --- Added 2026-09-02 after the product owner reviewed the full
+    # disposition in docs/reviews/2026-09-02-copy-ratio-disposition.md and
+    # approved all 58 calls. These 29 are the same shape as #118/#127 above:
+    # the input is already short, already in the correct narrative order, or a
+    # single continuous reflection, so a high ratio is the right answer and
+    # forcing it down would mean padding. The other 29 breaches were rewritten
+    # to genuinely reorganize instead. ---
+    "b22ea34135ac1f82": (
+        "dangling_reference/hard -- single flowing conditional sentence, "
+        "already well-ordered; the ambiguous 'the blue one' and 'it' are "
+        "correctly carried through unresolved."
+    ),
+    "ff97c2128eba856d": (
+        "interrupted_thought/easy -- minimal content before the literal "
+        "cutoff; the preserved cutoff itself dominates the text."
+    ),
+    "b53d08febfdbd9da": (
+        "zero_action_items/easy -- three short observations already in "
+        "natural order; the only available compression (tying the haze to "
+        "the AQI) would invent a causal claim the input does not make."
+    ),
+    "ffdac11711824e66": (
+        "rapid_branching/hard -- already an ordered conditional chain (if X "
+        "then Y, unless Z); reordering would break the logic rather than "
+        "recover it."
+    ),
+    "e8a13fec39707902": (
+        "time_ambiguous/hard -- single already-ordered sentence, nothing "
+        "left to reorganize."
+    ),
+    "70e784aca3b7b102": (
+        "topic_switching/medium -- naturally sequential plan ('do X then "
+        "Y'); chronological order is the correct narrative order."
+    ),
+    "4a05f1d8dba111a4": (
+        "zero_action_items/medium -- single continuous observation narrated "
+        "in the order it happened."
+    ),
+    "7c0c6750c77dd1cb": (
+        "time_ambiguous/hard -- already logically ordered as hedge, hedge, "
+        "deadline, which is also the right narrative order."
+    ),
+    "4f5b3aa44ba323df": (
+        "time_ambiguous/hard -- natural sequential planning order (deadline "
+        "hedge, call-to-check, milk on the way back)."
+    ),
+    "1e2fe17ce35e0ee3": (
+        "zero_action_items/easy -- very short, single sentence."
+    ),
+    "2141a4d2d3d72d88": (
+        "dangling_reference/easy -- short, two sentences."
+    ),
+    "d1911e8c4e740fac": (
+        "zero_action_items/medium -- single continuous reminiscence; "
+        "reordering someone's own train of memory would be artificial, not "
+        "recovery."
+    ),
+    "26c04e3b8daf0666": (
+        "time_ambiguous/medium -- short, sequential logical hedge (problem, "
+        "plumber, when to call)."
+    ),
+    "88cd4e66bf16e56b": (
+        "topic_switching/medium -- very short, two sentences."
+    ),
+    "57570b26ebded959": (
+        "dangling_reference/hard -- short, two sentences, with a "
+        "deliberately disconnected fragment; little to reorganize."
+    ),
+    "df27585ea26cdbcd": (
+        "dangling_reference/medium -- single sentence."
+    ),
+    "ac98c375b6faa336": (
+        "self_correction/expert -- compact list of four short facts already "
+        "in a reasonable order; the retracted day has already been "
+        "correctly dropped."
+    ),
+    "dd7b5b9d1dda8d76": (
+        "contradictory_statement/hard -- very short, two sentences."
+    ),
+    "60c1d61fab759d39": (
+        "contradictory_statement/easy -- short, single flowing "
+        "deliberation; content confirmed correct in an earlier re-review."
+    ),
+    "6cbdf84c5ab0ee34": (
+        "long_rambling/easy -- reflective monologue in natural "
+        "chronological order; matches this category's own 'easy' definition "
+        "of low structural complexity."
+    ),
+    "4fb0a1917cbdb77c": (
+        "multi_person_note/easy -- short, single sentence; content "
+        "confirmed correct in an earlier re-review."
+    ),
+    "a8cfbfc88ae7c9cc": (
+        "contradictory_statement/expert -- short, single flowing sentence, "
+        "already well-ordered."
+    ),
+    "137af4005bb77a89": (
+        "interrupted_thought/easy -- minimal content before the literal "
+        "cutoff, single clause."
+    ),
+    "a9a8ae729ff40367": (
+        "interrupted_thought/easy -- minimal content before the literal "
+        "cutoff, single clause."
+    ),
+    "42290905cb98eb65": (
+        "interrupted_thought/easy -- minimal content before the literal "
+        "cutoff, single clause."
+    ),
+    "d1bad3a1d3835fa8": (
+        "zero_action_items/hard -- single flowing thought ending in genuine "
+        "indecision; confirmed content-correct in the twelfth re-review, "
+        "and the extraction work is the bullets'."
+    ),
+    "38aec1099460c13b": (
+        "multi_person_note/easy -- very short, single sentence."
+    ),
+    "20718ddf7c2da9e5": (
+        "multi_person_note/easy -- very short, single sentence."
+    ),
+    "c45b1c9d2282d8af": (
+        "topic_switching/expert -- very short, two sentences."
+    ),
 }
 
 
