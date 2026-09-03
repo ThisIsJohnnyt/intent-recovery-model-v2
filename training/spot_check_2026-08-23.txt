@@ -1,0 +1,253 @@
+PRODUCT-OWNER SPOT CHECK - 10 examples
+========================================================================
+
+You are NOT running the review checklist. Claude and Gemini both do that
+adequately. What neither can do is judge these three things:
+
+  1. Does the INPUT read like something a real person actually typed?
+     Both models are guessing at what real messiness looks like. You are
+     about to have a folder of genuine notes. If one of these reads as
+     invented, say so - that is the failure mode that nearly got past us.
+
+  2. If this were your note, is the NARRATIVE what you would want back?
+     Not "is it defensible against the rules" - is it useful. An output can
+     satisfy every rule and still be worse than the raw note.
+
+  3. Is there anything here worth learning? Some narratives may be
+     technically clean and pedagogically empty.
+
+Five of these were drawn at random from the whole corpus. Five were drawn
+at random from examples edited during the 2026-08-23 session - rewritten by
+Claude to satisfy a checklist, which is the same pressure that caused the
+drift in the first place. You are not told which is which.
+
+Category and difficulty labels are shown; no review conclusions are.
+Jot reactions anywhere - a sentence per example is plenty.
+
+========================================================================
+--- 1 of 10 --- [contradictory_statement / hard]
+
+INPUT:
+  gonna plant a massive vegetable plot this spring tomatoes peppers the works completely exhausted by yard work i think im just gonna pave over the whole dirt patch and be done with it
+
+NARRATIVE:
+  I'm going to plant a massive vegetable plot this spring — tomatoes, peppers, the works. I'm completely exhausted by yard work, though; I think I'm just going to pave over the whole dirt patch and be done with it.
+
+BULLETS:
+  - Plans to plant a large vegetable garden this spring with tomatoes and peppers
+  - Feels completely exhausted by yard work
+  - Wants to pave over the dirt patch to avoid the work
+
+ACTIONS:
+  - Plant a spring vegetable plot
+
+  1. input reads real? Yes. Human like with the contradiction coming AFTER the user started work on the gardening project.
+  2. narrative useful? Yes. It captures exactly what the user is noting, and how a thought process can be picked up in a note later on with a contradictory statement.       
+  3. worth learning? Yes       
+
+========================================================================
+--- 2 of 10 --- [dangling_reference / hard]
+
+INPUT:
+  print 3 copies of resume. figure out how to explain the gap in 2022. don't forget the framework from that one article, it works really well for behavioral questions. wear the blue suit.
+
+NARRATIVE:
+  For my upcoming interview, I need to print three copies of my resume, figure out how to explain my 2022 employment gap, and remember to wear my blue suit. I also need to remember a specific framework from an unspecified article, as it works very well for answering behavioral questions.
+
+BULLETS:
+  - Need to print three copies of resume
+  - Need to prepare an explanation for the 2022 employment gap
+  - Plan to wear the blue suit
+  - Must remember an unspecified article's framework for behavioral questions
+
+ACTIONS:
+  - Print 3 copies of resume
+  - Figure out how to explain the 2022 employment gap
+
+  1. input reads real? Yes     
+  2. narrative useful? Yes     
+  3. worth learning? Yes. In this example though I would add "remember article to answer behavioral questions" as an action item as well. You figured out the intent, which was interview preparedness. Remembering the article to begin with is an action item in my mind.       
+
+========================================================================
+--- 3 of 10 --- [topic_switching / hard]
+
+INPUT:
+  gotta find the W2s from the old job I think they are in the blue folder in the basement or maybe still in my inbox. should probably email hr just in case I can't find them by friday. chapter 4 was so boring skip the discussion questions about the protagonist's mother because I don't really think anyone cares.
+
+NARRATIVE:
+  I need to locate the W2 forms from my previous job; I think they are either in the blue folder in the basement or maybe still sitting in my email inbox. I should probably email HR just in case I am unable to find them by Friday. Switching gears, Chapter 4 was so boring. I plan to skip the discussion questions regarding the protagonist's mother, as I don't really think anyone cares about them.
+
+BULLETS:
+  - Need to find old W2s, which I think are in the blue basement folder or maybe my inbox
+  - I should probably email HR just in case the W2s aren't found by Friday
+  - Chapter 4 was so boring. Skip the discussion questions about the protagonist's mother — I don't really think anyone cares
+
+ACTIONS:
+  - Find the W2s from the old job (I think they are in the blue folder in the basement or maybe still in my inbox)
+  - Should probably email HR just in case I can't find them by Friday
+  - Skip the discussion questions about the protagonist's mother
+
+  1. input reads real? Yes      
+  2. narrative useful? Narrative should note anyone cares "about the assignment" as the assignment was the major point of reference in that section, as "I don't really think anyone cares" doesn't also note "about her" or other indications that this is a reference to the character's mother.      
+  3. worth learning? Yes        
+
+========================================================================
+--- 4 of 10 --- [zero_action_items / easy]
+
+INPUT:
+  jake was acting super distant at dinner kept staring at his phone felt really disconnected tonight i really hope hes just stressed with his job and not annoyed with me
+
+NARRATIVE:
+  Jake was acting super distant at dinner, kept staring at his phone. I felt really disconnected tonight. I really hope he's just stressed with his job and not annoyed with me.
+
+BULLETS:
+  - Jake acted distant and stared at his phone during dinner
+  - Felt really disconnected tonight
+  - I really hope he's just stressed with his job and not annoyed with me
+
+ACTIONS:
+  (none)
+
+  1. input reads real? Yes      
+  2. narrative useful? Yes     
+  3. worth learning? Yes.        
+
+========================================================================
+--- 5 of 10 --- [topic_interleaving / hard]
+
+INPUT:
+  look up whether the JR pass covers the nozomi train to kyoto. book the ryokan in kyoto for the 3rd to the 6th. need an esim for data. actually wait, maybe the hikari train is fine if nozomi isn't covered. airalo has good esim reviews. what neighborhood in tokyo should we stay in before kyoto? maybe shinjuku.
+
+NARRATIVE:
+  For the Japan trip, I need to figure out which neighborhood to stay in Tokyo before heading to Kyoto, possibly considering Shinjuku. I must also book a ryokan in Kyoto for the 3rd through the 6th. Regarding transit, I need to check if the JR Pass covers the Nozomi train; if it doesn't, the Hikari train is a suitable alternative. Finally, I need to purchase an eSIM for mobile data, and Airalo seems like a highly-reviewed option.
+
+BULLETS:
+  - Tokyo accommodation requires choosing a neighborhood, with Shinjuku as a possibility
+  - A ryokan in Kyoto must be booked for the dates of the 3rd to the 6th
+  - Train travel planning requires checking if the JR Pass covers the Nozomi train, with the Hikari train as a backup
+  - An eSIM is needed for cellular data, and Airalo is a strong candidate
+
+ACTIONS:
+  - Decide on a neighborhood to stay in Tokyo.
+  - Book the Kyoto ryokan for the 3rd to the 6th.
+  - Check if the JR pass covers the Nozomi train.
+  - Research and buy an eSIM for data, looking into Airalo.
+
+  1. input reads real? Yes      
+  2. narrative useful? Yes     
+  3. worth learning? Yes       
+
+========================================================================
+--- 6 of 10 --- [zero_action_items / easy]
+
+INPUT:
+  finally finished that sci fi book ending made absolutely zero sense why did they kill the main character such terrible writing first half was way better so disappointed
+
+NARRATIVE:
+  I finally finished that sci-fi book. The ending made absolutely zero sense — why did they kill the main character? Such terrible writing. The first half was way better. So disappointed.
+
+BULLETS:
+  - Finished reading a sci-fi book
+  - Felt the first half of the book was much better than the end
+  - Found the ending nonsensical and the writing terrible, specifically regarding the main character's death
+  - So disappointed with the book
+
+ACTIONS:
+  (none)
+
+  1. input reads real? Yes. A very human flow to how someone might record notes about a book.      
+  2. narrative useful? Yes    
+  3. worth learning?  Yes. However I would remove bullet "So disappointed with the book". That was the intent of the note. To document WHY it was disappointing. Not the fact itself that it was disappointing.      
+
+========================================================================
+--- 7 of 10 --- [topic_interleaving / medium]
+
+INPUT:
+  caulk the bathtub. scrape out the old stuff first. get the silicone one. also need to order cupcakes for leo's party. chocolate and vanilla mix. what time is home depot open till? if i go tonight i can caulk tomorrow. paw patrol theme for the cupcakes if possible. or just paw patrol rings on top. buy a new caulk gun mine is rusted.
+
+NARRATIVE:
+  I need to caulk the bathtub, which means scraping out the old caulk first and getting a silicone replacement. I also need to buy a new caulk gun since mine is rusted. I need to find out how late Home Depot is open; if I go tonight, I can caulk tomorrow. Separately, I need to order a mix of chocolate and vanilla cupcakes for Leo's party. I'd like them to be Paw Patrol themed if possible, or at least have Paw Patrol rings on top.
+
+BULLETS:
+  - Bathtub needs to be recaulked with silicone after scraping out the old caulk
+  - Current caulk gun is rusted and needs replacing
+  - Hoping to go to Home Depot tonight to caulk tomorrow
+  - Need to order a mix of chocolate and vanilla cupcakes for Leo's party
+  - Cupcakes should have a Paw Patrol theme or Paw Patrol rings on top
+
+ACTIONS:
+  - Check Home Depot store hours
+  - Go to Home Depot (tonight if possible)
+  - Buy silicone caulk and a new caulk gun
+  - Scrape out old bathtub caulk and apply new caulk
+  - Order chocolate and vanilla Paw Patrol cupcakes for Leo's party
+
+  1. input reads real? Yes     
+  2. narrative useful? For the birthday party references, yes. For the bathtub caulking, no. To me, the input about "get the silicone one" is an unanswered reference. It's not a known certainty that "silicone one" means directly the type of caulk to buy. This could be a reference to using a silicone caulk remover.      
+  3. worth learning? No.  
+
+========================================================================
+--- 8 of 10 --- [zero_action_items / medium]
+
+INPUT:
+  crumb was way too tight on the rye loaf. i think maybe i underproofed it? kitchen was pretty cold yesterday. next time maybe longer bulk ferment. crust was nice though. taste is decent.
+
+NARRATIVE:
+  The crumb on my recent rye loaf turned out way too tight. I suspect this might be due to underproofing since the kitchen was quite cold yesterday, so next time I might try a longer bulk ferment. On the positive side, the crust was nice and the taste is decent.
+
+BULLETS:
+  - Rye loaf crumb turned out too tight
+  - Suspects the dough was underproofed because the kitchen was cold
+  - Considering a longer bulk ferment for the next attempt
+  - Crust and taste both turned out well
+
+ACTIONS:
+  (none)
+
+  1. input reads real? Yes     
+  2. narrative useful?  Yes    
+  3. worth learning? Yes.         
+
+========================================================================
+--- 9 of 10 --- [voice_to_text_artifact / hard]
+
+INPUT:
+  jupiter moons tonight period seeing is good comma maybe a little turbulent near the horizon new paragraph need to check if that little dot is callisto or ganymede question mark wait no pretty sure ganymede is the bright one period remind me to buy a moon filter star no wait astern risk asterisk
+
+NARRATIVE:
+  Jupiter's moons tonight — seeing is good, maybe a little turbulent near the horizon. I need to check if that little dot is Callisto or Ganymede, though I'm pretty sure Ganymede is the bright one. I also want a reminder to buy a moon filter — asterisk.
+
+BULLETS:
+  - Observing Jupiter's moons tonight with good seeing conditions (though maybe turbulent near the horizon)
+  - Need to verify if a visible dot is Callisto or Ganymede, though pretty sure Ganymede is the bright one
+  - Need to buy a moon filter
+
+ACTIONS:
+  - Check if that little dot is Callisto or Ganymede
+  - Buy a moon filter
+
+  1. input reads real? Yes      
+  2. narrative useful? Yes. The narrative was able to capture exactly what the user was wanting said, including the conversion of words to punctuation.      
+  3. worth learning?  Yes      
+
+========================================================================
+--- 10 of 10 --- [rapid_branching / expert]
+
+INPUT:
+  ok so the sci-fi story idea - humanity lives in the clouds but what if the clouds are actually giant organisms! omg and the ships are symbiotic! need to sketch ship designs. look up jellyfish anatomy for inspiration. maybe the main character is a cloud-harvester.
+
+NARRATIVE:
+  I had an exciting idea for a sci-fi story where humanity lives in clouds that are actually giant organisms, and their ships are symbiotic with them. I need to sketch some ship designs and look up jellyfish anatomy for inspiration. The main character could potentially be a cloud-harvester.
+
+BULLETS:
+  - Sci-fi concept: Humanity lives in giant organism-clouds with symbiotic ships
+  - Look up jellyfish anatomy to inspire ship sketches
+  - Consider making the protagonist a cloud-harvester
+
+ACTIONS:
+  - Sketch ship designs.
+  - Research jellyfish anatomy.
+
+  1. input reads real? Yes.     
+  2. narrative useful? Yes. It was able to put together a well formed thought from a quickly taken note that moves quickly from simple idea to multiple fully fledged ideas and action items.       
+  3. worth learning? Yes        

@@ -170,6 +170,19 @@ def test_validate_rejects_non_list_or_non_string_items():
     _expect_schema_error(r, "action_items containing non-strings")
 
 
+def test_validate_rejects_too_many_bullets():
+    """DATASET_SPEC.md's bullets rule is "up to 7". Unenforced until an
+    external review (2026-09-02, finding L4) found one record had drifted
+    to 8 with nothing catching it."""
+    r = _valid(); r["output"]["bullets"] = [f"point {i}" for i in range(pd.MAX_BULLETS + 1)]
+    _expect_schema_error(r, "more bullets than the documented cap")
+
+
+def test_validate_accepts_the_documented_maximum():
+    r = _valid(); r["output"]["bullets"] = [f"point {i}" for i in range(pd.MAX_BULLETS)]
+    pd.validate_record(r, "test", 1)  # must not raise
+
+
 def test_validate_rejects_unknown_difficulty():
     r = _valid(); r["difficulty"] = "trivial"
     _expect_schema_error(r, "an out-of-vocabulary difficulty")

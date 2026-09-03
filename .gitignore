@@ -28,3 +28,15 @@ training/prepared/
 
 # Session handoffs — local-only, overwritten each session, not part of project history
 /training/Session Handoffs/
+
+# Real, hand-written personal notes -- the pre-conversion draft that becomes
+# datasets/real_validation.jsonl, which is gitignored for the same reason
+# via datasets/.gitignore: uncontaminated real notes, never meant to be
+# published alongside the code (DATASET_SPEC.md's real tier). This file is
+# the same private category, just upstream of the conversion. External
+# review, 2026-09-02.
+/training/Real Examples for Human Input.txt
+
+# Local run logs -- not source, not reviewed docs, regenerated on every run.
+/training/*_run_*.log
+

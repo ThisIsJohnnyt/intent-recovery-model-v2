@@ -1,0 +1,243 @@
+PRODUCT-OWNER SPOT CHECK - 10 examples (2026-09-01)
+========================================================================
+
+Same purpose as the 2026-08-23 check. Not the review checklist - Claude
+and Gemini both run that. Judge only what neither model can:
+
+  1. Does the INPUT read like something a real person actually typed?
+  2. If this were your note, is the NARRATIVE what you would want back?
+  3. Is there anything here worth learning?
+
+All 10 are a pure random draw from the full corpus (375 records, batches
+1-22). Category and difficulty labels are shown; no review conclusions are.
+Jot reactions anywhere - a sentence per example is plenty.
+
+========================================================================
+--- 1 of 10 --- [time_ambiguous / hard]
+
+INPUT:
+  Wait is the arts council grant deadline midnight tonight or midnight tomorrow I swear the portal said the 15th but my calendar alert is going off right now and I am freaking out because I still need to compress the portfolio images I should probably just submit whatever I have by 11:59 pm today so I don't risk getting disqualified
+
+NARRATIVE:
+  I am freaking out because my calendar alert is going off and I am unsure if the arts council grant deadline is midnight tonight or midnight tomorrow, though I swear the portal said the 15th. I still need to compress my portfolio images. I should probably just submit whatever I have by 11:59 PM today so I do not risk being disqualified.
+
+BULLETS:
+  - Freaking out over whether the arts council grant deadline is tonight or tomorrow at midnight
+  - Needing to compress portfolio images for the grant
+  - Probably submitting the current materials by 11:59 PM today to avoid disqualification
+
+ACTIONS:
+  - Compress the portfolio images
+  - Probably submit the grant application by 11:59 PM today
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 2 of 10 --- [voice_to_text_artifact / hard]
+
+INPUT:
+  need to set up the new sin allergy nas drive period um make sure to format it as rayed one comma not rayed zero because we need redundancy period call the isp to get a static ip address new paragraph oh and buy a new cat six cable
+
+NARRATIVE:
+  I need to set up the new Synology NAS drive. It is crucial to format it as RAID 1 rather than RAID 0 to ensure we have data redundancy. I also need to call the ISP to request a static IP address, and I must remember to buy a new Cat 6 cable.
+
+BULLETS:
+  - Set up the new Synology NAS drive
+  - Need to format the NAS as RAID 1 for data redundancy
+  - A static IP address is required from the ISP
+  - A new Cat 6 cable is needed for the setup
+
+ACTIONS:
+  - Set up the new Synology NAS drive.
+  - Format the NAS drive as RAID 1.
+  - Call the ISP to request a static IP address.
+  - Buy a new Cat 6 ethernet cable.
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 3 of 10 --- [voice_to_text_artifact / hard]
+
+INPUT:
+  i can't handle the bright lights at the grocery store today period buy milk eggs and bread please remind me to call doctor smith exclamation mark my brain is just so foggy eye need to rest
+
+NARRATIVE:
+  I am feeling too overwhelmed by the bright lights at the grocery store today, and my brain feels very foggy, so I need to rest. Despite this, I still need to buy milk, eggs, and bread, and I must remember to call Doctor Smith.
+
+BULLETS:
+  - Struggling with a foggy brain and the bright grocery store lights, needing to rest
+  - Need to buy milk, eggs, and bread
+  - Need to call Doctor Smith
+
+ACTIONS:
+  - Buy milk, eggs, and bread
+  - Call Doctor Smith
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 4 of 10 --- [rapid_branching / hard]
+
+INPUT:
+  If the bonus comes through we should book the flights, unless prices went up in which case maybe just stay home? If we stay home we need to clear out the guest room. Either way ask Jamie to watch the dog.
+
+NARRATIVE:
+  If the bonus comes through we should book the flights, unless prices went up, in which case maybe we just stay home. If we stay home, we need to clear out the guest room. Either way, I need to ask Jamie to watch the dog.
+
+BULLETS:
+  - If the bonus comes through, book the flights
+  - If flight prices went up, maybe stay home instead
+  - If staying home, clear out the guest room
+  - Ask Jamie to watch the dog either way
+
+ACTIONS:
+  - Book the flights if the bonus comes through (unless prices went up)
+  - Maybe stay home if prices went up
+  - Clear out the guest room if staying home
+  - Ask Jamie to watch the dog
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 5 of 10 --- [voice_to_text_artifact / hard]
+
+INPUT:
+  shopping list for the blackberry need honey period 15 pounds of wild flower or maybe clover honey comma star sand wait no star san sanitizer period yeast nutrient and pectin en zone wait pectic enzyme to stop the haze period glass car boy bungs size 7 I think
+
+NARRATIVE:
+  Shopping list for the blackberry. I need honey — 15 pounds of wildflower, or maybe clover. Star San sanitizer. Yeast nutrient, and pectic enzyme to stop the haze. Glass carboy bungs, size 7 I think.
+
+BULLETS:
+  - Need 15 pounds of wildflower or possibly clover honey for the blackberry
+  - Need Star San sanitizer and yeast nutrient
+  - Need pectic enzyme to prevent hazing
+  - Need glass carboy bungs (likely size 7)
+
+ACTIONS:
+  - Buy 15 lbs of wildflower or maybe clover honey
+  - Buy Star San sanitizer
+  - Buy yeast nutrient
+  - Buy pectic enzyme
+  - Buy glass carboy bungs (think size 7)
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 6 of 10 --- [voice_to_text_artifact / medium]
+
+INPUT:
+  call the plumber about the league under the sync
+
+NARRATIVE:
+  I need to call the plumber about the leak under the sink.
+
+BULLETS:
+  - Calling the plumber about the leak under the sink
+
+ACTIONS:
+  - Call the plumber about the leak under the sink
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 7 of 10 --- [minimal_fragment / easy]
+
+INPUT:
+  feed starter 1:1:1 tonight
+
+NARRATIVE:
+  I need to feed the starter 1:1:1 tonight.
+
+BULLETS:
+  - Feed the starter tonight using a 1:1:1 ratio
+
+ACTIONS:
+  - Feed starter 1:1:1 tonight
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 8 of 10 --- [self_correction / hard]
+
+INPUT:
+  Pack the heavy coats for Chicago. No wait the weather app says it'll be unseasonably warm, so maybe just light jackets. Definitely bring the green sweater. Actually the green sweater needs dry cleaning first. Leave the green sweater. Take the blue one instead. Remind me to drop off the green sweater next week.
+
+NARRATIVE:
+  I am packing for Chicago. Initially, I thought about packing the heavy coats, but the weather app says it will be unseasonably warm, so maybe I'll just pack light jackets instead. I definitely wanted to bring the green sweater, but I realized it needs dry cleaning first, so I will leave it and take the blue one instead. I need to remind myself to drop off the green sweater at the dry cleaner next week.
+
+BULLETS:
+  - Packing heavy coats for Chicago
+  - The weather app saying it will be unseasonably warm
+  - Maybe packing just light jackets instead
+  - Wanting to bring the green sweater but realizing it needs dry cleaning
+  - Leaving the green sweater and taking the blue one instead
+  - Dropping off the green sweater next week
+
+ACTIONS:
+  - Pack just light jackets maybe
+  - Leave the green sweater
+  - Take the blue one instead
+  - Drop off the green sweater next week
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 9 of 10 --- [rapid_branching / easy]
+
+INPUT:
+  need to order new yarn for the blanket actually maybe I should make a scarf instead scarves are faster could probably finish one by the weekend if I use the chunky wool
+
+NARRATIVE:
+  I need to order new yarn for the blanket. Actually, maybe I should make a scarf instead, as scarves are faster. I could probably finish one by the weekend if I use the chunky wool.
+
+BULLETS:
+  - Need to order new yarn for the blanket
+  - Considering making a scarf instead because they are faster
+  - Could likely finish a scarf by the weekend using the chunky wool
+
+ACTIONS:
+  - Order yarn — chunky wool if going with the scarf, or the original blanket yarn if not
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================
+--- 10 of 10 --- [interrupted_thought / medium]
+
+INPUT:
+  planning kids bday party maybe the park if weather holds up order pizza and oh wow look at that massive dog walking down the street need to book the pavilion by tuesday
+
+NARRATIVE:
+  I'm planning my kid's birthday party — maybe the park if the weather holds up. Order pizza, and — oh wow, look at that massive dog walking down the street. I need to book the pavilion by Tuesday.
+
+BULLETS:
+  - Planning a kid's birthday party, potentially at the park with pizza
+  - Oh wow, look at that massive dog walking down the street
+  - Must book the park pavilion by Tuesday
+
+ACTIONS:
+  - Order pizza for the birthday party
+  - Book the park pavilion by Tuesday
+
+  1. input reads real?
+  2. narrative useful?
+  3. worth learning?
+
+========================================================================

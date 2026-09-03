@@ -36,6 +36,12 @@ TASK_PREFIX = "Recover the intent behind these scattered notes:\n\n"
 
 REQUIRED_TOP = {"input", "output"}
 REQUIRED_OUTPUT = {"narrative", "bullets", "action_items"}
+# DATASET_SPEC.md's bullets rule: "up to 7". Unenforced until an external
+# review (2026-09-02, finding L4) found one record had drifted to 8 with
+# nothing catching it -- neither this validator nor training_data.schema.json
+# had a maxItems check. Fixed in the corpus and enforced here now.
+MAX_BULLETS = 7
+
 VALID_DIFFICULTIES = {"easy", "medium", "hard", "expert"}
 
 
@@ -75,6 +81,12 @@ def validate_record(record: dict, source: str, lineno: int) -> None:
         value = output[field]
         if not isinstance(value, list) or not all(isinstance(x, str) for x in value):
             raise SchemaError(f"{where}: 'output.{field}' must be a list of strings")
+    if len(output["bullets"]) > MAX_BULLETS:
+        raise SchemaError(
+            f"{where}: 'output.bullets' has {len(output['bullets'])} items, "
+            f"more than the documented cap of {MAX_BULLETS} (DATASET_SPEC.md: "
+            f"'up to 7')"
+        )
 
     if "difficulty" in record and record["difficulty"] not in VALID_DIFFICULTIES:
         raise SchemaError(
