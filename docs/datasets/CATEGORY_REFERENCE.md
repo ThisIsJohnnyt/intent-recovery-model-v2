@@ -2128,12 +2128,52 @@ One more REJECT from the same root cause: Gemini also rejected `#508` (`rapid_br
 
 Several of Gemini's causal-connective complaints (flagging "because"/"as"/"so" linking two facts input already states adjacently in the same sentence or breath — e.g. `#503`'s "so frustrating, nobody even listens" already reads as cause-and-effect by its own comma splice) — the same overreach pattern the seventh re-review already documented; the invented-causality rule targets asserting a relationship between fragments that are actually *unrelated*, not making an already-adjacent implication explicit. Several general "near-verbatim narrative" claims — copy ratios for the whole 13-example sample checked directly rather than argued impressionistically: max 0.833, none above this project's own calibrated 0.85 flag line.
 
-### Two category-fit questions surfaced, not resolved
+### Two category-fit questions, resolved 2026-09-07
 
-- `#508`'s `rapid_branching` label doesn't cleanly match `TAXONOMY.md`'s "several sub-ideas branching in quick succession" definition — the input is a single linear reflective thought (uninspired → creativity dried up → sketchbook idea), not multiple branches. Notable: this record was already relabeled once during batch 28's own review, from `topic_switching` to `rapid_branching`, for a similar reason ("not an abrupt switch to an unrelated subject") — this may be the second wrong category in a row for the same record, not just the first miss corrected.
-- `#514`'s `contradictory_statement` label doesn't clearly show a stated stance later reversed (`TAXONOMY.md`'s own definition and worked example); the input reads closer to sequential option-weighing (fly vs. drive vs. train) that resolves to indecision, not a mood or intention that shifts.
+Both surfaced above, neither forced into a fit — checked against all 15
+categories directly, discussed with Gemini on the review bridge for an
+independent read, then decided by the product owner.
 
-Full three-check voice-regression suite, schema validation, duplicate check, and copy-ratio check all clean at 533/533 after the 9 fixes (same 12 pre-existing flagged duplicate pairs, none new). Corpus 533 → 533. Next periodic re-review due after batch 31.
+- **`#514` relabeled `contradictory_statement` → `rapid_branching`,
+  difficulty unchanged (`hard`).** It fails `contradictory_statement`
+  cleanly (no stated stance later reversed, just sequential option-weighing
+  that resolves to indecision), and fits `rapid_branching` well: one root
+  problem (getting to the holiday gathering) spinning off three genuine
+  branches in quick succession — fly (rejected: cost, airports), drive
+  (rejected: 14 hours alone), train (landed on, hedged) — each evaluated
+  before moving to the next, never flattened into one generic point. Both
+  Claude and Gemini flagged that the category's worked example illustrates
+  a hyperfocus/excitement mood this note doesn't share (resigned/
+  deliberative instead), but the taxonomy's actual "what it teaches"
+  column doesn't require that mood, only the example does — treating
+  `rapid_branching` as a structural property of branching cognition,
+  not tied to one emotional register, was judged a genuine corpus-
+  diversity improvement, not a stretch.
+- **`#508` removed from the corpus rather than relabeled.** A single
+  linear reflective thought (uninspired → creativity dried up → one
+  hedged follow-on idea) that doesn't cleanly fit any of the 15
+  categories — not `rapid_branching` (one follow-on idea, not several
+  branches), not `zero_action_items` (has a real, concrete, hedged action
+  item), not `long_rambling` (one tight arc, not many scattered points
+  under compression), and every other category ruled out on the same
+  direct check. Notable: this record had already been relabeled once
+  during batch 28's own review (`topic_switching` → `rapid_branching`),
+  for a similar reason — the second wrong category in a row for the same
+  record, not just a first miss corrected. Both Claude and Gemini agreed a
+  532-record corpus with no ambiguous filler record is stronger than a
+  533-record corpus with one that doesn't teach a distinct lesson;
+  parking it for replacement in a future authorized batch was preferred
+  over forcing a label.
+
+Depth impact: `contradictory_statement` 38 → 37, `rapid_branching`
+unchanged at 36 (net zero: −1 removed, +1 relabeled in), corpus 533 → 532.
+Difficulty distribution: easy 120, medium 145 (−1), hard 160, expert 107.
+
+Full three-check voice-regression suite, schema validation, duplicate
+check, and copy-ratio check all clean at 532/532 after both changes (same
+12 pre-existing flagged duplicate pairs, none new). Next periodic
+re-review due after batch 31 (unchanged — this was a targeted disposition
+of an already-open finding, not a new batch).
 
 ## Cognitive / emotional / structural states covered
 
