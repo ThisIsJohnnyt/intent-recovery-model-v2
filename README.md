@@ -30,7 +30,11 @@ Development uses two AI collaborators going forward:
   lead and corpus steward: repository, training pipeline, dataset
   specification and review, documentation.
 - **[Gemini](https://deepmind.google/technologies/gemini/) (Google)** —
-  dataset generation, against the spec Claude and the product owner define.
+  dataset generation against the spec Claude and the product owner
+  define, plus (since 2026-09-07) engineering/pipeline proposal review,
+  model-diagnostics discussion, and the independent pass of periodic
+  adversarial dataset re-review, via a standing review session — see
+  [PDR-006](docs/decisions/PDR-006.md)'s amendments.
 
 This continues the project's existing governance model — surface
 disagreement rather than silently resolve it, product owner has final
@@ -76,16 +80,25 @@ label is not.
 |---|---|
 | Mission, stable principles, AI collaboration protocol | [`docs/vision/`](docs/vision/) |
 | Dataset generation spec, category reference, review checklist, schemas | [`docs/datasets/`](docs/datasets/), [`training/DATASET_SPEC.md`](training/DATASET_SPEC.md) |
-| The dataset itself (currently empty — see Current state) | [`datasets/`](datasets/) |
+| The dataset itself | [`datasets/`](datasets/) |
 | Fine-tuning pipeline (prepare → train → export → release) | [`training/`](training/) |
 | Formal decision records | [`docs/decisions/`](docs/decisions/) |
 | Model releases | [Releases](https://github.com/ThisIsJohnnyt/intent-recovery-model-v2/releases) (none yet) |
 
 ## Current state
 
-**Scaffolded, not yet populated.** This repository was created 2026-08-19.
-No dataset content, trained checkpoint, or model release exists here yet —
-see [PROJECT_OVERVIEW.md](docs/vision/PROJECT_OVERVIEW.md) for what's next.
+**Actively in development.** This repository was created 2026-08-19. As of
+2026-09-07: a synthetic corpus spans all 15 taxonomy categories (see
+[`docs/datasets/CATEGORY_REFERENCE.md`](docs/datasets/CATEGORY_REFERENCE.md)
+for current, exact counts — this grows by batch, so it's tracked there, not
+restated here), a real hand-written validation/holdout tier exists per
+[`training/DATASET_SPEC.md`](training/DATASET_SPEC.md) (never
+generative-model-touched, by design), and two full training runs have
+completed against `google/flan-t5-base` with results evaluated against the
+real tier — see [`training/COST_LEDGER.md`](training/COST_LEDGER.md) for
+the full batch-by-batch and review history. No versioned model release
+exists yet — see
+[PROJECT_OVERVIEW.md](docs/vision/PROJECT_OVERVIEW.md) for what's next.
 `google/flan-t5-base` (Apache 2.0) is the intended base model, carried
 forward unchanged from the predecessor project — it was never an OpenAI
 dependency.

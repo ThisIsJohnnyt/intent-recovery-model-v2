@@ -53,7 +53,12 @@ never assuming *why* a note is fragmented (no diagnosis framing — see
   taxonomy, and review methodology.
 - **Gemini**: dataset generator — produces synthetic examples against the
   spec Claude and the product owner define, under the diversity/balance and
-  difficulty-progression rules in [`docs/datasets/`](../datasets/).
+  difficulty-progression rules in [`docs/datasets/`](../datasets/). Since
+  2026-09-07, also reviews Claude's engineering/pipeline proposals and
+  model-diagnostics discussion via a standing session, and independently
+  re-reviews sampled corpus content as its own blind subagent during
+  periodic adversarial re-review — see
+  [PDR-006](../decisions/PDR-006.md)'s amendments.
 
 Dataset-content decisions (exactly which examples, how many per category,
 how evaluation is scored) come from the product owner, with Claude and

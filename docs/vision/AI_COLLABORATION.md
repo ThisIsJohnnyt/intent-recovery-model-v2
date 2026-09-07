@@ -11,7 +11,11 @@ See [`NORTH_STAR.md`](NORTH_STAR.md)'s "Collaboration model" for the full
 definition. Summary: product owner (the user, owns the problem/vision and
 has final decision authority), Claude (engineering lead and corpus
 steward — repo, pipeline, dataset spec, review, commits), Gemini (dataset
-generator — produces synthetic examples against the spec).
+generator — produces synthetic examples against the spec; since 2026-09-07
+also reviews Claude's engineering/pipeline proposals and model-diagnostics
+discussion via a standing session, and independently re-reviews sampled
+corpus content as its own blind subagent during periodic adversarial
+re-review — see [PDR-006](../decisions/PDR-006.md)).
 
 **On the predecessor project's history**: `intent-recovery-model` (this
 project's predecessor) used ChatGPT as its dataset curator and Codex
@@ -30,8 +34,9 @@ Content).
 
 ## Review workflow
 
-See [`docs/datasets/REVIEW_GUIDE.md`](../datasets/REVIEW_GUIDE.md) once
-populated — checklist, release bundle contents, and who writes each piece.
+See [`docs/datasets/REVIEW_GUIDE.md`](../datasets/REVIEW_GUIDE.md) —
+checklist, release bundle contents, periodic adversarial re-review
+process, and who writes each piece.
 
 ## Decision ownership
 
@@ -71,9 +76,17 @@ Authority" and "Preserve Decision History" values:
 
 ## Financial guardrails (Gemini API usage)
 
-Gemini API billing is real and per-token. Every real-money call needs the
-product owner's own direct statement — never inferred from a prior
-approval, never assumed to carry over between sessions. See a future PDR
-once the concrete Claude+Gemini tooling integration (MCP-based, see
-[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)) is built, for the specific
-guardrail mechanism in place.
+Gemini API billing is real and per-token. Every real-money generation or
+adversarial-re-review call needs the product owner's own direct statement
+in the moment — never inferred from a prior approval, never assumed to
+carry over between sessions or between batches. See
+[PDR-004](../decisions/PDR-004.md) for the MCP-based tooling integration
+this runs through, and [`training/COST_LEDGER.md`](../../training/COST_LEDGER.md)
+for the running record of every authorized call.
+
+The review bridge's engineering-proposal lane (Gemini reviewing Claude's
+own pipeline/methodology proposals, see [PDR-006](../decisions/PDR-006.md)'s
+2026-09-07 amendment) is a separate lane with its own standing
+authorization — it isn't a real-money generation call, so it doesn't need
+a fresh per-instance statement the way a corpus batch or adversarial
+re-review does.

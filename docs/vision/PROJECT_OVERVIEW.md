@@ -27,25 +27,38 @@ fork.
 
 ## Current status
 
-**Scaffolded, not yet populated.** This repository was created 2026-08-19 as
-part of the OpenAI-exit fork ([PDR-001](../decisions/PDR-001.md)). No
-dataset content, trained checkpoint, or model release exists here yet.
-`google/flan-t5-base` (Apache 2.0) is the intended base model, carried
+**Actively in development.** This repository was created 2026-08-19 as
+part of the OpenAI-exit fork ([PDR-001](../decisions/PDR-001.md)). As of
+2026-09-07: a synthetic corpus spans all 15 taxonomy categories (see
+[`../datasets/CATEGORY_REFERENCE.md`](../datasets/CATEGORY_REFERENCE.md)
+for current, exact counts — this grows by batch, tracked there rather than
+restated here), a real hand-written validation/holdout tier exists per
+`training/DATASET_SPEC.md` (never generative-model-touched, by design),
+and two full training runs have completed against `google/flan-t5-base`
+with results evaluated against the real tier — see
+[`../../training/COST_LEDGER.md`](../../training/COST_LEDGER.md) for the
+full batch-by-batch and review history. No versioned model release exists
+yet. `google/flan-t5-base` (Apache 2.0) remains the base model, carried
 forward unchanged from the predecessor project.
-
-Next real work: design this repository's own taxonomy and category
-reference in `docs/datasets/`, then begin dataset generation against
-`training/DATASET_SPEC.md` using Gemini.
 
 ## Roles
 
 Product owner (the user), engineering lead and corpus steward (Claude),
 dataset generator (Gemini) — see `NORTH_STAR.md`'s "Collaboration model"
-for what each role owns.
+for what each role owns. Since 2026-09-07, Gemini also reviews Claude's
+engineering/pipeline proposals and model-diagnostics discussion via a
+standing session, and independently re-reviews sampled corpus content as
+its own blind subagent during periodic adversarial re-review — see
+[PDR-006](../decisions/PDR-006.md)'s amendments.
 
 ## Claude + Gemini tooling
 
-This project intends tooling-level integration between Claude and Gemini
-(not just raw API calls from a script) — an MCP server wrapping the Gemini
-API, evaluated and selected once concrete. See a future PDR once that
-selection is made.
+Tooling-level integration between Claude and Gemini (not just raw API
+calls from a script) is done: an MCP server wraps the Gemini API for
+dataset generation, evaluated and selected per
+[PDR-004](../decisions/PDR-004.md). The most recent extension of it is
+the review bridge (`review_bridge/`, [PDR-006](../decisions/PDR-006.md)'s
+2026-09-07 amendment) — a file-based channel to a standing Antigravity
+session for engineering/pipeline proposal review and model-diagnostics
+discussion, separate from the batch-generation API and gated by its own
+standing authorization rather than per-call.
