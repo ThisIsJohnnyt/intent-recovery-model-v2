@@ -2094,6 +2094,47 @@ reorganize their input, they don't recite it.
 re-reviews. **Periodic adversarial re-review is due now** (scheduled for
 "after batch 29" since the twelfth re-review, after batch 27).
 
+## Thirteenth adversarial re-review (2026-09-07) — corpus 533 → 533, one finding escalated
+
+13 examples sampled from batches 28-29 (7 `zero_action_items`, 3 near-miss-contrast records, 1 `contradictory_statement`, 2 controls). Gemini first against the full checklist, then a genuinely fresh Claude subagent with no exposure to this session's reasoning, per `PDR-006`'s amendment. Full log: `REVIEW_GUIDE.md`'s re-review table, 2026-09-07 entry.
+
+### The escalated finding — settled by the product owner, 2026-09-07
+
+Gemini REJECTed all four of batch 29's new `zero_action_items` examples (imperative-mood self-care/downtime notes, e.g. `#527` "eat cereal straight out of the box... do not check work slack", `#533` "walk to the park... breathe in the cold air... if i feel like doing nothing, do absolutely nothing"), arguing every bare imperative in `input` must produce an `action_items` entry.
+
+**Checked directly against the real, hand-written ground truth rather than argued abstractly**: `datasets/real_validation.jsonl`'s note #15 — the actual note whose 2026-09-07 eval failure is why batch 29 exists — uses this exact pattern ("Step away from the computer. ... Watch movies, play with the dog.") and its `action_items` is `[]`, hand-labeled by the product owner, never touched by any model. Gemini's rule, taken literally, would call that real example wrong too.
+
+The independent fresh-Claude pass, given no exposure to this reasoning or to Gemini's verdicts, reached ACCEPT on all four and volunteered the actual distinguishing test: a genuine action item carries an external obligation with a checkable completion state and a real cost to forgetting it (call Maya, buy coffee beans, retrieve the sketchbook from the attic — all present elsewhere in this same 13-example sample and correctly kept as action items by both reviewers). The batch-29 examples are self-permission for how to spend unstructured time — no external party to disappoint, no coherent "I forgot to lay on the couch" failure state.
+
+**A pattern worth naming directly: Gemini's objection triggers on imperative mood alone, independent of whether a real obligation exists** — it FIXed (not REJECTed) the three earlier pure-reflection `zero_action_items` examples in the same sample (`#501`, `#503`, `#505`, none containing any imperative), for ordinary content nits, and only REJECTed once bare commands appeared. That is not a subtle reviewer preference; it is the identical miscalibration the trained model itself showed on real note #15 — this batch's entire reason for existing — landing, unplanned, inside the review meant to catch it.
+
+**Declined as overreach, concurred by the product owner directly** — per this project's own reconciliation rule, surfaced rather than resolved silently given how consequential it was (a whole batch's premise), and he confirmed the read: Gemini's four REJECTs don't hold. **His own reasoning, sharper than either reviewer's**: people genuinely meander between thoughts, and "watch movies, play with the dog" are self-suggested *possible* activities, not a distinct call to action — contrast "I'm going to watch SLC Punk and Hamilton tomorrow," which names specific objects (two named films) with a direct action taken on them and a real commitment behind it. The first is left blank on purpose because nothing was actually decided; the second is a genuine action item. Written into `REVIEW_GUIDE.md` §4's "No dropped imperatives" bullet as a durable rule so this doesn't get relitigated the next time a batch or reviewer runs into the same shape.
+
+One more REJECT from the same root cause: Gemini also rejected `#508` (`rapid_branching`, a genuine action item — "maybe I ought to dig out my old sketchbooks" — correctly non-empty already), apparently for the same "imperative present" trigger despite the record already having a populated `action_items`; declined for the same reason.
+
+### Confirmed content fixes (9), applied directly
+
+- `#501`: bullet invented an unstated motive ("...staring at the steering wheel **to process**") — removed.
+- `#503`: narrative silently resolved input's genuinely ambiguous "I kept trying to explain **it**" to a specific, unstated reading ("explain **my perspective**") — reverted to the input's own word, per the unmarked-ambiguity rule.
+- `#505`: narrative invented a timing detail ("desk **today**") and an unstated reaction-summary ("**hit me harder than I expected**") — both removed.
+- `#508`: narrative narrowed input's own deliberately vague "just to feel something" into a specific named feeling ("feel some sort of **creative spark** again") — reverted to the input's own vagueness.
+- `#510`: an unstated intensifier ("feel **physically** sick") appeared in both narrative and bullet — removed.
+- `#512`: action item and bullet dropped input's own hedge "**or something**" — restored to both; an unstated intensifier ("**really** hate") removed from the narrative.
+- `#524`: action item and bullet both dropped input's own hedge "**I think**" ("I think I need to dig it out...") — restored to both. Confirmed independently by both passes.
+- `#531`: bullet implied a scheduled Tuesday resumption ("ignoring... **until Tuesday**") the input never states (input only gives Tuesday as the reason it's safe to ignore *now*) — reworded.
+- `#533`: narrative invented a means-end relationship via "**by**", nesting several of input's parallel, coequal intentions under one of them ("forgiving myself... **by** walking to the park...") — un-nested back into parallel form.
+
+### Declined as overreach, checked directly rather than taken on faith
+
+Several of Gemini's causal-connective complaints (flagging "because"/"as"/"so" linking two facts input already states adjacently in the same sentence or breath — e.g. `#503`'s "so frustrating, nobody even listens" already reads as cause-and-effect by its own comma splice) — the same overreach pattern the seventh re-review already documented; the invented-causality rule targets asserting a relationship between fragments that are actually *unrelated*, not making an already-adjacent implication explicit. Several general "near-verbatim narrative" claims — copy ratios for the whole 13-example sample checked directly rather than argued impressionistically: max 0.833, none above this project's own calibrated 0.85 flag line.
+
+### Two category-fit questions surfaced, not resolved
+
+- `#508`'s `rapid_branching` label doesn't cleanly match `TAXONOMY.md`'s "several sub-ideas branching in quick succession" definition — the input is a single linear reflective thought (uninspired → creativity dried up → sketchbook idea), not multiple branches. Notable: this record was already relabeled once during batch 28's own review, from `topic_switching` to `rapid_branching`, for a similar reason ("not an abrupt switch to an unrelated subject") — this may be the second wrong category in a row for the same record, not just the first miss corrected.
+- `#514`'s `contradictory_statement` label doesn't clearly show a stated stance later reversed (`TAXONOMY.md`'s own definition and worked example); the input reads closer to sequential option-weighing (fly vs. drive vs. train) that resolves to indecision, not a mood or intention that shifts.
+
+Full three-check voice-regression suite, schema validation, duplicate check, and copy-ratio check all clean at 533/533 after the 9 fixes (same 12 pre-existing flagged duplicate pairs, none new). Corpus 533 → 533. Next periodic re-review due after batch 31.
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
