@@ -2044,6 +2044,56 @@ Full three-check voice-regression suite, schema validation, duplicate
 check, copy-ratio check, and the 17-test serialization suite all clean at
 525/525. No `<unk>`-producing records.
 
+## Depth by category (running total, after batch 29) — targeted at a real eval failure, not a corpus gap
+
+Batch 29 (8 requested, 8 accepted, 0 rejected, 1 fixed) — the second batch
+generated in direct response to a real training-run eval, not a
+depth-tracking gap, and the first generated via the Claude<->Gemini review
+bridge (`review_bridge/`, new 2026-09-07): both the batch's shape and the
+`generate()`-time decoder fix that preceded it were reached through
+several rounds of alignment on the bridge before either was implemented.
+
+The 2026-09-07 eval (post-C3-fix checkpoint) reproduced batch 28's target
+failure on real note #15 (a genuinely `zero_action_items`-shaped note that
+still produced 4 invented action items) despite batch 28's own
+`zero_action_items` additions. A direct audit of all 42 existing
+`zero_action_items` records found why: 0/42 use bare imperative-mood
+syntax ("Step away from the computer.") — every one is first-person
+declarative/reflective phrasing ("I feel...", "I think..."). Real note #15
+uses several bare imperatives under a genuinely reflective frame, and
+nothing in training had ever shown the model that pattern resolves to
+`action_items: []`.
+
+All 8 new records: `zero_action_items`, imperative-mood sentences under a
+deliberately varied framing device across the 8 (a deliberately
+unstructured day off, a "rules for the trip" list, relaxation activities
+narrated in the moment, a "the only agenda is no agenda" framing, etc.) so
+the model doesn't just learn one surface trick. Difficulty split agreed via
+bridge alignment: 2 easy, 3 medium, 2 hard, 1 expert.
+
+`zero_action_items` (50, up from 42) — the only category this batch
+touched; running totals otherwise unchanged from after batch 28.
+
+**Difficulty distribution, full corpus**: easy 120, medium 146, hard 160,
+expert 107 (533 total).
+
+**One fix during review**: one example's input included "order takeout,"
+which reads as a genuinely actionable task (something a person would
+actually track and complete) rather than a pure downtime/self-care
+intention — directly undermining the point of a batch meant to teach
+"imperative mood doesn't imply a task." Reworded to "eat cereal straight
+out of the box," preserving the imperative structure and the exhausted
+mood without the task-like content.
+
+Full three-check voice-regression suite, schema validation, and duplicate
+check clean at 533/533. Copy-ratio mean for the batch: 0.451 (range
+0.37-0.58), well under the corpus's 0.561 target — these examples
+reorganize their input, they don't recite it.
+
+533 accepted examples after twenty-nine batches and twelve adversarial
+re-reviews. **Periodic adversarial re-review is due now** (scheduled for
+"after batch 29" since the twelfth re-review, after batch 27).
+
 ## Cognitive / emotional / structural states covered
 
 Mirrors [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s
