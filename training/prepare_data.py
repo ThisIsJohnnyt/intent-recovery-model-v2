@@ -9,18 +9,30 @@ record's `output` into the model's actual training target (the delimited
 google/flan-t5-base's tokenizer -> write token-id JSONL that train.py
 reads directly.
 
-Split, per DATASET_SPEC.md's "Where files go": train = synthetic.jsonl +
-any consolidated gold releases; val = real_validation.jsonl. This is a
-split BY FILE, not a random carve-out of synthetic.jsonl -- real_validation
-exists specifically so the eval signal isn't contaminated by the same
-model that generated the training data. See main()'s warning if that file
-is empty.
+Split: train = synthetic.jsonl + any consolidated gold releases, MINUS a
+selection slice carved out of that same pool by deterministic content-hash
+bucketing (see SELECTION_SLICE_FRACTION / is_in_selection_slice below).
+train.py evaluates against that slice during training and uses it for
+load_best_model_at_end checkpoint selection.
+
+datasets/real_validation.jsonl is NOT part of this split -- it is schema-
+checked here for hygiene but never written into prepared/ or used for
+selection. It stays reserved for evaluate_real.py's independent, untouched
+reporting run. This replaces the original design (train = synthetic.jsonl,
+val = real_validation.jsonl by file) after an external review (2026-09-02,
+finding C3) found that design meant a checkpoint was being selected on the
+exact 15 records the eval then reported as the generalization result --
+once you select on a set, results on it stop being a generalization
+estimate. Product owner chose option (a) of the three the review offered:
+carve a selection-only slice out of synthetic.jsonl, keep the real tier
+untouched for reporting. See docs/decisions/PDR-007.md.
 
 Usage (from training/):
     python prepare_data.py                 # full run, writes to prepared/
     python prepare_data.py --validate-only  # schema check only, no tokenizing
 """
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -33,6 +45,31 @@ MODEL_NAME = "google/flan-t5-base"
 MAX_INPUT_LENGTH = 256
 MAX_TARGET_LENGTH = 384  # narrative + bullets + actions can run longer than input
 TASK_PREFIX = "Recover the intent behind these scattered notes:\n\n"
+
+# Fraction of the synthetic+gold pool reserved for training-time checkpoint
+# selection (train.py's load_best_model_at_end), carved out per record by
+# is_in_selection_slice() rather than a stored/randomized index list. At the
+# 525-record corpus this is ~52 records -- a much quieter selection signal
+# than the 15-record real_validation.jsonl set it replaces for this purpose.
+# See PDR-007 for why this exists and prepare_data.py's module docstring for
+# what it replaced.
+SELECTION_SLICE_FRACTION = 0.10
+
+
+def is_in_selection_slice(record: dict) -> bool:
+    """Deterministic content-hash bucketing: a record's train/selection
+    membership depends only on its own `input` text, never on its position
+    in the file. Same pattern as check_copy_ratio.py's ALLOWLIST keys
+    (sha256(input) rather than line number) -- for the same reason: a
+    membership rule keyed on position silently reassigns the wrong records
+    the moment something is inserted, removed, or reordered upstream.
+    Recomputed fresh every prepare_data.py run rather than stored anywhere,
+    so there is no separate seed/index file that can drift out of sync with
+    the corpus."""
+    digest = hashlib.sha256(record["input"].encode("utf-8")).hexdigest()
+    bucket = int(digest[:8], 16) % 1000
+    return bucket < int(SELECTION_SLICE_FRACTION * 1000)
+
 
 REQUIRED_TOP = {"input", "output"}
 REQUIRED_OUTPUT = {"narrative", "bullets", "action_items"}
@@ -184,15 +221,24 @@ def build_examples(records: list) -> list:
     ]
 
 
-def resolve_split_files() -> tuple:
-    """Per DATASET_SPEC.md's 'Where files go': train = synthetic + any
-    consolidated gold releases; val = real_validation.jsonl -- kept
-    separate specifically so eval signal isn't contaminated by the same
-    model that generated the training data."""
-    train_files = [DATASETS_DIR / "synthetic.jsonl"]
-    train_files += sorted((DATASETS_DIR / "gold").glob("gold_v*.jsonl"))
-    val_file = DATASETS_DIR / "real_validation.jsonl"
-    return train_files, val_file
+def resolve_source_files() -> list:
+    """Per DATASET_SPEC.md's 'Where files go': synthetic.jsonl + any
+    consolidated gold releases. The selection slice train.py evaluates
+    against is carved out of this same pool (see is_in_selection_slice),
+    not read from a separate file -- see PDR-007."""
+    files = [DATASETS_DIR / "synthetic.jsonl"]
+    files += sorted((DATASETS_DIR / "gold").glob("gold_v*.jsonl"))
+    return files
+
+
+def split_train_selection(records: list) -> tuple:
+    """Partition into (train, selection) by is_in_selection_slice(). A
+    plain list comprehension pair rather than one pass with two accumulators
+    -- there's no shared state to keep in sync, so two clear passes read
+    better than one pass juggling both lists."""
+    train = [r for r in records if not is_in_selection_slice(r)]
+    selection = [r for r in records if is_in_selection_slice(r)]
+    return train, selection
 
 
 def tokenize_examples(examples: list, tokenizer) -> list:
@@ -266,38 +312,56 @@ def main():
     )
     args = parser.parse_args()
 
-    train_files, val_file = resolve_split_files()
+    source_files = resolve_source_files()
 
-    train_records = []
-    for path in train_files:
+    all_records = []
+    for path in source_files:
         if not path.exists():
             print(f"skip (not found): {path.relative_to(REPO_ROOT)}")
             continue
         records = load_jsonl(path)
         print(f"{path.relative_to(REPO_ROOT)}: {len(records)} records validated OK")
-        train_records += records
+        all_records += records
 
-    val_records = []
-    if val_file.exists():
-        val_records = load_jsonl(val_file)
-        print(f"{val_file.relative_to(REPO_ROOT)}: {len(val_records)} records validated OK")
-    else:
-        print(f"{val_file.relative_to(REPO_ROOT)}: not found")
+    train_records, selection_records = split_train_selection(all_records)
+    print(
+        f"Carved {len(selection_records)} of {len(all_records)} into the "
+        f"model-selection slice (target {SELECTION_SLICE_FRACTION:.0%}, "
+        f"content-hash bucketed per record -- see PDR-007), "
+        f"{len(train_records)} remain for training."
+    )
 
-    if not val_records:
+    # real_validation.jsonl: schema-checked for hygiene only. Since PDR-007
+    # it is NOT written into prepared/ and NOT used for selection -- it
+    # stays reserved for evaluate_real.py's own independent, untouched
+    # reporting run against the real tier.
+    real_validation_file = DATASETS_DIR / "real_validation.jsonl"
+    real_validation_records = []
+    if real_validation_file.exists():
+        real_validation_records = load_jsonl(real_validation_file)
         print(
-            "\nWARNING: no validation examples "
-            "(datasets/real_validation.jsonl is empty or missing). Per "
-            "DATASET_SPEC.md, this file is meant to be hand-written real "
-            "notes, never generative-model-assisted -- it is NOT "
-            "auto-populated from synthetic.jsonl by this script. Training "
-            "will proceed with an empty validation set until the product "
-            "owner writes real examples into that file."
+            f"{real_validation_file.relative_to(REPO_ROOT)}: "
+            f"{len(real_validation_records)} records validated OK "
+            f"(reporting only, via evaluate_real.py -- not used for "
+            f"training or selection)"
+        )
+    else:
+        print(f"{real_validation_file.relative_to(REPO_ROOT)}: not found")
+
+    if not real_validation_records:
+        print(
+            "\nWARNING: datasets/real_validation.jsonl is empty or missing. "
+            "Per DATASET_SPEC.md, this file is meant to be hand-written "
+            "real notes, never generative-model-assisted -- it is NOT "
+            "auto-populated from synthetic.jsonl by this script. "
+            "evaluate_real.py will have nothing to report against until "
+            "the product owner writes real examples into that file."
         )
 
     if args.validate_only:
         print(
-            f"\n{len(train_records)} train records, {len(val_records)} val "
+            f"\n{len(train_records)} train records, {len(selection_records)} "
+            f"selection records, {len(real_validation_records)} real-validation "
             f"records. Validation only, nothing written."
         )
         return
@@ -306,13 +370,13 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
     train_examples = build_examples(train_records)
-    val_examples = build_examples(val_records)
+    selection_examples = build_examples(selection_records)
 
     train_prepared = tokenize_examples(train_examples, tokenizer)
-    val_prepared = tokenize_examples(val_examples, tokenizer)
+    selection_prepared = tokenize_examples(selection_examples, tokenizer)
 
     write_prepared(train_prepared, PREPARED_DIR / "train.jsonl")
-    write_prepared(val_prepared, PREPARED_DIR / "val.jsonl")
+    write_prepared(selection_prepared, PREPARED_DIR / "selection.jsonl")
 
     meta = {
         "model_name": MODEL_NAME,
@@ -320,15 +384,16 @@ def main():
         "max_target_length": MAX_TARGET_LENGTH,
         "task_prefix": TASK_PREFIX,
         "train_examples": len(train_prepared),
-        "val_examples": len(val_prepared),
-        "train_sources": [str(p.relative_to(REPO_ROOT)) for p in train_files if p.exists()],
-        "val_source": str(val_file.relative_to(REPO_ROOT)) if val_file.exists() else None,
+        "selection_examples": len(selection_prepared),
+        "selection_slice_fraction": SELECTION_SLICE_FRACTION,
+        "train_sources": [str(p.relative_to(REPO_ROOT)) for p in source_files if p.exists()],
+        "real_validation_examples": len(real_validation_records),
     }
     (PREPARED_DIR / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
     print(
-        f"\nWrote {len(train_prepared)} train / {len(val_prepared)} val "
-        f"examples to {PREPARED_DIR.relative_to(REPO_ROOT)}/"
+        f"\nWrote {len(train_prepared)} train / {len(selection_prepared)} "
+        f"selection examples to {PREPARED_DIR.relative_to(REPO_ROOT)}/"
     )
 
 

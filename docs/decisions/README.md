@@ -45,3 +45,6 @@ Each PDR is a short file: `PDR-NNN.md`, three-digit zero-padded, sequential.
 - [PDR-002](PDR-002.md) — License classes for v2.0 (re-derived, not inherited)
 - [PDR-003](PDR-003.md) — Corpus fresh start: zero rows carry over from the predecessor's dataset
 - [PDR-004](PDR-004.md) — Claude + Gemini tooling integration: MCP server selection and guardrail redesign
+- [PDR-005](PDR-005.md) — Permanent content-safety boundary: no harmful or illegal content, ever
+- [PDR-006](PDR-006.md) — Reviewer-independence analysis and periodic adversarial re-review
+- [PDR-007](PDR-007.md) — Separate model-selection set from real-tier reporting

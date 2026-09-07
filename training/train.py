@@ -1,8 +1,16 @@
 """
 Fine-tuning script for intent-recovery-model-v2. Reads
-training/prepared/{train,val}.jsonl produced by prepare_data.py -- already
-tokenized, padded, and labeled -- and fine-tunes the base model named in
-training/prepared/meta.json (google/flan-t5-base as of this writing).
+training/prepared/{train,selection}.jsonl produced by prepare_data.py --
+already tokenized, padded, and labeled -- and fine-tunes the base model
+named in training/prepared/meta.json (google/flan-t5-base as of this
+writing).
+
+`selection.jsonl` is a slice carved out of the synthetic/gold pool itself
+(see prepare_data.py's is_in_selection_slice), evaluated each epoch and used
+for load_best_model_at_end checkpoint selection below. It is NOT
+datasets/real_validation.jsonl -- that file is deliberately kept out of
+this pipeline so the real tier stays untouched for evaluate_real.py's
+generalization reporting. See docs/decisions/PDR-007.md.
 
 Usage (from training/, after running prepare_data.py):
     python train.py                           # a real run, defaults below
@@ -93,7 +101,7 @@ def report_overfit(trainer, is_smoke_test: bool) -> None:
     history = getattr(trainer.state, "log_history", None) or []
     evals = [(h["eval_loss"], h.get("epoch")) for h in history if "eval_loss" in h]
     if not evals:
-        return  # no validation set; the no-val warning already fired
+        return  # no selection set; the no-selection warning already fired
 
     finals = [h["train_loss"] for h in history if "train_loss" in h]
     if not finals:
@@ -150,21 +158,22 @@ def main():
     meta = load_meta()
     print(
         f"Prepared data: {meta['train_examples']} train / "
-        f"{meta['val_examples']} val examples, model={meta['model_name']}"
+        f"{meta['selection_examples']} selection examples, "
+        f"model={meta['model_name']}"
     )
 
     train_ds = TokenizedDataset(PREPARED_DIR / "train.jsonl")
-    val_ds = TokenizedDataset(PREPARED_DIR / "val.jsonl")
-    print(f"Loaded {len(train_ds)} train / {len(val_ds)} val examples")
+    selection_ds = TokenizedDataset(PREPARED_DIR / "selection.jsonl")
+    print(f"Loaded {len(train_ds)} train / {len(selection_ds)} selection examples")
 
     if len(train_ds) == 0:
         raise SystemExit("No training examples -- run prepare_data.py first.")
 
-    if len(val_ds) == 0:
+    if len(selection_ds) == 0:
         print(
-            "WARNING: no validation examples -- eval loss won't be "
-            "reported. See prepare_data.py's own warning about "
-            "datasets/real_validation.jsonl.\n"
+            "WARNING: no selection examples -- eval loss won't be "
+            "reported and no checkpoint selection will happen. Run "
+            "prepare_data.py first; see its SELECTION_SLICE_FRACTION.\n"
         )
 
     tokenizer = AutoTokenizer.from_pretrained(meta["model_name"])
@@ -176,10 +185,16 @@ def main():
     # a classic overfitting signature at this corpus size -- and train.py
     # was evaluating every epoch but never acting on that signal, saving
     # the final (likely most-overfit) state regardless. Only possible when
-    # there's a validation set to evaluate against; falls back to the old
+    # there's a selection set to evaluate against; falls back to the old
     # save-only-at-the-end behavior otherwise, since load_best_model_at_end
     # requires save_strategy to match eval_strategy.
-    has_val = len(val_ds) > 0
+    #
+    # Selection happens on `selection_ds` (carved from synthetic/gold, see
+    # prepare_data.py), NOT on real_validation.jsonl -- that was the original
+    # design here and it made evaluate_real.py's report on those same 15
+    # records stop being a generalization estimate (external review,
+    # 2026-09-02, finding C3; fixed per PDR-007).
+    has_selection = len(selection_ds) > 0
     training_args = Seq2SeqTrainingArguments(
         output_dir=str(args.output_dir),
         num_train_epochs=args.epochs,
@@ -187,12 +202,12 @@ def main():
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         learning_rate=args.lr,
-        eval_strategy="epoch" if has_val else "no",
-        save_strategy="epoch" if has_val else "no",
-        save_total_limit=2 if has_val else None,  # keep best + most recent only
-        load_best_model_at_end=has_val,
-        metric_for_best_model="eval_loss" if has_val else None,
-        greater_is_better=False if has_val else None,
+        eval_strategy="epoch" if has_selection else "no",
+        save_strategy="epoch" if has_selection else "no",
+        save_total_limit=2 if has_selection else None,  # keep best + most recent only
+        load_best_model_at_end=has_selection,
+        metric_for_best_model="eval_loss" if has_selection else None,
+        greater_is_better=False if has_selection else None,
         logging_steps=1,
         predict_with_generate=False,
         report_to=[],
@@ -202,7 +217,7 @@ def main():
         model=model,
         args=training_args,
         train_dataset=train_ds,
-        eval_dataset=val_ds if len(val_ds) > 0 else None,
+        eval_dataset=selection_ds if len(selection_ds) > 0 else None,
     )
 
     trainer.train()
