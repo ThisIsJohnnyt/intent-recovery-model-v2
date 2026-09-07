@@ -90,7 +90,33 @@ def main():
         enc = tokenizer(prompt, max_length=prepare_data.MAX_INPUT_LENGTH,
                         truncation=True, return_tensors="pt").to(device)
         with torch.no_grad():
-            out_ids = model.generate(**enc, max_new_tokens=args.max_new_tokens)
+            # no_repeat_ngram_size guards against decoder degenerate loops --
+            # the 2026-09-07 eval run on a real note produced "Replace the
+            # valves in the shower" as a separate action_items entry 25
+            # times with no guard at all. n=6, not smaller: narrative,
+            # bullets, and action_items are all one continuous generated
+            # sequence in this delimited format (prepare_data.serialize_target),
+            # and legitimately reuse the same entity words/short phrases
+            # across sections (e.g. "Claude" or "Reuters" named in the
+            # narrative, then again in a bullet). n=6 permits that while
+            # still hard-banning a long verbatim repeated line like #6's.
+            #
+            # repetition_penalty was tried first (1.25, alongside
+            # no_repeat_ngram_size=5) and rejected -- it applies a global
+            # discount to every previously-generated token across the WHOLE
+            # sequence, so it penalized reusing legitimate entity words
+            # across sections and forced the model onto low-probability
+            # garbage subwords instead: "Reuters"->"rihanna",
+            # "Claude"->"Francois", "DNS"->"DDoS", "remember"->"forget"
+            # (meaning-inverting), plus stray replacement characters and at
+            # least one example's action_items collapsing to []. Reviewed
+            # via the Claude<->Gemini bridge (review_bridge/), rounds 2-4,
+            # 2026-09-07.
+            out_ids = model.generate(
+                **enc,
+                max_new_tokens=args.max_new_tokens,
+                no_repeat_ngram_size=6,
+            )
         raw_output = tokenizer.decode(out_ids[0], skip_special_tokens=True)
         parsed = prepare_data.deserialize_target(raw_output)
 

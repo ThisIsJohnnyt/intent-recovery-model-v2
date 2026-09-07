@@ -29,6 +29,10 @@ training/prepared/
 # Session handoffs — local-only, overwritten each session, not part of project history
 /training/Session Handoffs/
 
+# Review bridge handoff files — local-only, overwritten each review cycle,
+# not part of project history (same rationale as Session Handoffs above)
+/review_bridge/
+
 # Real, hand-written personal notes -- the pre-conversion draft that becomes
 # datasets/real_validation.jsonl, which is gitignored for the same reason
 # via datasets/.gitignore: uncontaminated real notes, never meant to be
