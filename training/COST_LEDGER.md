@@ -115,3 +115,4 @@ the script.
 | 2026-09-08 | `gemini-3.5-flash-lite` | Strengthen gemini_bridge.py's standing INSTRUCTION for genuine scrutiny | 53,092 | 495 | $0.0086 | |
 | 2026-09-08 | `gemini-3.1-pro-preview` | C5 scope: 111 records need review (90 new + 21 ceiling-breach), authorized Pro round | 75,126 | 8,773 | $0.2555 | |
 | 2026-09-08 | `gemini-3.5-flash-lite` | C5 lightweight ceiling-bump pass review | 103,341 | 850 | $0.0166 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | Blind re-review prompt generator design + sanitized checklist review | 82,582 | 933 | $0.0136 | |

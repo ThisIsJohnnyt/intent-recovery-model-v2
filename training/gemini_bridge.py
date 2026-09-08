@@ -188,6 +188,7 @@ def main() -> int:
             input=INSTRUCTION + "\n\n---\n\n" + proposal_text,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=180,
         )
     except subprocess.TimeoutExpired:

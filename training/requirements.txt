@@ -62,3 +62,14 @@ pytest>=8,<10
 # keyring 25.7.0 (pulls pywin32-ctypes on Windows, not full pywin32).
 anthropic>=1.4,<2
 keyring>=25.7,<26
+
+# Dev-only, occasional-use. Not needed for the core pipeline -- only for
+# blind_rereviewer.py's CLI-invoked periodic adversarial re-review (see
+# docs/decisions/PDR-006.md's isolation design). Reads the API key from
+# Windows Credential Manager via `keyring` (target "Intent-Recovery-V2",
+# username "Gemini") rather than the plain GEMINI_API_KEY env var
+# gemini_bridge.py's underlying CLI tool reads (PDR-009) -- a separate,
+# occasional-use call shouldn't need a persistent env var, and this project's
+# established pattern (PDR-008) is Credential Manager for exactly this
+# reason. Verified working set, 2026-09-08: google-genai 2.22.0.
+google-genai>=2.20,<3

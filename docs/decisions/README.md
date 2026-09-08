@@ -49,3 +49,5 @@ Each PDR is a short file: `PDR-NNN.md`, three-digit zero-padded, sequential.
 - [PDR-006](PDR-006.md) — Reviewer-independence analysis and periodic adversarial re-review
 - [PDR-007](PDR-007.md) — Separate model-selection set from real-tier reporting
 - [PDR-008](PDR-008.md) — Occasional independent review via a raw Claude API call
+- [PDR-009](PDR-009.md) — Replace Antigravity with a direct Gemini CLI call as the review bridge's transport
+- [PDR-010](PDR-010.md) — Genuinely blind periodic re-review via an out-of-repo prompt generator and a stateless CLI auditor
