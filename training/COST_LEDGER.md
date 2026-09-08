@@ -116,3 +116,6 @@ the script.
 | 2026-09-08 | `gemini-3.1-pro-preview` | C5 scope: 111 records need review (90 new + 21 ceiling-breach), authorized Pro round | 75,126 | 8,773 | $0.2555 | |
 | 2026-09-08 | `gemini-3.5-flash-lite` | C5 lightweight ceiling-bump pass review | 103,341 | 850 | $0.0166 | |
 | 2026-09-08 | `gemini-3.5-flash-lite` | Blind re-review prompt generator design + sanitized checklist review | 82,582 | 933 | $0.0136 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | C2 resolution: sweep 11 self_correction records to drop retraction | 102,049 | 928 | $0.0165 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | C1 resolution: 3-record hedge fix in contradictory_statement | 57,497 | 444 | $0.0092 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | C4: terminal-period bullets (50 records) + shopping-list convention (6 records) | 111,299 | 861 | $0.0178 | |
