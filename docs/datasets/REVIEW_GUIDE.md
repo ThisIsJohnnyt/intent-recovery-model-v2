@@ -32,8 +32,14 @@ python check_duplicates.py
 
 This is the mechanism [`TAXONOMY.md`](TAXONOMY.md)'s "No near-duplicate
 content" rule refers to — a lexical similarity check (character-sequence +
-word-overlap) flagging pairs at or above a 0.55 threshold by default. It
-surfaces candidates, it doesn't auto-reject: a flagged pair still needs a
+content-word overlap) flagging a pair when EITHER trips its own
+threshold: word-set jaccard (function words stripped) at or above 0.25,
+or character-sequence ratio at or above 0.75, both defaults. (Corrected
+2026-09-08 — this used to describe a single 0.55 threshold that predated
+the content-word rebuild; `convert_real_notes.py`'s contamination gate
+had drifted onto that same stale number independently, external review
+Claude API/Fable 5.1, finding M1.) It surfaces candidates, it doesn't
+auto-reject: a flagged pair still needs a
 human read to judge whether it's a genuine near-duplicate (same scenario,
 same phrasing pattern) or just incidental word overlap (shared names,
 common filler). It's lexical-only — it will not catch a paraphrase that

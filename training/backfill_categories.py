@@ -122,7 +122,13 @@ def main():
     print(f"\n{len(matched)} of {len(entries)} entries ready to backfill "
           f"({len(untagged) + len(bad_cat) + len(unmatched) + len(ambiguous) + len(conflicting)} refused).")
 
-    ok = not (untagged or bad_cat or unmatched or ambiguous or conflicting)
+    # refusals (source-parse failures, printed above as "REFUSED (source
+    # parse)") must gate this the same way convert_real_notes.py's own
+    # `return 1 if (refusals or hits) else 0` does -- external review
+    # (Claude API / Fable 5.1), 2026-09-07, finding M3: this line
+    # previously omitted `refusals` entirely, so a malformed entry could
+    # vanish from the pipeline with exit code 0 and --apply would proceed.
+    ok = not (refusals or untagged or bad_cat or unmatched or ambiguous or conflicting)
 
     if not args.apply:
         print("\n(dry run -- pass --apply to write)")

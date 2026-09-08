@@ -228,22 +228,30 @@ def parse(text):
     return entries, refusals
 
 
-def contamination(entries, corpus_path, threshold):
-    """Refuse any entry too close to an existing synthetic record."""
+def contamination(entries, corpus_path, word_threshold, char_threshold):
+    """Refuse any entry too close to an existing synthetic record. Uses
+    check_duplicates.py's own similar() -- one shared definition of "too
+    similar" between this gate and the standing near-duplicate checker,
+    not two that can silently drift apart. External review (Claude
+    API/Fable 5.1, 2026-09-07, finding M1): this used to score
+    max(char_ratio, jaccard-over-raw-word_set) against a single stale
+    0.55 threshold that predated check_duplicates.py's current
+    dual-threshold, content-word-filtered scoring -- three places
+    (here, this function's own --threshold default, and REVIEW_GUIDE.md
+    §0.5) all still described that stale scheme."""
     if not corpus_path.exists():
         return [], f"corpus {corpus_path} not found -- contamination gate DID NOT RUN"
     corpus = dup.load_records(corpus_path)
     hits = []
     for e in entries:
         note = e["record"]["input"]
-        words = dup.word_set(note)
-        best = (0.0, None)
+        best = None  # (jac, ch, source)
         for rec in corpus:
             other = rec.get("input", "")
-            score = max(dup.char_ratio(note, other), dup.jaccard(words, dup.word_set(other)))
-            if score > best[0]:
-                best = (score, rec["_source"])
-        if best[0] >= threshold:
+            jac, ch, flagged = dup.similar(note, other, word_threshold, char_threshold)
+            if flagged and (best is None or (jac, ch) > (best[0], best[1])):
+                best = (jac, ch, rec["_source"])
+        if best is not None:
             hits.append((e, best))
     return hits, None
 
@@ -277,8 +285,14 @@ def main():
     ap.add_argument("--corpus", type=Path,
                     default=Path(__file__).resolve().parent.parent / "datasets" / "synthetic.jsonl",
                     help="synthetic corpus to check contamination against")
-    ap.add_argument("--threshold", type=float, default=0.55,
-                    help="contamination threshold, matching check_duplicates.py (default 0.55)")
+    ap.add_argument("--word-threshold", type=float, default=dup.DEFAULT_WORD_THRESHOLD,
+                    help=f"contamination word-jaccard trigger, matching "
+                         f"check_duplicates.py's own default "
+                         f"({dup.DEFAULT_WORD_THRESHOLD})")
+    ap.add_argument("--char-threshold", type=float, default=dup.DEFAULT_CHAR_THRESHOLD,
+                    help=f"contamination char-ratio trigger, matching "
+                         f"check_duplicates.py's own default "
+                         f"({dup.DEFAULT_CHAR_THRESHOLD})")
     ap.add_argument("--no-corpus-check", action="store_true",
                     help="proceed even though the contamination gate could not run "
                          "(missing --corpus). Prints exactly what is being waived. "
@@ -294,7 +308,7 @@ def main():
     print(f"Parsed {len(entries)} entr{'y' if len(entries) == 1 else 'ies'} "
           f"from {args.source.name}.\n")
 
-    hits, gate_warning = contamination(entries, args.corpus, args.threshold)
+    hits, gate_warning = contamination(entries, args.corpus, args.word_threshold, args.char_threshold)
     if gate_warning:
         # A gate that a typo'd --corpus path silently disables is not a gate.
         # This one exists because 9 of the 10 entries in the first draft of the
@@ -321,8 +335,8 @@ def main():
               f"{args.corpus.name}. These are synthetic examples, not real notes;\n"
               f"converting them would contaminate the validation set with the corpus\n"
               f"it exists to validate. Replace them in the source file:\n")
-        for e, (score, src) in hits:
-            print(f"  entry {e['no']}: {score:.2f} similar to {src}")
+        for e, (jac, ch, src) in hits:
+            print(f"  entry {e['no']}: word={jac:.2f} char={ch:.2f} similar to {src}")
             print(f"      {e['record']['input'][:76]}")
         print()
         keep = {id(e) for e, _ in hits}

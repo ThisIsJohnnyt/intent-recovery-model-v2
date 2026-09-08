@@ -60,10 +60,13 @@ Usage:
     python check_duplicates.py [path/to/file.jsonl ...]
     python check_duplicates.py --word-threshold 0.20 --min-words 4
 
-Exit codes: 0 = nothing flagged, 1 = at least one pair flagged (so this can
-gate a batch), 2 = bad invocation.
+Exit codes: 0 = nothing flagged, or every flagged pair is allowlisted
+(ALLOWLIST below -- added 2026-09-08, external review Claude API/Fable
+5.1 finding M2); 1 = at least one non-allowlisted pair flagged (so this
+can gate a batch); 2 = bad invocation.
 """
 import argparse
+import hashlib
 import json
 import sys
 from difflib import SequenceMatcher
@@ -130,6 +133,99 @@ def char_ratio(a: str, b: str) -> float:
     return SequenceMatcher(None, a, b).ratio()
 
 
+def similar(a: str, b: str, word_threshold: float = DEFAULT_WORD_THRESHOLD,
+            char_threshold: float = DEFAULT_CHAR_THRESHOLD) -> tuple:
+    """Single-pair version of compare_field's own scoring (content-word
+    jaccard OR character ratio) -- the one shared definition of "too
+    similar" this project uses, for callers outside the all-pairs sweep
+    below (convert_real_notes.py's contamination gate). Returns (jaccard,
+    char_ratio, flagged). External review (Claude API/Fable 5.1,
+    2026-09-07, finding M1): convert_real_notes.py used to reimplement its
+    own scoring (max(char_ratio, word_set-jaccard) against a single stale
+    0.55 threshold) that had drifted from this script's actual current
+    scoring -- one function now, not two that can drift apart again."""
+    jac = jaccard(content_words(a), content_words(b))
+    ch = char_ratio(a, b)
+    return jac, ch, (jac >= word_threshold or ch >= char_threshold)
+
+
+def input_hash(record: dict) -> str:
+    return hashlib.sha256(record.get("input", "").encode("utf-8")).hexdigest()[:16]
+
+
+# Keyed by frozenset({hash_a, hash_b}) -- order-independent, and stable
+# across an INPUT-pass vs NARRATIVE-pass flag on the same record pair (one
+# entry covers both, since both hashes are always the two records' INPUT
+# hashes regardless of which field actually tripped the flag). Same
+# pattern as check_copy_ratio.py's own hash-keyed ALLOWLIST. External
+# review (Claude API/Fable 5.1, 2026-09-07, finding M2): this checker used
+# to have no exemption path at all, so the gate was permanently red the
+# moment the corpus accumulated its first tolerated scenario pair,
+# indistinguishable from a genuinely new duplicate. Each entry judged
+# directly against its actual content, 2026-09-08 -- not assumed correct
+# because past re-reviews called the aggregate "confirmed false
+# positives" without a recorded per-pair reason.
+ALLOWLIST = {
+    frozenset({"70388b9d8837c348", "06ca08b3f847b7d8"}): (
+        "zero_action_items -- both 'feeling exhausted', but from "
+        "different causes (noise/can't focus vs. rain/wants to rest). "
+        "Shared theme, not the same scenario."
+    ),
+    frozenset({"fd8e9f91ec7abee1", "3a91fba80ed1b1c6"}): (
+        "repeated_reminder -- both 'take out the trash' reminders. "
+        "Genuine same-scenario pair, within the documented "
+        "two-per-scenario tolerance."
+    ),
+    frozenset({"4dad0e27c417ce79", "b39f29167d579fbf"}): (
+        "repeated_reminder -- both prescription pickup/refill reminders. "
+        "The deliberate pair left in place after the 2026-09-02 "
+        "copy-ratio remediation pass replaced a third prescription "
+        "record (#291)."
+    ),
+    frozenset({"8085dee23b00dbcc", "87399415c8081926"}): (
+        "repeated_reminder -- one is emailing a contract, the other "
+        "sending a link. Different objects; the overlap is the "
+        "category's own shared reminder phrasing, not a duplicate "
+        "scenario."
+    ),
+    frozenset({"1932286b19ad6b7e", "a92efdf32b4cfaa9"}): (
+        "simple_list / time_ambiguous -- both canceling a streaming "
+        "subscription before it renews. Same scenario, two instances "
+        "across two different categories -- tolerance is corpus-wide, "
+        "not per-category."
+    ),
+    frozenset({"538ec0e62931f993", "2809755fc1e0a781"}): (
+        "interrupted_thought / time_ambiguous -- both renewing a "
+        "passport (DS-82 form). Same scenario, two instances across two "
+        "categories."
+    ),
+    frozenset({"75dc97a31d775f9e", "b8a48573ceb66dcb"}): (
+        "topic_switching -- both mention mom's birthday gift, but each "
+        "note carries substantial additional distinct content "
+        "(netflix/savings vs. electric bill/blender) -- one shared "
+        "thread, not near-duplicate notes."
+    ),
+    frozenset({"b39f29167d579fbf", "07d36e9735f265e9"}): (
+        "repeated_reminder -- the prescription record (see above) again, "
+        "here flagged against 'Call Dr. Lin' -- different referent "
+        "(pharmacy vs. a named doctor), same category reminder-phrasing "
+        "coincidence."
+    ),
+    frozenset({"39ed8ce95f868c4d", "b11a44f16814cf59"}): (
+        "minimal_fragment / simple_list -- coincidental overlap on the "
+        "word 'blue' plus short-fragment structural similarity. A "
+        "dangling-referent fragment vs. a numbered supply list -- not "
+        "the same scenario."
+    ),
+    frozenset({"431466940fdf95b6", "ff97c2128eba856d"}): (
+        "simple_list / interrupted_thought -- both mention milk and "
+        "bread, a generic grocery pairing. Different shape and purpose "
+        "(dry cleaning + dangling reference vs. a literal cutoff "
+        "checking a brand) despite the shared items."
+    ),
+}
+
+
 def compare_field(texts, min_words, word_threshold, char_threshold):
     """All-pairs comparison over one field. Returns [(jac, ch, i, j), ...].
 
@@ -170,20 +266,32 @@ def compare_field(texts, min_words, word_threshold, char_threshold):
 
 
 def report(label, flagged, records, get_text, word_threshold, char_threshold):
+    """Prints every flagged pair (allowlisted ones tagged, not hidden) and
+    returns the count that ISN'T allowlisted -- that count is what gates
+    the exit code in main(), not len(flagged)."""
     if not flagged:
         print(f"{label}: nothing at or above word {word_threshold:.2f} / "
               f"char {char_threshold:.2f}.")
-        return
+        return 0
+    real = 0
     print(f"{label}: {len(flagged)} pair(s) flagged:")
     for jac, ch, i, j in sorted(flagged, reverse=True):
         a, b = records[i], records[j]
+        key = frozenset({input_hash(a), input_hash(b)})
+        allowlisted = key in ALLOWLIST
+        if not allowlisted:
+            real += 1
         trigger = "word" if jac >= word_threshold else "char"
+        tag = "  [ALLOWLISTED]" if allowlisted else ""
         print(f"  [{trigger}] word={jac:.2f} char={ch:.2f}  "
               f"{a['_source']} ({a.get('category', '?')}) <-> "
-              f"{b['_source']} ({b.get('category', '?')})")
+              f"{b['_source']} ({b.get('category', '?')}){tag}")
         print(f"    A: {get_text(a)[:110]}")
         print(f"    B: {get_text(b)[:110]}")
+        if allowlisted:
+            print(f"    rationale: {ALLOWLIST[key]}")
     print()
+    return real
 
 
 def main():
@@ -221,23 +329,24 @@ def main():
     inputs = [r.get("input", "") for r in records]
     input_hits = compare_field(inputs, args.min_words, args.word_threshold,
                                args.char_threshold)
-    report("INPUT", input_hits, records, lambda r: r.get("input", ""),
-           args.word_threshold, args.char_threshold)
+    real_input = report("INPUT", input_hits, records, lambda r: r.get("input", ""),
+                         args.word_threshold, args.char_threshold)
 
     narrative_hits = []
+    real_narrative = 0
     if not args.inputs_only:
         narratives = [r.get("output", {}).get("narrative", "") for r in records]
         narrative_hits = compare_field(narratives, args.min_words,
                                        args.word_threshold, args.char_threshold)
-        report("NARRATIVE", narrative_hits, records,
+        real_narrative = report("NARRATIVE", narrative_hits, records,
                lambda r: r.get("output", {}).get("narrative", ""),
                args.word_threshold, args.char_threshold)
 
-    total = len(input_hits) + len(narrative_hits)
+    total = real_input + real_narrative
     if total:
-        print(f"{total} flagged pair(s). These are candidates for a reviewer to "
-              f"judge, not automatic rejections -- see this file's docstring and "
-              f"TAXONOMY.md's near-duplicate rule.")
+        print(f"{total} non-allowlisted flagged pair(s). These are candidates for a "
+              f"reviewer to judge, not automatic rejections -- see this file's "
+              f"docstring and TAXONOMY.md's near-duplicate rule.")
         return 1
     return 0
 

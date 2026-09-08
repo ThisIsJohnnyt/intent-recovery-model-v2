@@ -34,6 +34,7 @@ Usage (from training/):
 """
 import argparse
 import json
+import re
 import sys
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -47,7 +48,111 @@ import prepare_data  # noqa: E402  (reuse serialize/deserialize + TASK_PREFIX)
 
 
 def word_ratio(a: str, b: str) -> float:
-    return SequenceMatcher(None, a.lower().split(), b.lower().split()).ratio()
+    # Word-boundary regex, not str.split() -- punctuation used to be part
+    # of the token ("him" vs "him,"), so adding/removing a comma moved the
+    # score with zero real reorganization. External review (Claude
+    # API/Fable 5.1, 2026-09-07, finding C5): confirmed by hand against
+    # the corpus, not just by argument -- e.g. one record's narrative
+    # reproduced its input word-for-word, differing only by punctuation,
+    # and scored 0.615 under the old tokenization vs the correct 1.000
+    # (zero recovery) under this one.
+    ta = re.findall(r"\b\w+\b", a.lower())
+    tb = re.findall(r"\b\w+\b", b.lower())
+    return SequenceMatcher(None, ta, tb).ratio()
+
+
+def dedupe_consecutive(items: list) -> list:
+    """Drop any entry that's an exact duplicate of the one immediately
+    before it. Cleanup layer on top of ConsecutiveRepeatStop, not a
+    replacement for it -- see that class's docstring. The stopping
+    criteria bounds how much a degenerate loop can generate before
+    halting (at minimum `repeats` copies, structurally unavoidable for a
+    generation-time guard); this guarantees the copies that do make it
+    through never reach the printed/reported result. Zero interaction
+    with generation itself, so zero risk of the token-level corruption
+    approaches like repetition_penalty caused -- this only touches the
+    already-generated, already-parsed list."""
+    out = []
+    for item in items:
+        if not out or item != out[-1]:
+            out.append(item)
+    return out
+
+
+class ConsecutiveRepeatStop:
+    """Halts generation when a span of tokens repeats immediately,
+    back-to-back, self.repeats times in a row.
+
+    Replaces an earlier `no_repeat_ngram_size` guard (2026-09-07) that
+    banned a recurring span ANYWHERE in the sequence, regardless of
+    distance. That caught the real bug -- a real note's action_items
+    repeating "Replace the valves in the shower" as a separate list entry
+    25 times -- but a direct measurement against all 15 real_validation.jsonl
+    records found 7 of 15 (47%) have a bullet and its own matching action
+    item legitimately sharing a verbatim span of >=6 tokens, exactly what
+    that guard also blocked, forcing the model onto corrupted substitutes
+    ("Reuters"->"rihanna", "Claude"->"Francois", meaning-inverting
+    "remember"->"forget") when repetition_penalty was tried, and silent
+    list-item fusion even with the plain n-gram ban.
+
+    The property that actually distinguishes the two cases is ADJACENCY,
+    not span length: the pathological case is the same span repeating
+    immediately; a bullet and its action item are never adjacent in the
+    generated sequence (narrative, other bullets, and/or the ###ACTIONS###
+    marker sit between them). Checking for CONSECUTIVE repetition instead
+    of "has this appeared before, anywhere" structurally can't trigger on
+    the legitimate case at all -- it doesn't need to know which section a
+    token came from.
+
+    Confirmed the original bug was terminal (the loop filled the rest of
+    generation, nothing came after it -- ACTIONS is the last section in
+    this format) before choosing a stopping criteria over a mid-sequence
+    logits processor. Reviewed via the Claude<->Gemini bridge
+    (review_bridge/), 2026-09-08.
+
+    `repeats=2`, not 3: a stopping criteria can only halt FUTURE
+    generation, not undo tokens already emitted, so `repeats=N` always
+    leaves N copies in the final output at minimum -- the first real test
+    (repeats=3) left 3 identical action items behind. The adjacency
+    property above holds exactly as well at 2 as at 3 (a 4+ token span
+    repeating immediately, back-to-back, by pure coincidence in normal
+    generated text isn't something that happens outside genuine
+    pathology), so there's no real safety cost to catching it a repeat
+    earlier. See `dedupe_consecutive` below for cleanup of the 1-2 copies
+    this still can't prevent from reaching the output.
+    """
+
+    def __init__(self, min_window: int = 4, max_window: int = 50, repeats: int = 2):
+        # Deferred import, not module-level -- matches this file's own
+        # pattern (torch is only imported inside main(), once it's known
+        # to actually be needed). Imported once here, at instantiation,
+        # not per generation step in __call__.
+        import torch
+        self._torch = torch
+        self.min_window = min_window
+        self.max_window = max_window
+        self.repeats = repeats
+
+    def __call__(self, input_ids, scores, **kwargs):
+        # transformers.StoppingCriteriaList.__call__ ORs each criterion's
+        # result into a running torch.BoolTensor shaped (batch_size,) --
+        # matching that return type/shape exactly here rather than
+        # returning a bare Python bool, since only `input_ids.shape[0]` is
+        # actually guaranteed at this call site (batch size 1 everywhere
+        # in this tool today, but this class shouldn't silently assume it).
+        seq = input_ids[0].tolist()  # this tool's own generate() calls are batch size 1
+        done = False
+        for w in range(self.min_window, self.max_window + 1):
+            need = w * self.repeats
+            if len(seq) < need:
+                continue
+            tail = seq[-need:]
+            chunks = [tail[i * w:(i + 1) * w] for i in range(self.repeats)]
+            if all(c == chunks[0] for c in chunks):
+                done = True
+                break
+        return self._torch.full((input_ids.shape[0],), done, dtype=self._torch.bool,
+                                 device=input_ids.device)
 
 
 def main():
@@ -75,7 +180,7 @@ def main():
 
     print(f"Loading checkpoint from {args.checkpoint} ...")
     import torch
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, StoppingCriteriaList
     tokenizer = AutoTokenizer.from_pretrained(args.checkpoint)
     model = AutoModelForSeq2SeqLM.from_pretrained(args.checkpoint)
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -84,41 +189,27 @@ def main():
 
     parse_ok = 0
     narrative_vs_expected, narrative_vs_input = [], []
+    # See ConsecutiveRepeatStop's own docstring for the full history --
+    # replaced a no_repeat_ngram_size guard (2026-09-07) that was measured
+    # to block a legitimate bullet<->action_item overlap on 7 of the 15
+    # real records. One instance shared across the loop below: it's
+    # per-call stateless (decides from input_ids alone), so reuse is safe.
+    stopping_criteria = StoppingCriteriaList([ConsecutiveRepeatStop()])
 
     for i, r in enumerate(records, 1):
         prompt = prepare_data.TASK_PREFIX + r["input"]
         enc = tokenizer(prompt, max_length=prepare_data.MAX_INPUT_LENGTH,
                         truncation=True, return_tensors="pt").to(device)
         with torch.no_grad():
-            # no_repeat_ngram_size guards against decoder degenerate loops --
-            # the 2026-09-07 eval run on a real note produced "Replace the
-            # valves in the shower" as a separate action_items entry 25
-            # times with no guard at all. n=6, not smaller: narrative,
-            # bullets, and action_items are all one continuous generated
-            # sequence in this delimited format (prepare_data.serialize_target),
-            # and legitimately reuse the same entity words/short phrases
-            # across sections (e.g. "Claude" or "Reuters" named in the
-            # narrative, then again in a bullet). n=6 permits that while
-            # still hard-banning a long verbatim repeated line like #6's.
-            #
-            # repetition_penalty was tried first (1.25, alongside
-            # no_repeat_ngram_size=5) and rejected -- it applies a global
-            # discount to every previously-generated token across the WHOLE
-            # sequence, so it penalized reusing legitimate entity words
-            # across sections and forced the model onto low-probability
-            # garbage subwords instead: "Reuters"->"rihanna",
-            # "Claude"->"Francois", "DNS"->"DDoS", "remember"->"forget"
-            # (meaning-inverting), plus stray replacement characters and at
-            # least one example's action_items collapsing to []. Reviewed
-            # via the Claude<->Gemini bridge (review_bridge/), rounds 2-4,
-            # 2026-09-07.
             out_ids = model.generate(
                 **enc,
                 max_new_tokens=args.max_new_tokens,
-                no_repeat_ngram_size=6,
+                stopping_criteria=stopping_criteria,
             )
         raw_output = tokenizer.decode(out_ids[0], skip_special_tokens=True)
         parsed = prepare_data.deserialize_target(raw_output)
+        parsed["bullets"] = dedupe_consecutive(parsed["bullets"])
+        parsed["action_items"] = dedupe_consecutive(parsed["action_items"])
 
         structurally_valid = bool(parsed["narrative"])
         if structurally_valid:

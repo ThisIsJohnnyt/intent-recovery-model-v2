@@ -54,15 +54,38 @@ PRICING_PER_MILLION = {
     "gemini-3.1-pro-preview": {"input": 2.00, "output": 12.00},
 }
 
+# Strengthened 2026-09-08: the original version specified output FORMAT
+# only, not review DEPTH, and the observed result on this CLI transport
+# (esp. the flash-lite default) was a fast, low-effort "Approve / None /
+# None / ALIGNED" even on rounds carrying direct questions -- a real,
+# noticed regression from the Antigravity/Pro rounds earlier this
+# session, which had genuine pushback and independent technical catches.
+# Reviewed and aligned on via this bridge itself before adopting.
 INSTRUCTION = (
-    "You are the Gemini side of a standing Claude<->Gemini review bridge for "
-    "a solo ML project. Claude's proposal is provided on stdin below (it is "
-    "the content of review_bridge/ClaudeProposal.md). Read it in full, then "
-    "reply in exactly this format: a '## Verdict' line (Approve / Approve "
-    "with changes / Object), a '## Issues Found' bulleted section (or "
-    "'None'), a '## Suggested Changes' bulleted section (or 'None'), and a "
-    "'## Alignment' section stating plainly ALIGNED or NOT ALIGNED, with "
-    "what would need to change if not."
+    "You are the Gemini side of a standing Claude<->Gemini review bridge "
+    "for a solo ML project. Claude's proposal is provided on stdin below "
+    "(the content of review_bridge/ClaudeProposal.md).\n\n"
+    "Read it in full, then review it genuinely adversarially -- do not "
+    "agree by default. Claude is not infallible and this bridge exists "
+    "specifically to catch what Claude's own reasoning misses, not to "
+    "rubber-stamp it. Before agreeing with any claim that's checkable "
+    "from what you were given (a number, a specific record, a described "
+    "code behavior), actually check it rather than taking Claude's word "
+    "for it, and say what you checked. If the proposal asks you a direct "
+    "question, answer it explicitly -- do not skip a question just "
+    "because the overall proposal looks sound. If you have no genuine "
+    "issue after actually checking, say so plainly rather than inventing "
+    "one, but a fast, low-effort 'Approve' with no issues found and no "
+    "direct questions answered is a failure of this review, not a "
+    "successful one.\n\n"
+    "Reply in exactly this format: a '## Verdict' line (Approve / "
+    "Approve with changes / Object), a '## Issues Found' bulleted "
+    "section (or 'None', with a one-line note on what you specifically "
+    "checked), a '## Suggested Changes' bulleted section (or 'None'), a "
+    "'## Direct Questions' section explicitly answering any question "
+    "Claude asked (or 'None asked'), and a '## Alignment' section "
+    "stating plainly ALIGNED or NOT ALIGNED, with what would need to "
+    "change if not."
 )
 
 
@@ -144,18 +167,25 @@ def main() -> int:
     log(f"[SENDING] ClaudeProposal.md ({len(proposal_text)} chars, via stdin) "
         f"to Gemini ({args.model})...")
 
+    # INSTRUCTION (which now contains literal newlines, added 2026-09-08
+    # when it was strengthened for review depth) must go on stdin WITH the
+    # proposal, not in argv via -p -- discovered live, same failure mode
+    # PDR-009 already diagnosed for large proposal content: cmd.exe's argv
+    # parsing silently drops --skip-trust on a multi-line argument, not
+    # just a long one. -p stays a short, single-line, static marker; stdin
+    # carries everything with real structure.
     try:
         result = subprocess.run(
             [
                 "cmd", "/c", "gemini.cmd",
-                "-p", INSTRUCTION,
+                "-p", "Review the proposal below.",
                 "--skip-trust",
                 "--approval-mode", "plan",
                 "--output-format", "json",
                 "-m", args.model,
             ],
             cwd=str(REPO_ROOT),
-            input=proposal_text,
+            input=INSTRUCTION + "\n\n---\n\n" + proposal_text,
             capture_output=True,
             text=True,
             timeout=180,

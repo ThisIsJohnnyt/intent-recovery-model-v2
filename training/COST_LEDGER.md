@@ -108,3 +108,10 @@ the script.
 | 2026-09-08 | `gemini-3.5-flash-lite` | First real `review_bridge/` round over this transport — reviewed Claude's own proposal to make this swap (this table's mechanism reviewing its own adoption) | 24,932 | 354 | $0.0042 | Gemini declared ALIGNED. Full exchange in `review_bridge/GeminiReview.md`'s history and this session's conversation record; see `PDR-009` for the reasoning. |
 | 2026-09-08 | `gemini-3.5-flash-lite` | Verify production gemini_bridge.py script + cost-ledger auto-append logic (trivial re-run of the same alignment round) | 25,021 | 416 | $0.0043 | |
 | 2026-09-08 | `gemini-3.5-flash-lite` | Color-tail visual test | 80,653 | 427 | $0.0126 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | C6 refinement: ConsecutiveRepeatStop repeats=2 + post-hoc dedup | 85,543 | 241 | $0.0131 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | Mechanical fixes M1-M4 from Fable review | 89,685 | 271 | $0.0138 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | M2: check_duplicates.py allowlist mechanism + 12-pair population | 140,799 | 744 | $0.0220 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | C5: word_ratio punctuation fix, scope question on 90 newly-revealed breaches | 50,155 | 262 | $0.0079 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | Strengthen gemini_bridge.py's standing INSTRUCTION for genuine scrutiny | 53,092 | 495 | $0.0086 | |
+| 2026-09-08 | `gemini-3.1-pro-preview` | C5 scope: 111 records need review (90 new + 21 ceiling-breach), authorized Pro round | 75,126 | 8,773 | $0.2555 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | C5 lightweight ceiling-bump pass review | 103,341 | 850 | $0.0166 | |

@@ -31,7 +31,7 @@ Usage (from training/):
 """
 import argparse
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import keyring
@@ -70,11 +70,13 @@ PRICING = {
 #   purpose entirely.
 BUNDLE_GLOBS = [
     "training/*.py",
+    "training/tests/*.py",
     "training/requirements.txt",
-    "training/COST_LEDGER.md",
+    "training/*.md",
     "datasets/synthetic.jsonl",
     "datasets/real_validation.jsonl",
     "docs/datasets/*.md",
+    "docs/datasets/*.json",
     "docs/decisions/*.md",
     "docs/vision/*.md",
 ]
@@ -146,12 +148,16 @@ you find nothing wrong in some area, say so plainly rather than
 manufacturing a finding."""
 
 
-def gather_bundle() -> str:
+def gather_bundle() -> tuple:
     """Concatenate every file in BUNDLE_GLOBS, each under a clear header,
     in deterministic order. Raises if a glob matches nothing -- a silently
     empty section (e.g. a renamed directory) should fail loud, not ship a
-    quietly incomplete review."""
+    quietly incomplete review. Returns (bundle_text, included_paths) --
+    the path list is for an honest "what did we actually send" summary,
+    not `REPO_ROOT.glob('*')`'s top-level entry count, which was never a
+    real measure of the bundle (Fable's own M5 finding, 2026-09-07)."""
     parts = []
+    included = []
     for pattern in BUNDLE_GLOBS:
         matches = sorted(REPO_ROOT.glob(pattern))
         if not matches:
@@ -162,7 +168,8 @@ def gather_bundle() -> str:
             rel = path.relative_to(REPO_ROOT)
             text = path.read_text(encoding="utf-8")
             parts.append(f"=== {rel.as_posix()} ===\n{text}")
-    return "\n\n".join(parts)
+            included.append(rel)
+    return "\n\n".join(parts), included
 
 
 def get_client() -> Anthropic:
@@ -209,10 +216,14 @@ def main() -> int:
                          help="Thinking depth for the real call (default: "
                               "high). Higher costs more; see --dry-run's "
                               "cost table before raising it.")
-    parser.add_argument("--max-tokens", type=int, default=48000,
+    parser.add_argument("--max-tokens", type=int, default=96000,
                          help="Output token ceiling for the real call "
-                              "(default 48000). A cap, not a target -- "
-                              "billing is by tokens actually generated.")
+                              "(default 96000 -- raised from an initial "
+                              "48000 that truncated the first real run "
+                              "mid-finding; Fable 5.1 supports up to 128K). "
+                              "A cap, not a target -- billing is by tokens "
+                              "actually generated, so generous headroom "
+                              "costs nothing unless it's actually used.")
     args = parser.parse_args()
 
     if not args.dry_run and not args.run:
@@ -221,9 +232,9 @@ def main() -> int:
         parser.error("pass exactly one of --dry-run or --run, not both")
 
     print("Assembling bundle...")
-    bundle = gather_bundle()
+    bundle, included_paths = gather_bundle()
     print(f"Bundle assembled: {len(bundle):,} characters from "
-          f"{sum(1 for _ in REPO_ROOT.glob('*'))} top-level entries scanned.")
+          f"{len(included_paths)} files.")
 
     client = get_client()
 
@@ -273,8 +284,13 @@ def main() -> int:
             f"{served_by} via the automatic fallback.**\n\n" + review_text
         )
 
+    # Timestamped to the minute, not just the date -- a same-day second run
+    # used to silently clobber the first billed report (Fable's own M5
+    # finding, 2026-09-07). Always succeeds, no separate refuse-and-exit
+    # path to handle.
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = REVIEWS_DIR / f"{date.today().isoformat()}-claude-api-review.md"
+    stamp = datetime.now().strftime("%H%M")
+    out_path = REVIEWS_DIR / f"{date.today().isoformat()}-{stamp}-claude-api-review.md"
     out_path.write_text(review_text, encoding="utf-8", newline="\n")
 
     in_price, out_price = PRICING.get(served_by, PRICING[MODEL])
