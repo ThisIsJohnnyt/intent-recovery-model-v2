@@ -88,3 +88,23 @@ so `Cost` here is computed from real numbers, not estimated.
 | Date | Model | Purpose | Input tokens | Output tokens | Cost | Notes |
 |---|---|---|---|---|---|---|
 | 2026-09-07 | `claude-fable-5-1` | First real run of `third_party_review.py` — independent review of `training/*.py`, `datasets/synthetic.jsonl` (532 records), `datasets/real_validation.jsonl`, and all `docs/datasets/`, `docs/decisions/`, `docs/vision/` docs. `docs/reviews/*.md` deliberately excluded (co-drafted with Gemini on the review bridge, to avoid anchoring on prior findings). Written to `docs/reviews/2026-09-07-claude-api-review.md` | 342,139 | 48,000 | $5.82 | **Truncated** — hit the script's `--max-tokens 48000` cap mid-finding (M6), `stop_reason` was `max_tokens` not `end_turn`. Bug in the tool itself, not the review: `max_tokens` was set far too low for a bundle this size at `effort=high` on a 128K-max-output model. Despite the cutoff, all 6 Critical findings and 5 of the following Medium findings completed in full before the cutoff — see the review doc and its disposition write-up. Authorized directly by the product owner ("Let's do this"), per the standing per-call authorization rule. |
+
+## Gemini CLI (review bridge)
+
+A third real-money surface, separate from both tables above — see
+[PDR-009](../docs/decisions/PDR-009.md). `training/gemini_bridge.py` sends
+`review_bridge/ClaudeProposal.md` to Gemini via a direct, non-interactive
+CLI call (`--approval-mode plan`, read-only) and writes the reply verbatim
+to `review_bridge/GeminiReview.md`, replacing the standing Antigravity
+session that transport used through 2026-09-08. Like the Claude API table
+above, `--output-format json` returns exact token counts, so `Cost` here is
+real, not estimated — closing the gap every row in the batch-generation
+table above has had since day one. Rows below are appended automatically by
+the script.
+
+| Date | Model | Purpose | Input tokens | Output tokens | Cost | Notes |
+|---|---|---|---|---|---|---|
+| 2026-09-08 | `gemini-3.5-flash-lite` | Connectivity/capability test — asked Gemini to read `training/third_party_review.py` and summarize it, to verify the CLI could authenticate via `GEMINI_API_KEY`, run headless, and read real project files read-only | 22,835 | 196 | $0.0037 | Response was accurate against `PDR-008`'s own description of that file. Not a real bridge round — a manual test, run before this mechanism replaced Antigravity. |
+| 2026-09-08 | `gemini-3.5-flash-lite` | First real `review_bridge/` round over this transport — reviewed Claude's own proposal to make this swap (this table's mechanism reviewing its own adoption) | 24,932 | 354 | $0.0042 | Gemini declared ALIGNED. Full exchange in `review_bridge/GeminiReview.md`'s history and this session's conversation record; see `PDR-009` for the reasoning. |
+| 2026-09-08 | `gemini-3.5-flash-lite` | Verify production gemini_bridge.py script + cost-ledger auto-append logic (trivial re-run of the same alignment round) | 25,021 | 416 | $0.0043 | |
+| 2026-09-08 | `gemini-3.5-flash-lite` | Color-tail visual test | 80,653 | 427 | $0.0126 | |
