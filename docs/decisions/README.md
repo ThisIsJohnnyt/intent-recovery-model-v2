@@ -48,3 +48,4 @@ Each PDR is a short file: `PDR-NNN.md`, three-digit zero-padded, sequential.
 - [PDR-005](PDR-005.md) — Permanent content-safety boundary: no harmful or illegal content, ever
 - [PDR-006](PDR-006.md) — Reviewer-independence analysis and periodic adversarial re-review
 - [PDR-007](PDR-007.md) — Separate model-selection set from real-tier reporting
+- [PDR-008](PDR-008.md) — Occasional independent review via a raw Claude API call

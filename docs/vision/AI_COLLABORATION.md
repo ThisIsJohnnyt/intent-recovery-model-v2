@@ -90,3 +90,13 @@ own pipeline/methodology proposals, see [PDR-006](../decisions/PDR-006.md)'s
 authorization — it isn't a real-money generation call, so it doesn't need
 a fresh per-instance statement the way a corpus batch or adversarial
 re-review does.
+
+**A second real-money API surface exists as of 2026-09-07**:
+`training/third_party_review.py`, an occasional, manually-invoked
+independent review via a raw Claude API call (see
+[PDR-008](../decisions/PDR-008.md)). Same rule applies — the product
+owner's own explicit in-the-moment authorization before every real,
+billed call, never inferred or carried over between runs. The tool always
+runs a free `count_tokens` check first and prints an exact cost estimate
+before any spend is possible; no default path spends money without that
+number being shown first.

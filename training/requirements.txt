@@ -52,3 +52,13 @@ accelerate>=1.1,<2
 # plain `python training/tests/test_serialization.py`, so the suite is never
 # blocked on this being installed.
 pytest>=8,<10
+
+# Dev-only, occasional-use. Not needed for the core pipeline -- only for
+# third_party_review.py's manually-invoked independent review via the raw
+# Claude API (see docs/decisions/PDR-008.md). `keyring` reads the API key
+# from Windows Credential Manager at runtime (target "ANTHROPIC_API_KEY",
+# username "Fable Review") so the key never appears in an env var, shell
+# history, or this file. Verified working set, 2026-09-07: anthropic 1.4.0,
+# keyring 25.7.0 (pulls pywin32-ctypes on Windows, not full pywin32).
+anthropic>=1.4,<2
+keyring>=25.7,<26

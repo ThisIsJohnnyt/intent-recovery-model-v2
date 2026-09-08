@@ -76,11 +76,15 @@ guardrails").
 
 | 2026-09-07 | `gemini-3.1-pro-preview` (`pro` alias) | Thirteenth periodic adversarial re-review, due after batch 29. Gemini first against the full checklist, then a genuinely fresh Claude subagent (no exposure to this session's reasoning) as the independent second pass, per `PDR-006`'s amendment. 13 examples from batches 28-29 (7 `zero_action_items`, 3 near-miss-contrast, 1 `contradictory_statement`, 2 controls). Not a corpus batch; this is the review call itself | 13 reviewed | Gemini: 0 ACCEPT, 8 FIX, 5 REJECT. Fresh Claude: 4 ACCEPT, 9 FIX, 0 REJECT. Reconciled: 9 confirmed fixes; all 5 REJECTs declined; 2 category-fit questions surfaced for the product owner | *Not retrieved — same known gap as above.* | Full findings in `docs/datasets/REVIEW_GUIDE.md`'s adversarial-re-review log and `docs/datasets/CATEGORY_REFERENCE.md`'s thirteenth-re-review section. Headline, escalated rather than resolved unilaterally: Gemini REJECTed all 4 of batch 29's new imperative-syntax `zero_action_items` examples, on a rule read that would also call the real, hand-labeled note (`real_validation.jsonl` #15) wrong. Surfaced to the product owner rather than settled silently; he concurred the REJECTs don't hold and gave the actual distinguishing test in his own words (self-suggested possible activities vs. a distinct call to action on named objects), now written into `REVIEW_GUIDE.md` §4 as a durable rule. Authorized directly by the product owner ("start the re-review"), per the standing per-batch authorization rule. |
 
-## Known gap
+## Claude API (third-party review)
 
-This ledger's `Cost` column can't be filled in from the MCP tool's response
-alone — `gemini-query` doesn't return usage/billing metadata. Until that's
-resolved (either the MCP server exposes it, or costs are checked manually
-in AI Studio after each call), treat this column as informational-only, not
-a substitute for checking the actual AI Studio billing console
-periodically.
+A second, separate real-money surface from the Gemini table above — see
+[PDR-008](../docs/decisions/PDR-008.md). `training/third_party_review.py`,
+an occasional, manually-invoked independent review via a raw API call
+using the product owner's own prepaid key. Unlike the Gemini column above,
+the Anthropic SDK's `response.usage` returns exact token counts directly,
+so `Cost` here is computed from real numbers, not estimated.
+
+| Date | Model | Purpose | Input tokens | Output tokens | Cost | Notes |
+|---|---|---|---|---|---|---|
+| 2026-09-07 | `claude-fable-5-1` | First real run of `third_party_review.py` — independent review of `training/*.py`, `datasets/synthetic.jsonl` (532 records), `datasets/real_validation.jsonl`, and all `docs/datasets/`, `docs/decisions/`, `docs/vision/` docs. `docs/reviews/*.md` deliberately excluded (co-drafted with Gemini on the review bridge, to avoid anchoring on prior findings). Written to `docs/reviews/2026-09-07-claude-api-review.md` | 342,139 | 48,000 | $5.82 | **Truncated** — hit the script's `--max-tokens 48000` cap mid-finding (M6), `stop_reason` was `max_tokens` not `end_turn`. Bug in the tool itself, not the review: `max_tokens` was set far too low for a bundle this size at `effort=high` on a 128K-max-output model. Despite the cutoff, all 6 Critical findings and 5 of the following Medium findings completed in full before the cutoff — see the review doc and its disposition write-up. Authorized directly by the product owner ("Let's do this"), per the standing per-call authorization rule. |

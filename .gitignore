@@ -43,4 +43,10 @@ training/prepared/
 
 # Local run logs -- not source, not reviewed docs, regenerated on every run.
 /training/*_run_*.log
+/training/*_run.log
+
+# Derived from a tracked .md review doc via a scratchpad conversion script,
+# not source itself -- regeneratable from the .md, not meaningfully
+# diffable as a binary. Kept on disk for local reading, not tracked.
+/docs/reviews/*.docx
 
