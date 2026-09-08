@@ -56,7 +56,15 @@ from evaluate_real import word_ratio  # noqa: E402  -- single similarity impl
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATASET = REPO_ROOT / "datasets" / "synthetic.jsonl"
-DEFAULT_THRESHOLD = 0.85
+# Raised from 0.85 to 0.90, 2026-09-08 (docs/decisions/PDR-011.md). 0.85 was
+# calibrated entirely from within the synthetic-batch history this docstring
+# describes above -- never checked against real data. All 15
+# real_validation.jsonl records measure 0.429-0.889 (mean 0.690); 0.90 sits
+# just above that observed ceiling rather than being an arbitrary relaxation.
+# This is a metric-INTERPRETATION change, not a corpus rewrite -- applies to
+# already-existing measurements corpus-wide (legacy records included), unlike
+# PDR-011's register/voice change, which applies to new generation only.
+DEFAULT_THRESHOLD = 0.90
 
 # Keyed by sha256(input)[:16] rather than line number: line numbers shift the
 # moment a record is inserted, removed, or reordered, and an allowlist that

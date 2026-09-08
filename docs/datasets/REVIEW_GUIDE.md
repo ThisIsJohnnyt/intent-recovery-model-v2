@@ -265,6 +265,14 @@ don't just eyeball for a general sense of accuracy:
   clean it looks. Identified by the fourth adversarial re-review (2026-08-23),
   which measured the corpus mean climbing from 0.50 to 0.67 over batches 8–9
   as the evidence rules were tightened — generation finding the safe gradient.
+  **Superseded, 2026-09-08 (`PDR-011`)**: the ~0.85 line above was derived
+  entirely from synthetic-batch history and never checked against real
+  data. All 15 `real_validation.jsonl` records measure 0.429–0.889 (mean
+  0.690) — reorganization is deliberately less aggressive than the
+  synthetic corpus's own target. The standing gate (`check_copy_ratio.py`'s
+  `DEFAULT_THRESHOLD`) is now **0.90**, just above the real corpus's own
+  observed ceiling. "Non-recovery" is still a real defect at any
+  reorganization level; the number that flags it for a closer read moved.
 - **Representing an absence** (a convention, not a prohibition): three
   categories — `interrupted_thought`, `contradictory_statement`, and
   `dangling_reference` — require the output to convey something that *isn't
