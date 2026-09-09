@@ -77,8 +77,8 @@ class TokenizedDataset(Dataset):
         }
 
 
-def load_meta() -> dict:
-    meta_path = PREPARED_DIR / "meta.json"
+def load_meta(data_dir: Path) -> dict:
+    meta_path = data_dir / "meta.json"
     if not meta_path.exists():
         raise FileNotFoundError(
             f"{meta_path} not found -- run prepare_data.py first. This "
@@ -149,21 +149,31 @@ def main():
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument(
+        "--data-dir", type=Path, default=PREPARED_DIR,
+        help="Directory holding train.jsonl/selection.jsonl/meta.json "
+             "(default: training/prepared/, produced by prepare_data.py). "
+             "Point this elsewhere to train against an isolated/experimental "
+             "prep step instead -- e.g. training/experiments/held_section/"
+             "prepared/ -- without touching the production pipeline's "
+             "default. Added 2026-09-09 (review_bridge round 3) for the "
+             "HELD-section learnability test.",
+    )
+    parser.add_argument(
         "--max-steps", type=int, default=-1,
         help="Cap total optimizer steps, overriding --epochs. Use a small "
              "value (e.g. 5) to smoke-test the pipeline without a real run.",
     )
     args = parser.parse_args()
 
-    meta = load_meta()
+    meta = load_meta(args.data_dir)
     print(
         f"Prepared data: {meta['train_examples']} train / "
         f"{meta['selection_examples']} selection examples, "
         f"model={meta['model_name']}"
     )
 
-    train_ds = TokenizedDataset(PREPARED_DIR / "train.jsonl")
-    selection_ds = TokenizedDataset(PREPARED_DIR / "selection.jsonl")
+    train_ds = TokenizedDataset(args.data_dir / "train.jsonl")
+    selection_ds = TokenizedDataset(args.data_dir / "selection.jsonl")
     print(f"Loaded {len(train_ds)} train / {len(selection_ds)} selection examples")
 
     if len(train_ds) == 0:

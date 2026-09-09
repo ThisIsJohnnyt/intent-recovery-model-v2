@@ -123,3 +123,18 @@ the script.
 | 2026-09-08 | `gemini-3.5-flash-lite` | Recalibrate check_copy_ratio.py default gate to 0.90 per PDR-011 | 94,556 | 684 | $0.0150 | |
 | 2026-09-09 | `gemini-3.5-flash-lite` | C5 backlog disposition: 34 allowlist, 1 content fix, 4 re-confirmed | 186,428 | 645 | $0.0288 | |
 | 2026-09-09 | `gemini-3.5-flash-lite` | C5 follow-up: allowlist #445 after its own content fix raised the ratio | 172,581 | 738 | $0.0268 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | inference-time safety gap: probe-first proposal | 45,562 | 5,973 | $0.1628 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | inference-time safety gap: round 2, ephemeral design | 106,338 | 9,387 | $0.3253 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test proposal | 133,342 | 6,507 | $0.3448 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 2, isolated fork design | 95,612 | 7,849 | $0.2854 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 3, load_meta + isolated reader fixes | 110,892 | 6,346 | $0.2979 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 4, held definition + generation prompt | 51,130 | 4,527 | $0.1566 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 5, refined held/bullets test | 133,832 | 5,831 | $0.3376 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 6, three-way test with noise as existing third leg | 19,070 | 4,164 | $0.0881 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 7, narrowed dropped scope | 16,483 | 7,549 | $0.1236 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 8, interrupted_thought is out of scope | 117,143 | 7,971 | $0.3299 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | HELD-section learnability test: round 9, self_correction excluded + full taxonomy sweep | 41,063 | 12,690 | $0.2344 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | Base model migration proposal: flan-t5-base to Qwen3.5-4B | 38,432 | 8,797 | $0.1824 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | Base model migration: round 2, prompt-length fix + indented JSON compromise | 290,890 | 8,203 | $0.6802 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | Base model migration: round 3, full consolidated scope (stateless-bridge content loss corrected) | 47,812 | 10,811 | $0.2254 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | Base model migration: round 4, four verified fixes + refined JSON/early-stop interaction | 40,775 | 6,326 | $0.1575 | |

@@ -52,3 +52,4 @@ Each PDR is a short file: `PDR-NNN.md`, three-digit zero-padded, sequential.
 - [PDR-009](PDR-009.md) — Replace Antigravity with a direct Gemini CLI call as the review bridge's transport
 - [PDR-010](PDR-010.md) — Genuinely blind periodic re-review via an out-of-repo prompt generator and a stateless CLI auditor
 - [PDR-011](PDR-011.md) — Recalibrate "recovery" to the product owner's actual writing register, not the synthetic corpus's internally-derived convention
+- [PDR-012](PDR-012.md) — Migrate the base model from flan-t5-base to Qwen3.5-4B

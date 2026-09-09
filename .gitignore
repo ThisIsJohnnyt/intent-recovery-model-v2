@@ -9,6 +9,14 @@ training/checkpoints/
 training/prepared/
 *.onnx
 
+# Experimental sub-pipelines under training/experiments/ follow the same
+# derived-artifact discipline as the production training/checkpoints/ and
+# training/prepared/ above -- tokenized/prepared data and run logs are
+# regeneratable from a tracked raw batch + script, never committed
+# themselves. Added 2026-09-09 for the HELD-section experiment.
+training/experiments/*/prepared/
+training/experiments/*/*_run.log
+
 # Misc
 .DS_Store
 .env
