@@ -99,9 +99,14 @@ real tier — see [`training/COST_LEDGER.md`](training/COST_LEDGER.md) for
 the full batch-by-batch and review history. No versioned model release
 exists yet — see
 [PROJECT_OVERVIEW.md](docs/vision/PROJECT_OVERVIEW.md) for what's next.
-`google/flan-t5-base` (Apache 2.0) is the intended base model, carried
-forward unchanged from the predecessor project — it was never an OpenAI
-dependency.
+
+As of 2026-09-09: the base model migrated to `Qwen/Qwen3.5-4B` (Apache 2.0,
+4-bit QLoRA), replacing `google/flan-t5-base` — see
+[PDR-012](docs/decisions/PDR-012.md) for the full reasoning (three
+convergent findings implicating the model rather than the corpus, plus a
+hardware test on the product owner's actual GPU). Neither base model was
+ever an OpenAI dependency; the `flan-t5-base` training runs mentioned above
+remain accurate history of what actually ran before this migration.
 
 ## Collaboration model
 

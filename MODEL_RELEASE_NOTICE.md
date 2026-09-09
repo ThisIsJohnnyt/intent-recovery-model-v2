@@ -51,9 +51,17 @@ claim over ideas, methods, or the project name.
 
 - Model-weight copyright and derivative-work status varies by jurisdiction
   and remains legally unsettled generally, not specific to this project.
-- The intended base model (`google/flan-t5-base`) and other upstream
-  components retain their original terms (Apache 2.0) regardless of
-  anything stated here — see `THIRD_PARTY_NOTICES.md`.
+- The intended base model (`Qwen/Qwen3.5-4B`, Alibaba/Qwen — see
+  [PDR-012](docs/decisions/PDR-012.md) for the migration off
+  `google/flan-t5-base`) and other upstream components retain their
+  original terms (Apache 2.0) regardless of anything stated here — see
+  `THIRD_PARTY_NOTICES.md`.
+- `Qwen/Qwen3.5-4B` is a multimodal (`image-text-to-text`) checkpoint
+  upstream — the only 4B chat variant Qwen ships, with no text-only
+  alternative at this size. This project uses it as a text-only causal LM
+  and never exercises its vision capability; the checkpoint's multimodal
+  weights are present because that's what the upstream release is, not
+  because this project added or uses that capability.
 - This project makes no representation that it owns or can license
   third-party rights that may subsist in upstream components, or in any
   material a model output might reproduce.

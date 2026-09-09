@@ -38,8 +38,13 @@ and two full training runs have completed against `google/flan-t5-base`
 with results evaluated against the real tier — see
 [`../../training/COST_LEDGER.md`](../../training/COST_LEDGER.md) for the
 full batch-by-batch and review history. No versioned model release exists
-yet. `google/flan-t5-base` (Apache 2.0) remains the base model, carried
-forward unchanged from the predecessor project.
+yet.
+
+As of 2026-09-09, the base model migrated to `Qwen/Qwen3.5-4B` (Apache
+2.0, 4-bit QLoRA), replacing `google/flan-t5-base` — see
+[PDR-012](../decisions/PDR-012.md) for the full reasoning. The
+flan-t5-base training runs above remain accurate history of what actually
+ran before this migration.
 
 ## Roles
 

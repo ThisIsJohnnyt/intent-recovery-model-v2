@@ -2,8 +2,9 @@
 Fine-tuning script for intent-recovery-model-v2. Reads
 training/prepared/{train,selection}.jsonl produced by prepare_data.py --
 already tokenized, padded, and labeled -- and fine-tunes the base model
-named in training/prepared/meta.json (google/flan-t5-base as of this
-writing).
+named in training/prepared/meta.json (Qwen/Qwen3.5-4B as of this writing,
+via 4-bit QLoRA -- see docs/decisions/PDR-012.md for why and
+training/model_config.py for the exact quantization shape).
 
 `selection.jsonl` is a slice carved out of the synthetic/gold pool itself
 (see prepare_data.py's is_in_selection_slice), evaluated each epoch and used
@@ -12,11 +13,26 @@ datasets/real_validation.jsonl -- that file is deliberately kept out of
 this pipeline so the real tier stays untouched for evaluate_real.py's
 generalization reporting. See docs/decisions/PDR-007.md.
 
+`trainer.save_model()` below saves only the LoRA adapter, not the 4B base
+model -- standard QLoRA practice, and the only thing that fits in this
+checkpoint's disk/VRAM budget (a merged bf16 checkpoint would need ~8GB for
+weights alone, more than this hardware's whole card -- see PDR-012).
+evaluate_real.py / probe_adversarial.py load a saved checkpoint back via
+peft.AutoPeftModelForCausalLM, which reads the base model name straight out
+of the adapter's own saved config -- nothing here needs to separately
+record or pass it.
+
 Usage (from training/, after running prepare_data.py):
     python train.py                           # a real run, defaults below
     python train.py --max-steps 5              # smoke test only -- proves
                                                  # the pipeline runs end to
-                                                 # end, not a usable model
+                                                 # end, not a usable model.
+                                                 # ALWAYS pass --output-dir
+                                                 # with this -- the default
+                                                 # is the production
+                                                 # checkpoint path and a
+                                                 # smoke test will silently
+                                                 # overwrite a real run.
 """
 import argparse
 import json
@@ -24,15 +40,13 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import Dataset
-from transformers import (
-    AutoModelForSeq2SeqLM,
-    AutoTokenizer,
-    Seq2SeqTrainer,
-    Seq2SeqTrainingArguments,
-)
+from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+import model_config
 
 PREPARED_DIR = Path(__file__).resolve().parent / "prepared"
-DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "checkpoints" / "flan-t5-base-v2.0"
+DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "checkpoints" / "qwen3.5-4b-v2.0"
 
 # Warn when the best validation loss exceeds the final training loss by
 # this ratio. Overfitting is what we actually care about, so measure it
@@ -187,7 +201,23 @@ def main():
         )
 
     tokenizer = AutoTokenizer.from_pretrained(meta["model_name"])
-    model = AutoModelForSeq2SeqLM.from_pretrained(meta["model_name"])
+    model = AutoModelForCausalLM.from_pretrained(
+        meta["model_name"],
+        quantization_config=model_config.build_bnb_config(),
+        device_map="auto",
+    )
+    model = prepare_model_for_kbit_training(model)
+    # r/alpha/dropout/target_modules/task_type are the exact shape Stage 0
+    # confirmed working on this hardware (see PDR-012) -- not re-tuned here.
+    lora_config = LoraConfig(
+        r=16,
+        lora_alpha=32,
+        lora_dropout=0.05,
+        target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
+        task_type="CAUSAL_LM",
+    )
+    model = get_peft_model(model, lora_config)
+    model.print_trainable_parameters()
 
     # Keep the best-generalizing checkpoint, not just whatever state exists
     # after the last epoch. The first real run (2026-09-02, 500 examples)
@@ -205,7 +235,7 @@ def main():
     # records stop being a generalization estimate (external review,
     # 2026-09-02, finding C3; fixed per PDR-007).
     has_selection = len(selection_ds) > 0
-    training_args = Seq2SeqTrainingArguments(
+    training_args = TrainingArguments(
         output_dir=str(args.output_dir),
         num_train_epochs=args.epochs,
         max_steps=args.max_steps,
@@ -219,11 +249,10 @@ def main():
         metric_for_best_model="eval_loss" if has_selection else None,
         greater_is_better=False if has_selection else None,
         logging_steps=1,
-        predict_with_generate=False,
         report_to=[],
     )
 
-    trainer = Seq2SeqTrainer(
+    trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=train_ds,

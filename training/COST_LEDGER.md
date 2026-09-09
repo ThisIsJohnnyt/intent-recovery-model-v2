@@ -138,3 +138,4 @@ the script.
 | 2026-09-09 | `gemini-3.1-pro-preview` | Base model migration: round 2, prompt-length fix + indented JSON compromise | 290,890 | 8,203 | $0.6802 | |
 | 2026-09-09 | `gemini-3.1-pro-preview` | Base model migration: round 3, full consolidated scope (stateless-bridge content loss corrected) | 47,812 | 10,811 | $0.2254 | |
 | 2026-09-09 | `gemini-3.1-pro-preview` | Base model migration: round 4, four verified fixes + refined JSON/early-stop interaction | 40,775 | 6,326 | $0.1575 | |
+| 2026-09-09 | `gemini-3.1-pro-preview` | PDR-012 round 5: length re-measurement + QLoRA checkpoint load strategy | 328,989 | 11,632 | $0.7976 | |

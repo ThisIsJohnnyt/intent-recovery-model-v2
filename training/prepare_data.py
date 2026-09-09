@@ -4,10 +4,16 @@ See training/DATASET_SPEC.md's "Model output serialization" and "Task
 prefix" sections for the exact contract this module implements.
 
 Stages: load raw JSONL -> validate against the schema -> serialize each
-record's `output` into the model's actual training target (the delimited
-###NARRATIVE###/###BULLETS###/###ACTIONS### format) -> tokenize with
-google/flan-t5-base's tokenizer -> write token-id JSONL that train.py
-reads directly.
+record's `output` into the model's actual training target (indented JSON
+by default; see TARGET_FORMAT below) -> build a chat-templated prompt
+(TASK_PREFIX as a system message, the note as the user message) ->
+tokenize with Qwen/Qwen3.5-4B's tokenizer, masking the prompt span out of
+the labels (-100) so the causal LM is only ever trained to predict the
+target, never to reproduce its own prompt -> write token-id JSONL that
+train.py reads directly. See docs/decisions/PDR-012.md for why the base
+model moved off google/flan-t5-base (encoder-decoder) onto this
+decoder-only causal LM, and review_bridge/ round 5 (2026-09-09) for the
+length constants below and the reasoning behind them.
 
 Split: train = synthetic.jsonl + any consolidated gold releases, MINUS a
 selection slice carved out of that same pool by deterministic content-hash
@@ -41,10 +47,38 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DATASETS_DIR = REPO_ROOT / "datasets"
 PREPARED_DIR = Path(__file__).resolve().parent / "prepared"
 
-MODEL_NAME = "google/flan-t5-base"
-MAX_INPUT_LENGTH = 256
-MAX_TARGET_LENGTH = 384  # narrative + bullets + actions can run longer than input
+MODEL_NAME = "Qwen/Qwen3.5-4B"
+
+# Re-measured directly against Qwen's tokenizer on all 547 records this
+# pipeline actually tokenizes (synthetic + gold + real_validation) --
+# NOT assumed to carry over from flan-t5-base's 256/384 (review_bridge/
+# round 5, 2026-09-09). Observed: chat-templated prompt max=174 tokens
+# (system+user, add_generation_prompt=True), JSON target max=384 tokens,
+# delimited-fallback target max=347 tokens. Both caps below sit close to
+# 2x their p99 (143 / 319), not their max, so a modest future outlier
+# doesn't immediately start truncating as the corpus grows past 532.
+MAX_INPUT_LENGTH = 224
+MAX_TARGET_LENGTH = 480  # covers both TARGET_FORMAT options' observed max
+MAX_SEQ_LENGTH = MAX_INPUT_LENGTH + MAX_TARGET_LENGTH  # 704 -- Stage 0's
+    # hardware test measured 4.66GB/7.93GB peak at the prior, shorter
+    # combined length (640); Gemini's review_bridge round-5 assessment
+    # was that the ~10% increase to 704 is comfortably inside that
+    # margin and re-testing would be overkill -- not independently
+    # re-measured on hardware, flagging that rather than asserting it.
+
+# The model's I/O contract's system-message content -- same wording as the
+# original flan-t5 raw-string prefix, just delivered via apply_chat_template
+# as a system message now instead of string concatenation onto the input.
 TASK_PREFIX = "Recover the intent behind these scattered notes:\n\n"
+
+# "json" (default) or "delimited". See serialize_target/deserialize_target
+# below -- PDR-012 moved the training target to indented JSON but kept the
+# original ###NARRATIVE###/###BULLETS###/###ACTIONS### format available as
+# a measured fallback, to be switched back to only if the JSON format's
+# genuine syntax-error rate (as distinct from early-stop-truncation
+# failures -- see evaluate_real.py's parse-failure categorization) proves
+# poor in practice. A one-line constant change, not a rewrite, by design.
+TARGET_FORMAT = "json"
 
 # Fraction of the synthetic+gold pool reserved for training-time checkpoint
 # selection (train.py's load_best_model_at_end), carved out per record by
@@ -157,9 +191,71 @@ def load_jsonl(path: Path) -> list:
 
 
 def serialize_target(output: dict) -> str:
-    """dict -> the literal delimited text the model is trained to
-    generate. This function IS DATASET_SPEC.md's "Model output
-    serialization" spec, not a separate reimplementation of it."""
+    """dict -> the literal text the model is trained to generate, in
+    whichever format TARGET_FORMAT currently selects. This function IS
+    DATASET_SPEC.md's "Model output serialization" spec, not a separate
+    reimplementation of it."""
+    if TARGET_FORMAT == "json":
+        return _serialize_target_json(output)
+    return _serialize_target_delimited(output)
+
+
+def deserialize_target(text: str) -> dict:
+    """Inverse of serialize_target() -- text -> dict, in whichever format
+    TARGET_FORMAT currently selects. Used to check real model output at
+    eval time against the same logic that built the training targets,
+    rather than a second hand-written parser that could silently drift
+    from what training actually used.
+
+    Unlike the delimited format's parser (see _deserialize_target_delimited
+    below), this can raise json.JSONDecodeError on malformed or
+    early-stop-truncated model output -- callers (evaluate_real.py,
+    probe_adversarial.py) catch that explicitly rather than this function
+    silently swallowing it into an empty result."""
+    if TARGET_FORMAT == "json":
+        return _deserialize_target_json(text)
+    return _deserialize_target_delimited(text)
+
+
+def _serialize_target_json(output: dict) -> str:
+    """dict -> indented JSON text. The default target format since
+    PDR-012 (base model migration) -- see review_bridge/ for why: a strict
+    parser (json.loads) that fails loudly on genuine malformation, instead
+    of the delimited format's forgiving-but-lossy heuristic splitting.
+    Field order is dict-insertion order (narrative, bullets, action_items
+    -- REQUIRED_OUTPUT's own declared order), not re-sorted, so the
+    serialized shape is stable across runs for the same input dict."""
+    ordered = {k: output[k] for k in ("narrative", "bullets", "action_items")}
+    return json.dumps(ordered, indent=2)
+
+
+def _deserialize_target_json(text: str) -> dict:
+    """Inverse of _serialize_target_json(). Raises json.JSONDecodeError on
+    anything that doesn't parse -- including a string that happens to
+    parse but isn't a dict, which is re-raised as the same exception type
+    so callers only need one except clause. Confirmed empirically
+    (2026-09-09) that Qwen's tokenizer does NOT collapse "\\n" to a space
+    at encode time the way flan-t5's SentencePiece tokenizer did -- but
+    it wouldn't matter either way here, since JSON parsing is whitespace-
+    agnostic regardless of how the surrounding indentation survives
+    tokenization."""
+    parsed = json.loads(text)
+    if not isinstance(parsed, dict):
+        raise json.JSONDecodeError(
+            f"expected a JSON object, got {type(parsed).__name__}", text, 0
+        )
+    return {
+        "narrative": parsed.get("narrative", ""),
+        "bullets": parsed.get("bullets", []),
+        "action_items": parsed.get("action_items", []),
+    }
+
+
+def _serialize_target_delimited(output: dict) -> str:
+    """dict -> the literal delimited text format used before PDR-012, kept
+    available as TARGET_FORMAT's measured fallback -- see that constant's
+    comment. Not currently the active format; see _serialize_target_json
+    for what actually runs by default."""
     narrative = " ".join(output["narrative"].split("\n"))  # defensive, not expected
     lines = ["###NARRATIVE###", narrative, "###BULLETS###"]
     lines += [f"- {b}" for b in output["bullets"]]
@@ -168,33 +264,35 @@ def serialize_target(output: dict) -> str:
     return "\n".join(lines)
 
 
-def deserialize_target(text: str) -> dict:
-    """Inverse of serialize_target() -- text -> dict. Used to check real
-    model output at eval time against the same logic that built the
-    training targets, rather than a second hand-written parser that could
-    silently drift from what training actually used.
+def _deserialize_target_delimited(text: str) -> dict:
+    """Inverse of _serialize_target_delimited() -- text -> dict. Kept
+    available as TARGET_FORMAT's fallback; not currently the active format.
 
     Does NOT split on literal "\\n". flan-t5's SentencePiece tokenizer
-    normalizes "\\n" to a plain space at *encode* time -- confirmed by
+    normalized "\\n" to a plain space at *encode* time -- confirmed by
     tokenizing "X\\nY" and "X Y" and getting identical token ids -- so a
-    real generated sequence never contains a newline to split on in the
+    real generated sequence never contained a newline to split on in the
     first place, and neither did the training targets built by
-    serialize_target() above once they passed through the tokenizer. A
-    trained checkpoint's raw output looks like:
+    _serialize_target_delimited() above once they passed through that
+    tokenizer. A trained flan-t5 checkpoint's raw output looked like:
         "###NARRATIVE### text here ###BULLETS### - one - two ###ACTIONS### - a1"
     all on one line. Found 2026-08-25 when the first real eval run showed
     every example failing to parse despite the raw output visibly
     containing all three markers in order with real content -- the parser
     was checking for a newline that no longer existed anywhere in the
-    pipeline, not a model or data defect.
+    pipeline, not a model or data defect. This behavior was specific to
+    flan-t5's SentencePiece tokenizer -- Qwen's tokenizer does not collapse
+    newlines this way (confirmed 2026-09-09) -- but this parser never
+    relied on newlines surviving in the first place, so it needs no change
+    either way if this fallback is ever reactivated on the current model.
 
     Splits on the marker strings directly instead, then splits each
-    list section on " - " (matching how serialize_target's own "- {item}"
-    lines get glued back-to-back by the same normalization). This is a
-    heuristic, not lossless: an item whose own text contains a literal
-    " - " substring will be split apart. Accepted for now since it matches
-    what the model was actually trained to produce; revisit if that
-    collision shows up in practice."""
+    list section on " - " (matching how _serialize_target_delimited's own
+    "- {item}" lines get glued back-to-back by the same normalization).
+    This is a heuristic, not lossless: an item whose own text contains a
+    literal " - " substring will be split apart. Accepted for now since it
+    matches what the model was actually trained to produce; revisit if
+    that collision shows up in practice."""
     import re
     parts = {"narrative": "", "bullets": [], "action_items": []}
     chunks = re.split(r"###NARRATIVE###|###BULLETS###|###ACTIONS###", text)
@@ -213,10 +311,13 @@ def deserialize_target(text: str) -> dict:
 
 
 def build_examples(records: list) -> list:
-    """record -> {"input": ..., "target": ...} training pair. The task
-    prefix is applied here, not left for the caller to remember."""
+    """record -> {"input": ..., "target": ...} training pair. `input`
+    stays the raw note text -- TASK_PREFIX is no longer concatenated onto
+    it here, since it's delivered as a separate chat-template system
+    message at tokenization time now (see tokenize_examples), not a raw
+    string prefix."""
     return [
-        {"input": TASK_PREFIX + r["input"], "target": serialize_target(r["output"])}
+        {"input": r["input"], "target": serialize_target(r["output"])}
         for r in records
     ]
 
@@ -242,23 +343,61 @@ def split_train_selection(records: list) -> tuple:
 
 
 def tokenize_examples(examples: list, tokenizer) -> list:
+    """Causal-LM tokenization (since PDR-012): one concatenated sequence
+    per example -- chat-templated prompt (TASK_PREFIX as a system message,
+    the note as the user message, `add_generation_prompt=True`,
+    `enable_thinking=False`) followed by the serialized target and an
+    explicit EOS -- with labels set to -100 over the entire prompt span so
+    the loss only ever scores the target, never the model's own prompt.
+    Replaces the old seq2seq version, which tokenized input/target as two
+    independent, separately-padded sequences for the encoder/decoder.
+
+    -100 is the standard HF convention for "ignore this position in the
+    loss" -- both the prompt span and any padding must not contribute
+    gradient."""
     prepared = []
     for ex in examples:
-        input_enc = tokenizer(
-            ex["input"], max_length=MAX_INPUT_LENGTH, truncation=True, padding="max_length"
-        )
-        target_enc = tokenizer(
-            ex["target"], max_length=MAX_TARGET_LENGTH, truncation=True, padding="max_length"
-        )
-        # -100 is the standard HF convention for "ignore this position in
-        # the loss" -- padding must not contribute gradient.
-        labels = [
-            tok if tok != tokenizer.pad_token_id else -100
-            for tok in target_enc["input_ids"]
+        messages = [
+            {"role": "system", "content": TASK_PREFIX},
+            {"role": "user", "content": ex["input"]},
         ]
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False,
+        )
+        prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
+        if len(prompt_ids) > MAX_INPUT_LENGTH:
+            # Truncating a rendered chat template from the right risks
+            # cutting into the assistant-priming suffix
+            # (<|im_start|>assistant...\n<think>...) that
+            # add_generation_prompt=True appends -- unlike the old
+            # seq2seq path's plain-text truncation, that would corrupt
+            # structure the model needs, not just drop content. Measured
+            # max across all 547 real records is 174 (review_bridge/
+            # round 5) -- this is a safety net, not expected to fire; fail
+            # loudly rather than silently truncate into something broken.
+            raise ValueError(
+                f"prompt exceeds MAX_INPUT_LENGTH ({len(prompt_ids)} > "
+                f"{MAX_INPUT_LENGTH} tokens) -- input: {ex['input'][:80]!r}"
+            )
+
+        target_ids = tokenizer(ex["target"], add_special_tokens=False)["input_ids"]
+        target_ids = target_ids[:MAX_TARGET_LENGTH - 1]  # truncate BEFORE
+            # appending EOS, not after -- an over-length example that got
+            # truncated after appending EOS would have its EOS cut off
+            # too, teaching the model no clean stop signal for exactly
+            # the examples that most need one.
+
+        input_ids = prompt_ids + target_ids + [tokenizer.eos_token_id]
+        labels = [-100] * len(prompt_ids) + target_ids + [tokenizer.eos_token_id]
+        pad_len = MAX_SEQ_LENGTH - len(input_ids)
+        input_ids += [tokenizer.pad_token_id] * pad_len
+        labels += [-100] * pad_len  # -100 explicitly, never the real pad token id
+        attention_mask = [1] * (len(input_ids) - pad_len) + [0] * pad_len
+
         prepared.append({
-            "input_ids": input_enc["input_ids"],
-            "attention_mask": input_enc["attention_mask"],
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
             "labels": labels,
         })
     return prepared
@@ -382,6 +521,8 @@ def main():
         "model_name": MODEL_NAME,
         "max_input_length": MAX_INPUT_LENGTH,
         "max_target_length": MAX_TARGET_LENGTH,
+        "max_seq_length": MAX_SEQ_LENGTH,
+        "target_format": TARGET_FORMAT,
         "task_prefix": TASK_PREFIX,
         "train_examples": len(train_prepared),
         "selection_examples": len(selection_prepared),

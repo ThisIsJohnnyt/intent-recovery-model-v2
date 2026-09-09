@@ -14,11 +14,14 @@ burden as possible. Not "organize notes." Not "summarize text." See
 The schema below is the **one authoritative format** for anything that
 gets trained on. This format itself is unrelated to which AI generates the
 data — it exists to match what the training pipeline and the deployed
-model's output format (`###NARRATIVE###`/`###BULLETS###`/`###ACTIONS###`,
-a small model's tokenizer can't reliably represent `{`/`}`, so a delimited
-format is used instead of JSON for the model's actual output — though the
-*dataset* itself is still stored as JSON/JSONL) actually require, not by
-preference.
+model's output format actually require, not by preference. The model's
+actual output format is indented JSON since
+[PDR-012](../docs/decisions/PDR-012.md) (base model migration) — see
+"Model output serialization" below for why an earlier delimited format
+(`###NARRATIVE###`/`###BULLETS###`/`###ACTIONS###`) was used instead of
+JSON originally, and why that's no longer the constraint. The *dataset*
+itself has always been stored as JSON/JSONL regardless of which format the
+model is trained to generate.
 
 Before proposing a richer per-example format (additional fields,
 restructured output, etc.), put it in
@@ -28,18 +31,43 @@ other analysis, and are never read by the training pipeline, so they're
 free to be as rich as useful without risking rejection for not matching the
 pipeline's actual schema.
 
-## Model output serialization (the delimited format)
+## Model output serialization (indented JSON, since PDR-012)
 
 `prepare_data.py` converts each record's `output` object (JSON in the
-dataset) into the literal text the model is trained to generate — the
-delimited format named above. Designed fresh for v2.0, not inherited from
-v1; [Thought Organizer](https://github.com/ThisIsJohnnyt/thought-organizer-app)
-will be updated separately to parse it, not the other way around.
+dataset) into the literal text the model is trained to generate.
+[Thought Organizer](https://github.com/ThisIsJohnnyt/thought-organizer-app)
+must be updated separately to parse whichever format is currently active,
+not the other way around.
 
-Exact shape — three section headers, always present and always in this
-order, each on its own line, `bullets`/`action_items` as `- `-prefixed
-lines (zero or more; an empty list means the header appears with nothing
-after it):
+**Current format: indented JSON** (`json.dumps(output, indent=2)`) —
+narrative/bullets/action_items as an actual JSON object, e.g.:
+
+```json
+{
+  "narrative": "<narrative, one paragraph>",
+  "bullets": [
+    "<bullet 1>",
+    "<bullet 2>"
+  ],
+  "action_items": [
+    "<action 1>"
+  ]
+}
+```
+
+Round-trip: `prepare_data.py` exposes both `serialize_target()` (dict →
+this text) and `deserialize_target()` (text → dict) as thin dispatchers
+over whichever format `TARGET_FORMAT` currently selects, so the same
+logic used to build training targets can validate model output at eval
+time. Unlike the delimited format below, malformed or truncated model
+output raises `json.JSONDecodeError` rather than silently degrading —
+`evaluate_real.py`/`probe_adversarial.py` catch that explicitly.
+
+**Earlier format, kept available as a measured fallback (`TARGET_FORMAT
+= "delimited"`)** — designed fresh for v2.0's original
+`google/flan-t5-base` base model, whose tokenizer couldn't reliably
+represent `{`/`}`, so a delimited format was used instead of JSON for the
+model's actual output at the time:
 
 ```
 ###NARRATIVE###
@@ -61,7 +89,8 @@ Empty `action_items` example (a `zero_action_items` record):
 ###ACTIONS###
 ```
 
-Rules:
+Delimited-format rules, for reference if `TARGET_FORMAT` is ever switched
+back:
 - Headers are always present, even when a section is empty — a parser
   splitting on the three fixed markers never has to guess whether a
   section was omitted vs. genuinely empty.
@@ -70,44 +99,52 @@ Rules:
 - `narrative` must not contain literal newlines (it's a single paragraph
   per the data contract already) — `prepare_data.py` collapses any
   present to spaces as a defensive measure, not an expected case.
-- Round-trip: `prepare_data.py` exposes both `serialize_target()` (dict →
-  this text) and `deserialize_target()` (text → dict), so the same logic
-  used to build training targets can validate model output at eval time.
-- **The `\n` between sections above is a spec convenience, not something
-  that survives to a real model.** flan-t5's SentencePiece tokenizer
-  normalizes `\n` to a plain space at *encode* time — confirmed by
-  tokenizing `"X\nY"` and `"X Y"` and getting identical token ids — so it
-  is already gone from the training targets themselves, not just from
-  generated output. A real checkpoint's raw output looks like
+- **The `\n` between sections above was a spec convenience, not
+  something that survived to the original flan-t5-base model.**
+  flan-t5's SentencePiece tokenizer normalized `\n` to a plain space at
+  *encode* time — confirmed by tokenizing `"X\nY"` and `"X Y"` and
+  getting identical token ids — so it was already gone from the training
+  targets themselves, not just from generated output. That checkpoint's
+  raw output looked like
   `"###NARRATIVE### text ###BULLETS### - one - two ###ACTIONS### - a1"`,
-  all on one line. `deserialize_target()` splits on the marker strings
-  directly and then on `" - "` within each section, not on `\n` — found
-  2026-08-25 when the first real eval run showed every example failing to
-  parse despite visibly-correct, well-formed output; the parser was
-  checking for a newline that no longer existed anywhere in the pipeline,
-  not a model or data defect. Anyone reusing the model's raw generation
-  output directly (rather than through `deserialize_target()`) needs to
-  know this too.
+  all on one line. `deserialize_target()`'s delimited path splits on the
+  marker strings directly and then on `" - "` within each section, not
+  on `\n` — found 2026-08-25 when the first real eval run showed every
+  example failing to parse despite visibly-correct, well-formed output;
+  the parser was checking for a newline that no longer existed anywhere
+  in the pipeline, not a model or data defect. Qwen's tokenizer does
+  *not* collapse newlines this way (confirmed 2026-09-09), but this
+  parser never depended on that collapse in the first place, so it needs
+  no change if this fallback is ever reactivated on the current model.
 
-## Task prefix (model input, not just the raw note)
+## Task prefix / system message (model input, not just the raw note)
 
-`google/flan-t5-base` is instruction-tuned — fine-tuning it well means
-feeding it an instruction, not just the bare scattered note, especially
-valuable with a corpus this small (leans on its pretrained
+Both the current base model (`Qwen/Qwen3.5-4B`) and the original
+`google/flan-t5-base` are instruction-tuned — fine-tuning either well
+means feeding it an instruction, not just the bare scattered note,
+especially valuable with a corpus this small (leans on the pretrained
 instruction-following prior more than a larger fine-tuning run would need
-to). `prepare_data.py` prepends a fixed prefix to every `input` before
-tokenizing:
+to). The instruction text itself is unchanged across the migration:
 
 ```
 Recover the intent behind these scattered notes:
 
-<input>
 ```
 
-This is part of the model's actual input contract now, same status as the
-output delimiters above — [Thought Organizer](https://github.com/ThisIsJohnnyt/thought-organizer-app)
-must prepend the identical prefix at inference time, or the model sees
-out-of-distribution input it wasn't fine-tuned on.
+**Delivery mechanism changed with PDR-012.** Originally a raw string
+prefix concatenated onto `input` before tokenizing (flan-t5-base, no chat
+template). Since the migration, `prepare_data.py` delivers it as the
+**system message** in a chat-formatted prompt (`tokenizer.
+apply_chat_template`, with the note as the user message,
+`enable_thinking=False` — Qwen3.5-4B defaults thinking mode on, and an
+unclosed `<think>` block breaks generation if this isn't passed
+explicitly), not string concatenation.
+
+This is part of the model's actual input contract, same status as the
+output format above — [Thought Organizer](https://github.com/ThisIsJohnnyt/thought-organizer-app)
+must reproduce the identical instruction text via the identical delivery
+mechanism (chat template, system role) at inference time, or the model
+sees out-of-distribution input it wasn't fine-tuned on.
 
 ## File format
 

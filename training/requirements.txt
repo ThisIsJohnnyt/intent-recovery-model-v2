@@ -8,17 +8,27 @@
 # from PyTorch's own index, then everything else) and for why the venv
 # itself lives outside this directory (a Windows path-length limit).
 #
-# google/flan-t5-base is a T5 model -- sentencepiece is required for its
-# tokenizer, not optional. accelerate is required by transformers'
-# Seq2SeqTrainer as of recent versions, even for single-device CPU/GPU runs.
+# Qwen/Qwen3.5-4B's tokenizer (Qwen2Tokenizer) is a fast, `tokenizers`-
+# backed BPE tokenizer, not SentencePiece -- confirmed 2026-09-09 by
+# loading it directly (is_fast=True, no sentencepiece involved). Unlike
+# google/flan-t5-base (the model this pipeline migrated off of, see
+# docs/decisions/PDR-012.md), sentencepiece is not required and is
+# deliberately not declared below. accelerate is required by
+# transformers' Trainer as of recent versions, even for single-device
+# CPU/GPU runs. peft + bitsandbytes are new with the migration -- 4-bit
+# QLoRA fine-tuning (PDR-012), pinned to the exact versions Stage 0
+# confirmed working on the product owner's actual hardware (RTX 5060,
+# Windows, CUDA 13.x), not a guess.
 #
 # BOUNDS, and why both ends matter (external review, 2026-09-02 -- the
 # previous file declared floor-only ranges where NEITHER endpoint worked):
 #
-#   Floor: transformers was declared >=4.40, but train.py passes
-#   `eval_strategy=` to Seq2SeqTrainingArguments. That argument was named
-#   `evaluation_strategy` until it was renamed in 4.41, so a clean install at
-#   the declared minimum raised TypeError before training a single step.
+#   Floor: transformers was declared >=4.40, but train.py (pre-PDR-012)
+#   passed `eval_strategy=` to Seq2SeqTrainingArguments. That argument was
+#   named `evaluation_strategy` until it was renamed in 4.41, so a clean
+#   install at the declared minimum raised TypeError before training a
+#   single step. `eval_strategy=` still applies to plain
+#   TrainingArguments post-migration, so the floor stays.
 #
 #   Ceiling: every pin was unbounded, so a fresh install resolves to whatever
 #   is current -- transformers 5.x, which requires accelerate >= 1.1.0 while
@@ -27,24 +37,34 @@
 # Upper bounds are next-major, not exact pins: this project runs on one
 # machine and re-pinning on every patch release is friction without benefit,
 # but a major version bump is exactly where the eval_strategy-class breakage
-# happens and should be a deliberate upgrade, not a surprise.
+# happens and should be a deliberate upgrade, not a surprise. peft/
+# bitsandbytes are pinned tighter (next-minor, not next-major) since Stage 0
+# only tested one specific pair of versions on this exact hardware
+# combination -- a public bitsandbytes GitHub issue reports problems on
+# Windows+Blackwell+CUDA 13.x that did not reproduce at these versions, and
+# there is no standing evidence a later minor release stays clean.
 torch>=2.2,<3
 transformers>=4.41,<6
-sentencepiece>=0.2,<0.3
 accelerate>=1.1,<2
+peft>=0.20,<0.21
+bitsandbytes>=0.50,<0.51
 
-# Exact versions of the verified-working environment, as of the first real
-# training run and its evaluation (2026-09-02, corpus 500, commit 78d5ae8).
-# If something breaks after an upgrade, this is the known-good set to fall
-# back to -- reproduce it with:
+# Exact versions of the verified-working environment. transformers/
+# accelerate as of the first real flan-t5 training run and its evaluation
+# (2026-09-02, corpus 500, commit 78d5ae8); torch/peft/bitsandbytes as of
+# Stage 0's hardware test for the Qwen3.5-4B migration (2026-09-09, see
+# PDR-012 -- confirmed 4-bit QLoRA load->forward->backward working on the
+# product owner's RTX 5060). If something breaks after an upgrade, this is
+# the known-good set to fall back to -- reproduce it with:
 #   pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cu132
-#   pip install transformers==5.15.1 sentencepiece==0.2.2 accelerate==1.14.0
+#   pip install transformers==5.15.1 accelerate==1.14.0 peft==0.20.0 bitsandbytes==0.50.2
 #
 #   python        3.11.9
 #   torch         2.13.0+cu132   (RTX 5060, CUDA 13.2 build)
 #   transformers  5.15.1
-#   sentencepiece 0.2.2
 #   accelerate    1.14.0
+#   peft          0.20.0
+#   bitsandbytes  0.50.2
 
 # Dev-only. Not needed to prepare data, train, or evaluate -- only to run
 # training/tests/. Added 2026-09-02 with the first tests (external review,

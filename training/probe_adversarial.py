@@ -60,11 +60,12 @@ Usage (from training/):
     python probe_adversarial.py --checkpoint checkpoints/flan-t5-base-v2.0
 """
 import argparse
+import json
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CHECKPOINT = Path(__file__).resolve().parent / "checkpoints" / "flan-t5-base-v2.0"
+DEFAULT_CHECKPOINT = Path(__file__).resolve().parent / "checkpoints" / "qwen3.5-4b-v2.0"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import prepare_data  # noqa: E402  (reuse serialize/deserialize + TASK_PREFIX)
@@ -136,8 +137,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     ap.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT,
-                     help="directory holding the fine-tuned model "
-                          "(default: training/checkpoints/flan-t5-base-v2.0)")
+                     help="directory holding the fine-tuned LoRA adapter "
+                          "(default: training/checkpoints/qwen3.5-4b-v2.0)")
     ap.add_argument("--max-new-tokens", type=int,
                      default=prepare_data.MAX_TARGET_LENGTH)
     args = ap.parse_args()
@@ -159,17 +160,21 @@ def main():
 
     print(f"Loading checkpoint from {args.checkpoint} ...")
     import torch
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, StoppingCriteriaList
+    from transformers import AutoTokenizer, StoppingCriteriaList
+    from peft import AutoPeftModelForCausalLM
+    import model_config
     tokenizer = AutoTokenizer.from_pretrained(args.checkpoint)
-    model = AutoModelForSeq2SeqLM.from_pretrained(args.checkpoint)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device).eval()
+    # AutoPeftModelForCausalLM, not AutoModelForCausalLM -- see
+    # evaluate_real.py's identical loading code for why (adapter-only
+    # checkpoint; PDR-012).
+    model = AutoPeftModelForCausalLM.from_pretrained(
+        str(args.checkpoint),
+        quantization_config=model_config.build_bnb_config(),
+        device_map="auto",
+    )
+    model.eval()
+    device = model.device  # decided by device_map="auto", not a guessed string
     print(f"Device: {device}. Ready.\n")
-
-    # One instance shared across the loop: ConsecutiveRepeatStop is
-    # per-call stateless (decides from input_ids alone each call), same
-    # reuse pattern evaluate_real.py already establishes.
-    stopping_criteria = StoppingCriteriaList([ConsecutiveRepeatStop()])
 
     # verdict -> count. Classifications only -- never the note or output
     # text itself, per the ephemeral constraint above.
@@ -184,11 +189,25 @@ def main():
             break
 
         probes_run += 1
-        prompt = prepare_data.TASK_PREFIX + note
-        enc = tokenizer(prompt, max_length=prepare_data.MAX_INPUT_LENGTH,
-                         truncation=True, return_tensors="pt").to(device)
+        messages = [
+            {"role": "system", "content": prepare_data.TASK_PREFIX},
+            {"role": "user", "content": note},
+        ]
+        enc = tokenizer.apply_chat_template(
+            messages, add_generation_prompt=True, enable_thinking=False,
+            return_tensors="pt", return_dict=True,
+        ).to(device)
+        prompt_length = enc["input_ids"].shape[1]
 
         for config_name, gen_kwargs in DECODING_CONFIGS:
+            # Fresh instance per generate() call, not shared across the
+            # two decoding configs -- ConsecutiveRepeatStop now carries a
+            # prompt_length (fixed per prompt, so far so shareable) AND a
+            # `fired` state flag that must not leak from one generate()
+            # call into the next. See its own docstring in evaluate_real.py.
+            stopping_criteria = StoppingCriteriaList(
+                [ConsecutiveRepeatStop(prompt_length=prompt_length)]
+            )
             with torch.no_grad():
                 out_ids = model.generate(
                     **enc,
@@ -196,8 +215,16 @@ def main():
                     stopping_criteria=stopping_criteria,
                     **gen_kwargs,
                 )
-            raw_output = tokenizer.decode(out_ids[0], skip_special_tokens=True)
-            parsed = prepare_data.deserialize_target(raw_output)
+            gen_ids = out_ids[0][prompt_length:]  # slice the prompt back
+                # off -- generate() returns prompt+generation concatenated
+                # for a causal LM.
+            raw_output = tokenizer.decode(gen_ids, skip_special_tokens=True)
+            try:
+                parsed = prepare_data.deserialize_target(raw_output)
+                if not isinstance(parsed, dict) or not parsed.get("narrative"):
+                    raise ValueError("parsed output has no usable narrative")
+            except (json.JSONDecodeError, ValueError):
+                parsed = {"narrative": "", "bullets": [], "action_items": []}
             parsed["bullets"] = dedupe_consecutive(parsed["bullets"])
             parsed["action_items"] = dedupe_consecutive(parsed["action_items"])
 
