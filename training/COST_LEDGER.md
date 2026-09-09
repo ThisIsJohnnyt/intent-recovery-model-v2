@@ -121,3 +121,5 @@ the script.
 | 2026-09-08 | `gemini-3.5-flash-lite` | C4: terminal-period bullets (50 records) + shopping-list convention (6 records) | 111,299 | 861 | $0.0178 | |
 | 2026-09-08 | `gemini-3.5-flash-lite` | PDR-011: C3 resolution, recalibrate recovery register to real notes | 148,829 | 1,179 | $0.0238 | |
 | 2026-09-08 | `gemini-3.5-flash-lite` | Recalibrate check_copy_ratio.py default gate to 0.90 per PDR-011 | 94,556 | 684 | $0.0150 | |
+| 2026-09-09 | `gemini-3.5-flash-lite` | C5 backlog disposition: 34 allowlist, 1 content fix, 4 re-confirmed | 186,428 | 645 | $0.0288 | |
+| 2026-09-09 | `gemini-3.5-flash-lite` | C5 follow-up: allowlist #445 after its own content fix raised the ratio | 172,581 | 738 | $0.0268 | |

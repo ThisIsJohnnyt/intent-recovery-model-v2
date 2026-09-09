@@ -238,6 +238,191 @@ ALLOWLIST = {
         'topic_switching/expert -- very short, two sentences.',
         0.956,
     ),
+
+    # Added 2026-09-08, PDR-011's C5-backlog disposition round: reorganization
+    # is now deliberately less aggressive (real-corpus target, not the old
+    # synthetic-only one), so these 34 -- checked individually against their
+    # own input, not swept in bulk -- are legitimate under the new standard,
+    # not non-recovery. review_bridge/ aligned before this round landed.
+    "afcbbfb875f45a65": (
+        'zero_action_items/easy -- single sequential stream of '
+        'feelings/observations, already in the order they occurred.',
+        0.955,
+    ),
+    "e6685c7f030605ff": (
+        'zero_action_items/easy -- single sequential stream of complaints '
+        'about a book, already in order.',
+        0.969,
+    ),
+    "8c60b16ac31a5106": (
+        'multi_person_note/medium -- three-person packing plan already '
+        'stated in natural order.',
+        0.929,
+    ),
+    "7878731c2527bfd3": (
+        'multi_person_note/medium -- three-person tax-prep plan already '
+        'stated in natural order.',
+        0.935,
+    ),
+    "dbbb488b1e66eefe": (
+        'time_ambiguous/medium -- single already-ordered sentence with two '
+        'time hedges, nothing left to reorganize.',
+        0.946,
+    ),
+    "821f28ae7a69a8c7": (
+        'multi_person_note/expert -- dense but already-sequential note; '
+        "preserves the established \"I'll do it if Greg doesn't\" "
+        'ambiguity.',
+        0.935,
+    ),
+    "793f8231bb402beb": (
+        'interrupted_thought/easy -- literal mid-word cutoff preserved '
+        'verbatim.',
+        0.921,
+    ),
+    "32aec38101ff8679": (
+        'interrupted_thought/expert -- sequential asides ending in a '
+        'genuine cutoff, preserved verbatim.',
+        0.949,
+    ),
+    "8add0f383b5307e5": (
+        'long_rambling/expert -- rambling monologue; original order is '
+        "this category's own defining feature (8th re-review).",
+        0.934,
+    ),
+    "b535df56318099b7": (
+        'interrupted_thought/hard -- short, ends in a literal cutoff '
+        'preserved verbatim.',
+        0.997,
+    ),
+    "538ec0e62931f993": (
+        'interrupted_thought/expert -- short, ends in a literal cutoff '
+        'preserved verbatim.',
+        0.947,
+    ),
+    "39beb5d152c629a6": (
+        'rapid_branching/easy -- already an ordered branch-and-pivot '
+        '(yarn -> scarf instead).',
+        0.975,
+    ),
+    "a69bcd28cd841d75": (
+        'multi_person_note/easy -- three-person Saturday chore list '
+        'already in natural order.',
+        0.969,
+    ),
+    "5dd23cf8479ef9e9": (
+        'multi_person_note/easy -- three-person practice-prep list '
+        'already in natural order.',
+        0.972,
+    ),
+    "a92efdf32b4cfaa9": (
+        'time_ambiguous/easy -- single already-ordered sentence with a '
+        'time hedge.',
+        0.959,
+    ),
+    "0f9d31fd0ceea125": (
+        'simple_list/hard -- long but already-ordered closing checklist; '
+        'grouped into sentences without reordering or inventing.',
+        0.926,
+    ),
+    "019bdadc7e656508": (
+        'voice_to_text_artifact/medium -- filler ("um") correctly dropped '
+        'as noise; content already in order.',
+        0.956,
+    ),
+    "f31a2e1e2bb6476d": (
+        'topic_switching/medium -- two topics stated in the order they '
+        'occur; chronological is correct.',
+        0.927,
+    ),
+    "285b372c003bc901": (
+        'interrupted_thought/medium -- ends in a literal cutoff preserved '
+        'verbatim.',
+        0.964,
+    ),
+    "79262254e10aaa20": (
+        'interrupted_thought/easy -- ends in a literal trailing ellipsis '
+        'preserved verbatim.',
+        0.946,
+    ),
+    "055c3948e4d92904": (
+        'multi_person_note/expert -- five-person cleanup-day list already '
+        'in natural order.',
+        0.931,
+    ),
+    "8c439eb8170b43ee": (
+        'long_rambling/easy -- rambling reconsideration; original order is '
+        "the category's own defining feature.",
+        0.937,
+    ),
+    "c2f5884640fa0ca6": (
+        'multi_person_note/easy -- two-person Thanksgiving plan already in '
+        'natural order.',
+        0.958,
+    ),
+    "975f401cb5e8d160": (
+        'multi_person_note/easy -- two-person band-practice plan already '
+        'in natural order.',
+        0.99,
+    ),
+    "b7f92c182a367e91": (
+        'multi_person_note/medium -- three-step sequential plan already '
+        'in natural order.',
+        0.943,
+    ),
+    "4a5a098582c94748": (
+        'interrupted_thought/easy -- short, ends in a genuine real-time '
+        'interruption preserved near-verbatim.',
+        0.999,
+    ),
+    "5eea103fa19911c9": (
+        'minimal_fragment/hard -- six-word fragment; nothing to '
+        'reorganize by definition.',
+        0.943,
+    ),
+    "444109e85fed5484": (
+        'contradictory_statement/expert -- single flowing deliberation '
+        'ending in genuine indecision, already well-ordered.',
+        0.999,
+    ),
+    "2f650f771f1b3905": (
+        'rapid_branching/easy -- already an ordered branch-and-pivot '
+        '(hallway -> bedroom -> ask Leo -> brass or glass).',
+        0.999,
+    ),
+    "d1d113218a7f3013": (
+        'dangling_reference/expert -- preserves multiple unresolved '
+        'referents and a genuine cutoff verbatim.',
+        0.969,
+    ),
+    "6e851899f7c7959d": (
+        'multi_person_note/expert -- already-sequential two-person dinner '
+        'disagreement.',
+        0.97,
+    ),
+    "4566d6ebcfa21848": (
+        'rapid_branching/easy -- already an ordered branch-and-pivot '
+        '(Paris -> Rome -> Mexico -> Cancun).',
+        0.991,
+    ),
+    "8eb3f15068cc392f": (
+        'long_rambling/expert -- rambling font deliberation with an '
+        "interjected unrelated reminder; original order is the category's "
+        'own defining feature.',
+        0.942,
+    ),
+    "3c4acf287c02d4c9": (
+        'voice_to_text_artifact/hard -- filler ("comma"/"period") '
+        'correctly dropped as noise; content already in order.',
+        0.951,
+    ),
+    "ddf5085c847e6b8b": (
+        'long_rambling/expert -- rambling deliberation; ratio rose '
+        "specifically because this session's C5 disposition round removed "
+        "invented \"Initially, I thought\" framing, bringing the wording "
+        "closer to input's own phrasing -- not padding.",
+        0.942,
+    ),
 }
 
 
