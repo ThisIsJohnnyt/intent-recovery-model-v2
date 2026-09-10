@@ -40,7 +40,13 @@ from pathlib import Path
 
 import torch
 from torch.utils.data import Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    EarlyStoppingCallback,
+    Trainer,
+    TrainingArguments,
+)
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 
 import model_config
@@ -160,7 +166,30 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--epochs", type=float, default=8.0)
     parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument(
+        "--grad-accum-steps", type=int, default=1,
+        help="Accumulate gradients over this many micro-batches before "
+             "each optimizer step, so --batch-size 2 --grad-accum-steps 2 "
+             "trains at the same effective batch size as --batch-size 4 "
+             "while only ever holding a batch-size-2 activation footprint "
+             "in memory at once. Added 2026-09-10 to test bf16 at a "
+             "smaller micro-batch (see review_bridge/ for why bf16 alone "
+             "OOMs at batch_size=4) without changing the effective batch "
+             "size Stage 0 validated. Default 1 -- no behavior change "
+             "unless passed explicitly.",
+    )
     parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument(
+        "--bf16", action="store_true",
+        help="Train the LoRA adapter/gradients/optimizer state in bf16 "
+             "(model_config.build_bnb_config()'s bf16 setting covers only "
+             "the frozen base model's dequantization dtype, a separate "
+             "thing). OOMs at --batch-size 4 on this hardware -- only use "
+             "this with a small --batch-size and --grad-accum-steps to "
+             "compensate. Off by default: real, but not yet the default "
+             "since it wasn't validated at the effective batch size Stage "
+             "0 confirmed until 2026-09-10's review_bridge round 6/7.",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument(
         "--data-dir", type=Path, default=PREPARED_DIR,
@@ -206,7 +235,21 @@ def main():
         quantization_config=model_config.build_bnb_config(),
         device_map="auto",
     )
-    model = prepare_model_for_kbit_training(model)
+    # use_reentrant=False (not this call's default) was tried 2026-09-10 as
+    # a candidate explanation for two things: a bf16 OOM (ruled out --
+    # reentrant=True OOM'd identically) and the ~5x per-step slowdown seen
+    # in the first overnight run vs. every short smoke test since (also
+    # ruled out -- a direct True-vs-False timing comparison showed no
+    # difference, ~11.5s/step either way). Neither mystery is explained by
+    # this setting. Kept anyway as the modern PyTorch-recommended default
+    # (silences the recurring "the use_reentrant parameter should be
+    # passed explicitly" UserWarning, and avoids the documented
+    # autocast-propagation gap in reentrant checkpointing for whenever
+    # mixed precision gets revisited) -- not because it fixed anything
+    # here.
+    model = prepare_model_for_kbit_training(
+        model, gradient_checkpointing_kwargs={"use_reentrant": False}
+    )
     # r/alpha/dropout/target_modules/task_type are the exact shape Stage 0
     # confirmed working on this hardware (see PDR-012) -- not re-tuned here.
     lora_config = LoraConfig(
@@ -241,6 +284,7 @@ def main():
         max_steps=args.max_steps,
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
+        gradient_accumulation_steps=args.grad_accum_steps,
         learning_rate=args.lr,
         eval_strategy="epoch" if has_selection else "no",
         save_strategy="epoch" if has_selection else "no",
@@ -250,13 +294,34 @@ def main():
         greater_is_better=False if has_selection else None,
         logging_steps=1,
         report_to=[],
+        # bf16 is a CLI flag (--bf16), off by default -- see that arg's
+        # help text. OOMs at batch_size=4 regardless of reentrant
+        # checkpointing setting (both tested and ruled out 2026-09-10);
+        # works at batch_size<=2. --grad-accum-steps exists specifically
+        # so bf16 can run at a small micro-batch while still training at
+        # Stage 0's validated effective batch size of 4.
+        bf16=args.bf16,
     )
+
+    # Stop once eval_loss stops improving, rather than always running the
+    # full --epochs count. The first real overnight run (2026-09-09/10,
+    # review_bridge round 6) showed eval_loss best at epoch 2 (0.3481) and
+    # monotonically worse for epochs 3-4 (0.3795, 0.4386) while train_loss
+    # kept falling toward ~0 -- classic overfitting on this corpus size.
+    # load_best_model_at_end already picks the best epoch actually run, but
+    # that doesn't stop later, strictly-worse epochs from burning GPU time
+    # for nothing; patience=2 (two consecutive non-improving evals) adds
+    # one epoch of cushion against a single noisy eval while still cutting
+    # off runs like that one well before epoch 8. Only meaningful with a
+    # selection set to evaluate against.
+    callbacks = [EarlyStoppingCallback(early_stopping_patience=2)] if has_selection else []
 
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=train_ds,
         eval_dataset=selection_ds if len(selection_ds) > 0 else None,
+        callbacks=callbacks,
     )
 
     trainer.train()
