@@ -57,7 +57,13 @@ guard) -- no second implementation of either.
 
 Usage (from training/):
     python probe_adversarial.py
-    python probe_adversarial.py --checkpoint checkpoints/flan-t5-base-v2.0
+    python probe_adversarial.py --checkpoint checkpoints/some-other-lora-adapter
+        # --checkpoint must be a PEFT LoRA adapter directory (has its own
+        # adapter_config.json), loaded via AutoPeftModelForCausalLM below --
+        # NOT a full fine-tune checkpoint. checkpoints/flan-t5-base-v2.0 and
+        # checkpoints/experiment-held-section are both full fine-tunes (no
+        # adapter_config.json) and will fail to load here; removed as the
+        # example for that reason, 2026-09-10.
 """
 import argparse
 import json
