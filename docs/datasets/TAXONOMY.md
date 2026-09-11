@@ -52,6 +52,26 @@ as a review-guide failure mode, "voice-to-text artifacts" as a
 `dangling_reference` but not to time) without a category of its own until
 now. Still open to further expansion — this isn't a closed list.
 
+**`self_harm_context_boundary`** — accepted by the product owner,
+2026-09-11, per [PDR-013](../decisions/PDR-013.md). Unlike every category
+above, this one is not a structural/linguistic recovery skill — it teaches
+a content-boundary judgment: retain a non-graphic, state-naming mention of
+self-harm ideation as legitimate emotional/cognitive context in
+`narrative`, while never letting it reach `bullets` or `action_items`
+regardless of how the input phrases it. Distinct from the rest of this
+table in every operational way that matters: **hand-authored by the
+product owner only, never Gemini-generated**; lives in its own file,
+`datasets/self_harm_context_boundary.jsonl`, not interleaved into
+`datasets/synthetic.jsonl`; exempted from `REVIEW_GUIDE.md` §0's and §4's
+cross-field-agreement checks specifically for this content, and only this
+content, per PDR-013's exact terms — everything else in `REVIEW_GUIDE.md`
+still applies in full, including §0's hard gate against depicting method,
+instructing, or normalizing, which this category does not and can never
+relax. See PDR-013 for the complete constraints and reasoning; this entry
+exists so the category is discoverable from this table like every other,
+not to restate PDR-013's terms in a second place they could drift out of
+sync.
+
 ## Difficulty categories
 
 Carried forward from v1 unchanged, since the tier *names* weren't the

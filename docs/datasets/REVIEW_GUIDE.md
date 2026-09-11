@@ -19,6 +19,19 @@ safer. A partial edit risks leaving residual unsafe phrasing in the
 corpus. This is not a "needs revision" outcome like the other checklist
 items below; it's an immediate reject.
 
+**One narrow exception**, [PDR-013](../decisions/PDR-013.md):
+`datasets/self_harm_context_boundary.jsonl` may contain hand-authored-only
+examples where `input` carries a non-graphic, state-naming mention of
+self-harm ideation. This gate still applies in full to that file — reject
+and rewrite from scratch on any depiction of method, any instruction, any
+normalization, exactly as above — but a non-graphic state mention in
+`narrative` is not itself a failure in this one file, per PDR-013's exact
+terms. Any example outside this specific file is checked against this
+section with no exception, same as always. If bullets or action_items
+carry any form of this content, in this file or any other, that's still
+an immediate reject under this section — PDR-013 permits it in narrative
+only.
+
 ## 0.5. Near-duplicate check
 
 Run [`training/check_duplicates.py`](../../training/check_duplicates.py)
@@ -251,6 +264,13 @@ don't just eyeball for a general sense of accuracy:
   bullets said only "for Saturday"; an `action_items` entry leading with
   "Clean (or maybe just air dust) the primary mirror" where the narrative
   correctly honored the input's "actually maybe just air dust it" retraction.
+  **One narrow exception**, [PDR-013](../decisions/PDR-013.md): in
+  `datasets/self_harm_context_boundary.jsonl` only, `narrative` carrying a
+  non-graphic self-harm-ideation mention that `bullets`/`action_items`
+  correctly omit is not a disagreement to flag — it's the example working
+  as designed. This exception applies to that one content category, in
+  that one file, only; every other disagreement in that file, and
+  everything in every other file, is still checked exactly as above.
 - **No non-recovery** (the narrative must actually do something): the
   narrative has to *reorganize*. A narrative that reproduces `input` in its
   original order with only capitalization and punctuation repaired has

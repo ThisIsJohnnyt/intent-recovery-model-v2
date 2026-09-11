@@ -64,6 +64,17 @@ for why this project holds this boundary. Operationalized in
 `training/DATASET_SPEC.md`'s generation-prompt exclusion and
 `REVIEW_GUIDE.md`'s hard-gate check.
 
+One narrow, explicitly-scoped exception exists on top of this, not a
+softening of it: [PDR-013](../decisions/PDR-013.md) permits a small,
+hand-authored-only set of examples where a non-graphic, state-naming
+mention of self-harm ideation may be retained as emotional/cognitive
+context in `narrative` — never in `bullets` or `action_items`, and never
+depicting method, instructing, or normalizing, which remain absolutely
+prohibited exactly as stated above. The gate is the same "state is fair
+game, method is not" distinction this principle already draws for every
+other kind of emotional/cognitive state. See PDR-013 for the full scope
+and the constraints that keep it narrow.
+
 ## Why this document exists
 
 Without a stable reference, these principles get re-stated inside every

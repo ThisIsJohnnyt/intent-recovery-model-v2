@@ -326,9 +326,17 @@ def resolve_source_files() -> list:
     """Per DATASET_SPEC.md's 'Where files go': synthetic.jsonl + any
     consolidated gold releases. The selection slice train.py evaluates
     against is carved out of this same pool (see is_in_selection_slice),
-    not read from a separate file -- see PDR-007."""
+    not read from a separate file -- see PDR-007.
+
+    self_harm_context_boundary.jsonl (PDR-013) is listed explicitly, not
+    picked up by a glob -- it's deliberately a single, named,
+    hand-authored-only file, not a category of files the way gold_v*
+    releases are, and the loop below already skips a listed file that
+    doesn't exist yet (prints "skip (not found)"), so this is safe to add
+    before the product owner has authored anything into it."""
     files = [DATASETS_DIR / "synthetic.jsonl"]
     files += sorted((DATASETS_DIR / "gold").glob("gold_v*.jsonl"))
+    files.append(DATASETS_DIR / "self_harm_context_boundary.jsonl")
     return files
 
 

@@ -254,12 +254,28 @@ No example — generated or hand-written — may depict, instruct, or normalize
 self-harm, suicide, violence toward oneself or others, or other illegal or
 seriously immoral activity. Not a category, not a difficulty signal:
 content that must never exist in this project's data at all. Permanent,
-every release, no exceptions — see
+every release, no exceptions to *this* — see
 [`docs/vision/GOLD_PHILOSOPHY.md`](../docs/vision/GOLD_PHILOSOPHY.md)'s "No
 Harmful or Illegal Content" principle and
 [PDR-005](../docs/decisions/PDR-005.md). A drifted example is discarded and
 regenerated from scratch, never edited down to something safer — see
 [`docs/datasets/REVIEW_GUIDE.md`](../docs/datasets/REVIEW_GUIDE.md)'s §0.
+
+**One narrow exception exists, [PDR-013](../docs/decisions/PDR-013.md),
+layered on top of the above, not loosening it.** A small, **hand-authored-
+only** (never Gemini-generated — the generation prompt below is completely
+unaffected by this exception and still excludes this content with no
+carve-out) set of examples may exist in their own file,
+`datasets/self_harm_context_boundary.jsonl`, where `input` includes a
+non-graphic, state-naming mention of self-harm ideation embedded in an
+otherwise ordinary note. In these examples only: `narrative` may retain the
+content (sanitized to non-graphic form if the input wasn't already
+non-graphic); `bullets` and `action_items` must never carry it, in any
+form. Depicting method, instructing, or normalizing remains prohibited in
+this category exactly as in every other — drift into that territory gets
+the identical discard-and-rewrite remedy, not a lesser standard. See
+PDR-013 for the full reasoning and every constraint; this file states only
+the terms, not the justification.
 
 ## Two rules for every example
 
