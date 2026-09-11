@@ -151,8 +151,18 @@ don't just eyeball for a general sense of accuracy:
 - **No invented chronology**: the output never asserts an order of events
   that `input` doesn't state.
 - **No invented causality**: the output never asserts one fragment caused
-  or explains another unless `input` actually says so — adjacency in the
-  text is not evidence of a relationship.
+  or explains another unless `input` actually expresses that relationship —
+  mere structural adjacency in the text is not evidence of a cause.
+  **Exception**: preserving a causal or explanatory connection `input`
+  already expresses — whether via an explicit connective ("so", "since",
+  "because") or an explanatory comma clause ("so frustrating, nobody even
+  listens"; "buy more flour, it's basically empty right now") — is
+  faithful extraction, not invented causality. The rule targets the
+  output *supplying* a new causal connective or explanatory link between
+  facts that appeared in `input` without one — two items sitting in the
+  same sentence with no explanatory phrasing between them (a plain list:
+  "email Dan, the car needs an oil change") stay unrelated in the output
+  too.
 - **No merged unrelated intentions**: two fragments that are actually
   unrelated stay represented as separate items, never combined into one
   (even a superficially plausible-sounding) combined statement.
@@ -238,6 +248,29 @@ don't just eyeball for a general sense of accuracy:
   established threads) getting silently resolved to one reading instead of
   flagged as unresolved — a distinct but related trap from smoothing a
   literal hedge word.
+- **No invented emotion**: the output never names a specific feeling or
+  emotional label `input` gives no textual seed for, in narrative, bullets,
+  or action_items alike. A named feeling is allowed only as a close
+  paraphrase of an emotional state `input` already states ("it's just so
+  peaceful here" → "serene"; "terrified" → "fearful") — never invented
+  from a diversity instruction or scenario alone, and never bridged from
+  an *operational* state to an emotional label ("fully prepared" does not
+  license "confidently" — readiness is not itself a feeling). "need sleep
+  now" does not license "because I am completely spent"; "blog domain"
+  does not license "I am confident and ready." The test is whether
+  `input` gives an actual textual seed for the specific *feeling* named,
+  not whether a feeling is plausible for the situation. Identified by the
+  tenth periodic adversarial re-review (batches 21-22).
+- **Repeated restatement is one item, not two**: `TAXONOMY.md`'s
+  `repeated_reminder` definition (line 37) already states this plainly —
+  a task or worry restated more than once, even with drifting wording, is
+  one item, not a fragment split per restatement. Named here because the
+  eleventh and twelfth re-reviews found this exact defect recurring across
+  four separate records despite the rule already being written down,
+  apparently missed because a reviewer working from this file alone has
+  no reason to cross-check `TAXONOMY.md` mid-review. "No lost low-salience
+  reminders" above is a different rule (don't drop a fragment entirely) —
+  it does not cover over-splitting a single restated fragment into two.
 - **No inferred setting or frame**: the output never names an activity,
   venue, occasion, relationship, domain, or object class that `input` only
   implies through its props. "Sleeping bag" and "camp stove" do not license
@@ -307,14 +340,36 @@ don't just eyeball for a general sense of accuracy:
   itself rather than a report about it, and it satisfies the voice rule
   without inventing a completion. Adopted 2026-08-23 after the fourth
   adversarial re-review diagnosed the mechanism.
-- **`action_items` ownership**: an entry may be a task committed to by *any*
-  person named in `input`, attributed to them ("Uncle Bob to handle the
-  catering") — not only the writer's own tasks. What does **not** belong is a
-  past event with no forward commitment ("Dr. Patel called" is not an action
-  item). A third party's expected arrival ("plumber is supposed to come by")
-  does belong, since it is a commitment, but must keep its hedge. Settled by
-  the product owner 2026-08-23 after the third adversarial re-review found
-  the corpus teaching two conventions at once; see
+- **`action_items` ownership** (revised by [PDR-014](../decisions/PDR-014.md),
+  2026-09-11 — supersedes the 2026-08-23 convention this bullet used to
+  state): an entry belongs only if the **writer** has a direct action to
+  take. The test is who holds the action verb, not who gets named:
+  - **The writer's own action, including a shared one** ("I need to pick up
+    the cake"; "we need to book the flight" — "we" includes the writer)
+    belongs.
+  - **A writer's imperative directed at a third party** belongs, even
+    though it names someone else — the writer still holds the verb ("Tell
+    Sam to drive," "Ask Uncle Bob about catering," "Remind Chloe about the
+    citations").
+  - **A third party's own stated commitment or expected arrival does not
+    belong** — "Uncle Bob to handle the catering," "Sam will drive us to
+    the airport," "plumber is supposed to come by" are all the third
+    party holding the verb, not the writer. This content is not dropped
+    from the record; it stays in `narrative`/`bullets` exactly as stated,
+    hedge intact — it is only excluded from `action_items`, because that
+    field is the writer's own to-do list, not a record of everyone's
+    stated plans.
+  - **An unassigned imperative** ("someone needs to back up the archives")
+    does not belong — naming no one gives the writer no stronger claim on
+    it than a named third party would.
+  - **What never belonged, unchanged from the old rule**: a past event
+    with no forward commitment ("Dr. Patel called" is not an action item).
+  Do not invent a substitute action item to compensate for something moved
+  out of this field (e.g. "Confirm Sam is driving" when `input` never
+  stated a need to confirm anything) — that trades one invented-content
+  defect for another. See `PDR-014.md` for the full reasoning, including
+  why the old rule's own anchor example ("Uncle Bob") didn't survive
+  re-examination. See
   [`training/DATASET_SPEC.md`](../../training/DATASET_SPEC.md)'s "File
   format" rules for `output`.
 
@@ -386,7 +441,9 @@ they still agree on:
   stating both halves. The test is not the pronoun; it is whether the
   narrative is the note reorganized or a report about the note.
 - **`action_items` ownership.** Same convention as the rest of the corpus
-  (any named person's commitment, attributed; not past events) — see §4.
+  (writer's own action, including who the writer's own imperative is
+  directed at; not a third party's own commitment, not past events) —
+  see §4.
 - **Field register.** Bullets phrased consistently rather than switching
   between imperative, impersonal, and first-person within a category.
 - **Depth of transcription/artifact commentary**, for

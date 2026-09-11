@@ -95,8 +95,15 @@ def deserialize_target_held(text: str) -> dict:
 
 
 def build_examples_held(records: list) -> list:
+    # Stale-fork fix, 2026-09-11: TASK_PREFIX used to be concatenated onto
+    # the raw input string here because that's how the pre-PDR-012 seq2seq
+    # pipeline's tokenize_examples() expected it. Since PDR-012's causal-LM
+    # migration, prepare_data.tokenize_examples() applies TASK_PREFIX itself
+    # via apply_chat_template as a system message -- concatenating it here
+    # too would double it. Pass the raw input straight through, matching
+    # the current production contract.
     return [
-        {"input": prepare_data.TASK_PREFIX + r["input"],
+        {"input": r["input"],
          "target": serialize_target_held(r["output"])}
         for r in records
     ]

@@ -161,7 +161,7 @@ Rules for `output`:
   *History*: `voice_to_text_artifact` narratives were first person in batches 2-3, drifted to third-person meta-description from batch 5 onward, and by batch 7 the drift was the category majority (5 of 8). No review pass caught it — including two adversarial re-reviews — because every check evaluates one example against its own `input`, and each of those narratives was individually defensible. All 5 were rewritten to first person on 2026-08-23. Cross-example consistency is not covered by the per-example checklist; see [`REVIEW_GUIDE.md`](../docs/datasets/REVIEW_GUIDE.md) §6.
 - `bullets`: one short key point per source-supported idea in `input`, up to 7. **Written as list items, not sentences — no terminal period** (consistent with the `- ` prefixed serialization above, which adds no trailing punctuation). Pinned 2026-08-23: the corpus had drifted to 0% terminal periods in batch 9 and 100% in batch 10, and was normalized to bare list items throughout. Source-determined count — use fewer than 7 when `input` supports fewer ideas; never add, split, or repeat content to reach a target count. A one-idea input gets one bullet.
 - `action_items`: concrete tasks/next steps mentioned in `input`. Use an empty array `[]` when the input has none — never invent one.
-  **Ownership** (settled 2026-08-23, after the third adversarial re-review found the corpus teaching two conventions at once): an entry may be a task committed to by *any* person named in `input`, attributed to them — `"Uncle Bob to handle the catering"` is a valid action item, not only the writer's own tasks. A note-organizer that silently drops other people's commitments loses real planning information, and `multi_person_note` is a whole category. What does **not** belong is a past event carrying no forward commitment (`"Dr. Patel called"` is not an action item). A third party's expected arrival (`"plumber is supposed to come by"`) does belong, since it is a commitment — but it keeps its hedge, exactly like any other field.
+  **Ownership** (revised by [PDR-014](../docs/decisions/PDR-014.md), 2026-09-11 — supersedes the 2026-08-23 convention this rule used to state): an entry belongs only if the **writer** has a direct action to take — the test is who holds the action verb, not who gets named. The writer's own action belongs, including a shared one (`"we need to book the flight"` — "we" includes the writer), and so does a writer's imperative directed at a third party (`"Tell Sam to drive"`, `"Ask Uncle Bob about catering"` — the writer still holds the verb). A third party's own stated commitment or expected arrival does **not** belong (`"Uncle Bob to handle the catering"`, `"Sam will drive us to the airport"`, `"plumber is supposed to come by"` are all the third party holding the verb) — that content stays in `narrative`/`bullets` exactly as stated, hedge intact, just not in `action_items`. An unassigned imperative (`"someone needs to back up the archives"`) doesn't belong either — naming no one gives the writer no stronger claim than a named third party would. What never belonged, unchanged: a past event carrying no forward commitment (`"Dr. Patel called"` is not an action item). Do not invent a substitute action item to compensate for something moved out of this field — that trades one invented-content defect for another. See `PDR-014.md` for the full reasoning.
 - **No inferred setting or frame** (applies to all three output fields): never name an activity, venue, occasion, relationship, domain, or object class that `input` only implies through its props. "Sleeping bag" and "camp stove" do not license "camping trip"; "chapter 4" does not license "chapter 4 of the book". The inference is usually correct — that is exactly why it has to be checked deliberately rather than trusted. See [`REVIEW_GUIDE.md`](../docs/datasets/REVIEW_GUIDE.md) §4.
 
 `difficulty` and `category` are optional annotations, not part of what the
@@ -361,13 +361,22 @@ the noise. "bullets" = one key point per source-supported idea, up
 to 7, fewer when the input supports fewer ideas -- never added, split, or
 repeated to reach a target count. "action_items" = concrete
 tasks or next steps stated in the input, or [] if none — never invent tasks
-that aren't implied by the input. An entry may be a task committed to by ANY
-person named in the note, attributed to them ("Uncle Bob to handle the
-catering") — not only the writer's own tasks. What does NOT belong is a past
+that aren't implied by the input. An entry belongs only if the WRITER has a
+direct action to take — the test is who holds the action verb, not who gets
+named. The writer's own action belongs, including a shared one ("we need to
+book the flight"), and so does a writer's imperative directed at a third
+party ("Tell Sam to drive", "Ask Uncle Bob about catering" — the writer
+still holds the verb). A third party's OWN stated commitment does NOT
+belong ("Uncle Bob to handle the catering", "Sam will drive us to the
+airport" — the third party holds the verb there) — keep that content in
+narrative/bullets instead, never invent a substitute action item to
+replace it. An unassigned imperative ("someone needs to back up the
+archives") doesn't belong either. What does NOT belong, either way, is a past
 event carrying no forward commitment ("Dr. Patel called" is not an action
-item). An explicit imperative in the input is always an action item, even
-when its object is an unresolved reference — "don't forget the framework from
-that one article" becomes "Remember the article's framework", not nothing.
+item). An explicit imperative in the input that IS the writer's own action is
+always an action item, even when its object is an unresolved reference —
+"don't forget the framework from that one article" becomes "Remember the
+article's framework", not nothing.
 "difficulty" is your judgment of how hard this example is to
 recover correctly. "category" is the one specific recovery skill this
 example teaches — one of: "simple_list", "interrupted_thought",

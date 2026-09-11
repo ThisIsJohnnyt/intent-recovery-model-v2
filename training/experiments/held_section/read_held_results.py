@@ -17,6 +17,18 @@ input/expected/actual for every held-back record -- reading them is the
 actual evaluation. The product owner judges: did held-worthy content
 route to "held" rather than being forced into bullets/action_items?
 
+Stale-fork fix, 2026-09-11: this script was written against the pre-
+PDR-012 seq2seq checkpoint (flan-t5) and never updated for the causal-LM/
+QLoRA migration -- it loaded AutoModelForSeq2SeqLM and decoded out_ids[0]
+directly, which for a causal LM returns prompt+generation concatenated
+and would have produced garbage (the prompt text, not just the output).
+Rewritten to mirror evaluate_real.py's now-correct pattern: load via
+peft.AutoPeftModelForCausalLM (train.py saves a LoRA adapter, not a
+merged checkpoint -- same QLoRA-VRAM reasoning as evaluate_real.py),
+build the prompt via apply_chat_template, and slice the prompt back off
+before decoding. See evaluate_real.py's own comments for the full
+reasoning; not re-derived here.
+
 Usage (from this directory):
     python read_held_results.py
 """
@@ -53,29 +65,49 @@ def main():
                 records.append(json.loads(line))
     print(f"Loading checkpoint from {CHECKPOINT} ...")
     import torch
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, StoppingCriteriaList
+    from transformers import AutoTokenizer, StoppingCriteriaList
+    from peft import AutoPeftModelForCausalLM
+    import model_config
     tokenizer = AutoTokenizer.from_pretrained(CHECKPOINT)
-    model = AutoModelForSeq2SeqLM.from_pretrained(CHECKPOINT)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device).eval()
+    model = AutoPeftModelForCausalLM.from_pretrained(
+        str(CHECKPOINT),
+        quantization_config=model_config.build_bnb_config(),
+        device_map="auto",
+    )
+    model.eval()
+    device = model.device
     print(f"Device: {device}. Evaluating {len(records)} held-back "
           f"(genuinely unseen) example(s).\n")
 
-    stopping_criteria = StoppingCriteriaList([ConsecutiveRepeatStop()])
     routed_correctly = 0
     routed_missed = 0
 
     for i, r in enumerate(records, 1):
-        prompt = prepare_data.TASK_PREFIX + r["input"]
-        enc = tokenizer(prompt, max_length=prepare_data.MAX_INPUT_LENGTH,
-                         truncation=True, return_tensors="pt").to(device)
+        messages = [
+            {"role": "system", "content": prepare_data.TASK_PREFIX},
+            {"role": "user", "content": r["input"]},
+        ]
+        enc = tokenizer.apply_chat_template(
+            messages, add_generation_prompt=True, enable_thinking=False,
+            return_tensors="pt", return_dict=True,
+        ).to(device)
+        prompt_length = enc["input_ids"].shape[1]
+
+        # Constructed fresh per record, same reasoning as evaluate_real.py's
+        # ConsecutiveRepeatStop -- prompt_length varies per record and a
+        # reused instance would silently apply the wrong offset.
+        stop = ConsecutiveRepeatStop(prompt_length=prompt_length)
+        stopping_criteria = StoppingCriteriaList([stop])
         with torch.no_grad():
             out_ids = model.generate(
                 **enc,
                 max_new_tokens=prepare_data.MAX_TARGET_LENGTH,
                 stopping_criteria=stopping_criteria,
             )
-        raw_output = tokenizer.decode(out_ids[0], skip_special_tokens=True)
+        # A causal LM's generate() returns prompt+generation concatenated --
+        # slice the prompt back off before decoding.
+        gen_ids = out_ids[0][prompt_length:]
+        raw_output = tokenizer.decode(gen_ids, skip_special_tokens=True)
         parsed = deserialize_target_held(raw_output)
         parsed["bullets"] = dedupe_consecutive(parsed["bullets"])
         parsed["action_items"] = dedupe_consecutive(parsed["action_items"])

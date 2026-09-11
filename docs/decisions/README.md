@@ -54,3 +54,4 @@ Each PDR is a short file: `PDR-NNN.md`, three-digit zero-padded, sequential.
 - [PDR-011](PDR-011.md) — Recalibrate "recovery" to the product owner's actual writing register, not the synthetic corpus's internally-derived convention
 - [PDR-012](PDR-012.md) — Migrate the base model from flan-t5-base to Qwen3.5-4B
 - [PDR-013](PDR-013.md) — Narrow exception to the content-safety boundary: sanitized self-harm context, narrative-only
+- [PDR-014](PDR-014.md) — Narrow `action_items` to the writer's own direct actions: remove third-party-attributed commitments
