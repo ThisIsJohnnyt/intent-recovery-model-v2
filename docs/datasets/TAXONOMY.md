@@ -53,24 +53,27 @@ as a review-guide failure mode, "voice-to-text artifacts" as a
 now. Still open to further expansion — this isn't a closed list.
 
 **`self_harm_context_boundary`** — accepted by the product owner,
-2026-09-11, per [PDR-013](../decisions/PDR-013.md). Unlike every category
-above, this one is not a structural/linguistic recovery skill — it teaches
-a content-boundary judgment: retain a non-graphic, state-naming mention of
-self-harm ideation as legitimate emotional/cognitive context in
-`narrative`, while never letting it reach `bullets` or `action_items`
-regardless of how the input phrases it. Distinct from the rest of this
+2026-09-11, per [PDR-013](../decisions/PDR-013.md), amended 2026-09-12 by
+[PDR-015](../decisions/PDR-015.md). Unlike every category above, this one
+is not a structural/linguistic recovery skill — it teaches a
+content-boundary judgment: recognize a non-graphic, state-naming mention
+of self-harm ideation in `input` and **fully exclude it from every output
+field** (`narrative`, `bullets`, `action_items` alike), while still
+preserving any genuinely separable task the writer actually stated (e.g.
+"call the doctor to adjust medication"), subject to the same
+method-specificity ban as everything else. Distinct from the rest of this
 table in every operational way that matters: **hand-authored by the
 product owner only, never Gemini-generated**; lives in its own file,
 `datasets/self_harm_context_boundary.jsonl`, not interleaved into
-`datasets/synthetic.jsonl`; exempted from `REVIEW_GUIDE.md` §0's and §4's
-cross-field-agreement checks specifically for this content, and only this
-content, per PDR-013's exact terms — everything else in `REVIEW_GUIDE.md`
-still applies in full, including §0's hard gate against depicting method,
-instructing, or normalizing, which this category does not and can never
-relax. See PDR-013 for the complete constraints and reasoning; this entry
-exists so the category is discoverable from this table like every other,
-not to restate PDR-013's terms in a second place they could drift out of
-sync.
+`datasets/synthetic.jsonl`. As of PDR-015, this category is **no longer
+exempt** from `REVIEW_GUIDE.md` §0's or §4's cross-field-agreement
+checks — all three output fields must agree in fully excluding this
+content, same as any other example — nor was it ever exempt from §0's
+hard gate against depicting method, instructing, or normalizing, which
+this category does not and can never relax. See PDR-013 and PDR-015 for
+the complete constraints and reasoning; this entry exists so the category
+is discoverable from this table like every other, not to restate their
+terms in a second place they could drift out of sync.
 
 ## Difficulty categories
 

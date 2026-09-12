@@ -19,25 +19,31 @@ safer. A partial edit risks leaving residual unsafe phrasing in the
 corpus. This is not a "needs revision" outcome like the other checklist
 items below; it's an immediate reject.
 
-**One narrow exception**, [PDR-013](../decisions/PDR-013.md):
-`datasets/self_harm_context_boundary.jsonl` may contain hand-authored-only
-examples where `input` carries a non-graphic, state-naming mention of
-self-harm ideation. This gate still applies in full to that file — reject
-and rewrite from scratch on any depiction of method, any instruction, any
-normalization, exactly as above — but a non-graphic state mention in
-`narrative` is not itself a failure in this one file, per PDR-013's exact
-terms. Any example outside this specific file is checked against this
-section with no exception, same as always. If bullets or action_items
-carry any form of this content, in this file or any other, that's still
-an immediate reject under this section — PDR-013 permits it in narrative
-only.
+**One narrow exception**, [PDR-013](../decisions/PDR-013.md) as amended by
+[PDR-015](../decisions/PDR-015.md): `datasets/self_harm_context_boundary.jsonl`
+may contain hand-authored-only examples where `input` carries a
+non-graphic, state-naming mention of self-harm ideation. This gate still
+applies in full to that file, and — as of PDR-015 — applies to **every**
+output field with no exception: `narrative`, `bullets`, and `action_items`
+must all fully exclude this content, same as any other example. The only
+thing distinguishing this file is that `input` is permitted to carry the
+mention at all; nothing about what's allowed in `output` differs from any
+other record. A writer's own genuinely separable stated task (e.g. "call
+the doctor") may still appear in `action_items`, exactly as it would if it
+appeared in any ordinary note, subject to the same method-specificity ban
+as everything else. Any example outside this specific file is checked
+against this section with no exception, same as always.
 
-When checking this exception specifically, apply PDR-013's ideation-vs-
-method test directly: does the phrase name a feeling/wish (eligible) or
-does it name an act, tool, or means (ineligible, same hard-reject remedy
-as any other method depiction under this section)? Tone and brevity don't
+When checking this file specifically, apply PDR-013's ideation-vs-method
+test to `input`: does the phrase name a feeling/wish (eligible) or does it
+name an act, tool, or means (ineligible, same hard-reject remedy as any
+other method depiction under this section)? Tone and brevity don't
 matter — a means named in passing is exactly as disqualifying as one
-described at length.
+described at length. Apply the same test to any surviving action item
+under the paragraph above: a supportive action naming no method (e.g.
+"call 988," "talk to a doctor") is fine as stated; an action item that
+itself names a method or method-adjacent object fails this test and is
+dropped like anywhere else.
 
 ## 0.5. Near-duplicate check
 
@@ -304,13 +310,12 @@ don't just eyeball for a general sense of accuracy:
   bullets said only "for Saturday"; an `action_items` entry leading with
   "Clean (or maybe just air dust) the primary mirror" where the narrative
   correctly honored the input's "actually maybe just air dust it" retraction.
-  **One narrow exception**, [PDR-013](../decisions/PDR-013.md): in
-  `datasets/self_harm_context_boundary.jsonl` only, `narrative` carrying a
-  non-graphic self-harm-ideation mention that `bullets`/`action_items`
-  correctly omit is not a disagreement to flag — it's the example working
-  as designed. This exception applies to that one content category, in
-  that one file, only; every other disagreement in that file, and
-  everything in every other file, is still checked exactly as above.
+  **No exception for `datasets/self_harm_context_boundary.jsonl`**: PDR-013
+  originally carved one out here (narrative permitted to carry content the
+  other two fields correctly omitted); [PDR-015](../decisions/PDR-015.md)
+  removed that carve-out by requiring all three fields to fully exclude
+  self-harm/violence content alike, so this rule now applies to that file
+  with no exception, same as every other.
 - **No non-recovery** (the narrative must actually do something): the
   narrative has to *reorganize*. A narrative that reproduces `input` in its
   original order with only capitalization and punctuation repaired has

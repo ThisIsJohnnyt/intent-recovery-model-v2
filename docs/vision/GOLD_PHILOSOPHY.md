@@ -64,16 +64,24 @@ for why this project holds this boundary. Operationalized in
 `training/DATASET_SPEC.md`'s generation-prompt exclusion and
 `REVIEW_GUIDE.md`'s hard-gate check.
 
-One narrow, explicitly-scoped exception exists on top of this, not a
+A narrow, explicitly-scoped exception exists on top of this, not a
 softening of it: [PDR-013](../decisions/PDR-013.md) permits a small,
-hand-authored-only set of examples where a non-graphic, state-naming
-mention of self-harm ideation may be retained as emotional/cognitive
-context in `narrative` — never in `bullets` or `action_items`, and never
-depicting method, instructing, or normalizing, which remain absolutely
-prohibited exactly as stated above. The gate is the same "state is fair
-game, method is not" distinction this principle already draws for every
-other kind of emotional/cognitive state. See PDR-013 for the full scope
-and the constraints that keep it narrow.
+hand-authored-only set of examples whose `input` carries a non-graphic,
+state-naming mention of self-harm ideation, so the model can learn to
+recognize this content rather than never encountering it. As amended by
+[PDR-015](../decisions/PDR-015.md), the content itself is excluded from
+every output field — `narrative`, `bullets`, and `action_items` alike —
+never retained anywhere, though a writer's own genuinely separable stated
+task (e.g. "call the doctor") may still appear as an action item, subject
+to the same method-specificity ban as everything else. This is a stricter
+reading of "state is fair game, method is not" than the principle applies
+to any other emotional/cognitive state: for self-harm/violence
+specifically, the content-type boundary above always wins, regardless of
+state. Ordinary emotional state — of any valence or intensity, including
+heavy distress that has nothing to do with self-harm or violence — remains
+fair game exactly as this principle always stated; intensity of feeling is
+never, by itself, grounds for excluding or relocating content. See
+PDR-013 and PDR-015 for the full scope and constraints.
 
 ## Why this document exists
 
