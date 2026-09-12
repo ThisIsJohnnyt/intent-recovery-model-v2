@@ -32,6 +32,13 @@ carry any form of this content, in this file or any other, that's still
 an immediate reject under this section — PDR-013 permits it in narrative
 only.
 
+When checking this exception specifically, apply PDR-013's ideation-vs-
+method test directly: does the phrase name a feeling/wish (eligible) or
+does it name an act, tool, or means (ineligible, same hard-reject remedy
+as any other method depiction under this section)? Tone and brevity don't
+matter — a means named in passing is exactly as disqualifying as one
+described at length.
+
 ## 0.5. Near-duplicate check
 
 Run [`training/check_duplicates.py`](../../training/check_duplicates.py)
