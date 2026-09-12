@@ -9,7 +9,7 @@ At natural checkpoints in the dataset-generation workflow (a Gemini batch call s
 ## Where to write it
 
 ```
-C:\Users\thisi\.claude\.fart\telemetry_data.json
+C:\Users\<you>\.claude\.fart\telemetry_data.json
 ```
 
 Create the `.fart` directory if it doesn't exist. This is the only integration point — there's no API to call, no server that needs to be running. F.A.R.T.'s server reads this file fresh on every request, so it picks up changes whenever it's next open; nothing breaks if it isn't running when you write.

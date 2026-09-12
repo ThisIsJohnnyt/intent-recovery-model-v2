@@ -65,7 +65,7 @@ Run it through the pipeline's own validator — don't eyeball this one:
 
 ```bash
 cd training
-C:\Users\thisi\.venvs\intent-recovery-v2\Scripts\python.exe -c "
+C:\Users\<you>\.venvs\intent-recovery-v2\Scripts\python.exe -c "
 from prepare_data import load_jsonl
 from pathlib import Path
 records = load_jsonl(Path('../datasets/<path-to-batch>.jsonl'))
