@@ -15,9 +15,10 @@ never being handed tool access to anything.
 
 Credential fix, 2026-09-08 (script authored outside this repo, reviewed and
 adjusted before first run): the original version read a plain
-GEMINI_API_KEY environment variable. That variable already exists on this
-machine (gemini_bridge.py's underlying CLI tool reads it directly per
-PDR-009), but this project's established convention for a separate,
+GEMINI_API_KEY environment variable. That variable already existed on this
+machine at the time for the review bridge's own CLI tool (PDR-009; that
+transport is since retired -- see PDR-016), but this project's established
+convention for a separate,
 occasional-use credential is Windows Credential Manager via `keyring`
 (PDR-008's precedent for the Claude API key) rather than adding a second
 consumer of the same persistent env var. Confirmed with the product owner:
@@ -26,8 +27,9 @@ target "Intent-Recovery-V2", username "Gemini".
 Balance fix, 2026-09-08 (same day, after the first real run): the original
 SYSTEM_INSTRUCTION had no counterweight against inventing findings --
 "assume nothing is compliant until proven," "flag it immediately," with no
-equivalent of gemini_bridge.py's own INSTRUCTION ("if you have no genuine
-issue after actually checking, say so plainly rather than inventing one").
+equivalent of the (now-retired) review bridge's own INSTRUCTION ("if you
+have no genuine issue after actually checking, say so plainly rather than
+inventing one").
 First real run: 10/10 records flagged FIX, 0 ACCEPT -- checked directly
 against several of the cited "violations" and multiple were either
 backwards (a hedge word like "probably" cited as *invented certainty*,

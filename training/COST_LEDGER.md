@@ -143,3 +143,4 @@ the script.
 | 2026-09-10 | `gemini-3.5-flash-lite` | review_bridge round | 83,918 | 647 | $0.0134 | |
 | 2026-09-11 | `gemini-3.1-pro-preview` | review_bridge round | 87,073 | 10,258 | $0.2972 | |
 | 2026-09-11 | `gemini-3.1-pro-preview` | review_bridge round | 54,244 | 5,253 | $0.1715 | |
+| 2026-09-13 | `gemini-3.5-flash-lite` | PDR-016 verification test | 374 | 67 | $0.0001 | |

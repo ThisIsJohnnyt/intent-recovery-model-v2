@@ -4,10 +4,10 @@ Generate a self-contained, sanitized prompt for a genuinely blind periodic
 adversarial re-review (PDR-006), for manual copy-paste into an isolated
 Gemini session with NO filesystem/repo access -- a fresh AI Studio chat, not
 an API/CLI call from this repo. See docs/decisions/PDR-006.md's 2026-09-07
-amendment for why: the CLI transport that replaced Antigravity
-(PDR-009/gemini_bridge.py) has no equivalent to invoke_subagent's isolated
-context -- it always has read-only access to this whole repo, which could
-let it reconstruct prior review context the design wants kept out entirely.
+amendment for why: the review bridge (PDR-009, since retired -- see
+PDR-016) had no equivalent to invoke_subagent's isolated context -- it
+always had read-only access to this whole repo, which could let it
+reconstruct prior review context the design wants kept out entirely.
 
 WHAT THIS SCRIPT DOES NOT DO: it does not call any API, does not talk to
 Gemini, and does not write anything outside review_bridge/ (already

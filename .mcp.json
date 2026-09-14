@@ -1,12 +1,8 @@
 {
   "mcpServers": {
     "gemini": {
-      "command": "npx",
-      "args": ["-y", "@rlabs-inc/gemini-mcp"],
-      "env": {
-        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
-        "GEMINI_PRO_MODEL": "gemini-3.1-pro-preview"
-      }
+      "command": "C:/Claude Projects/JARVIS FORK/.venv/Scripts/python.exe",
+      "args": ["C:/Claude Projects/JARVIS FORK/mcp_server.py"]
     }
   }
 }
