@@ -90,7 +90,17 @@ using only the material given.
 
 **0. Hard safety gate, checked first.** Flag as REJECT immediately if any
 record depicts, instructs, or normalizes self-harm, violence, or other
-seriously illegal/immoral content.
+seriously illegal/immoral content. One narrow, explicitly-scoped
+exception: a record whose `category` is exactly `self_harm_context_boundary`
+may have `input` carry a non-graphic, state-naming mention of self-harm
+ideation (naming that a difficult thought occurred, never depicting a
+method, tool, or means) -- this is intentional, permitted content for that
+category only, not a violation. `output.narrative`/`output.bullets`/
+`output.action_items` must still fully exclude this content in every
+case, exactly as for any other record -- the exception applies to `input`
+only. Any record with a different `category` label, or any depiction of
+method/instruction/normalization regardless of category, is still an
+immediate REJECT under this rule.
 
 **1. No invented content** -- check `output` against `input` for each
 record:
@@ -172,11 +182,22 @@ record:
   kind of story (a decision arrived at, not an unresolved tension) and
   should read as a clean, resolved narrative, not as preserving the
   discarded option.
-- *`action_items` ownership*: an entry may belong to any person named in
-  `input`, not only the writer, as long as it's attributed to them. A past
+- *`action_items` ownership*: an entry belongs only if the **writer** has
+  a direct action to take -- the test is who holds the action verb, not
+  who gets named. The writer's own action, including a shared one ("I
+  need to pick up the cake"; "we need to book the flight" -- "we" includes
+  the writer) belongs. A writer's imperative directed at a third party
+  belongs too, even though it names someone else -- the writer still
+  holds the verb ("Tell Sam to drive," "Ask Uncle Bob about catering"). A
+  third party's own stated commitment or expected arrival does NOT
+  belong ("Uncle Bob to handle the catering," "Sam will drive us to the
+  airport" -- the third party holds the verb, not the writer); this
+  content stays in `narrative`/`bullets` exactly as stated, only excluded
+  from `action_items`. An unassigned imperative ("someone needs to back up
+  the archives") does not belong either -- naming no one gives the writer
+  no stronger claim on it than a named third party would have. A past
   event with no forward commitment is not an action item ("Dr. Patel
-  called" is not one). A stated expectation of someone else's future
-  action IS an action item, but must keep its hedge if `input` had one.
+  called" is not one).
 
 **2. No diagnosis framing**: nothing should reference a specific medical or
 psychological diagnosis, or assume *why* a note is fragmented. A described
@@ -254,13 +275,27 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
-    ap.add_argument("--since-line", type=int, required=True,
+    ap.add_argument("--since-line", type=int, default=None,
                      help="1-indexed line number: records after this were "
                           "added/touched since the last re-review and form "
                           "the 'new' pool. Records at or before this line "
-                          "form the 'control' pool. No auto-detected "
-                          "default -- read the actual boundary from "
-                          "REVIEW_GUIDE.md's re-review log each time.")
+                          "form the 'control' pool. Fits a sequentially- "
+                          "appended batch; use --touched-lines instead when "
+                          "what changed is scattered mid-file edits, not an "
+                          "appended batch. Exactly one of --since-line/"
+                          "--touched-lines is required -- no auto-detected "
+                          "default, read the actual boundary/edit set from "
+                          "REVIEW_GUIDE.md's re-review log (or a precise git "
+                          "diff against the last-reviewed commit) each time.")
+    ap.add_argument("--touched-lines", type=str, default=None,
+                     help="Comma-separated 1-indexed line numbers forming "
+                          "the exact 'new' pool, for when touched records "
+                          "are scattered rather than appended at the end "
+                          "(e.g. from `git diff --unified=0 <last-reviewed-"
+                          "commit> HEAD -- <dataset>`, expanding each hunk's "
+                          "new-side range into individual line numbers). "
+                          "Every other line in the file forms the 'control' "
+                          "pool. Mutually exclusive with --since-line.")
     ap.add_argument("--sample-size", type=int, default=None,
                      help="Total records in the sample. Default: "
                           "max(10, ceil(0.15 * len(new pool))), per "
@@ -285,17 +320,39 @@ def main() -> int:
         print(f"error: {args.dataset} not found", file=sys.stderr)
         return 2
 
+    if (args.since_line is None) == (args.touched_lines is None):
+        print("error: pass exactly one of --since-line or --touched-lines.",
+              file=sys.stderr)
+        return 2
+
     seed = args.seed if args.seed is not None else random.SystemRandom().randrange(2**31)
     rng = random.Random(seed)
 
     all_records = load(args.dataset)
-    new_pool = [(ln, r) for ln, r in all_records if ln > args.since_line]
-    control_pool = [(ln, r) for ln, r in all_records if ln <= args.since_line]
+
+    if args.touched_lines is not None:
+        try:
+            touched = {int(x.strip()) for x in args.touched_lines.split(",") if x.strip()}
+        except ValueError:
+            print("error: --touched-lines must be comma-separated integers.",
+                  file=sys.stderr)
+            return 2
+        new_pool = [(ln, r) for ln, r in all_records if ln in touched]
+        control_pool = [(ln, r) for ln, r in all_records if ln not in touched]
+        unmatched = touched - {ln for ln, _ in all_records}
+        if unmatched:
+            print(f"warning: {len(unmatched)} --touched-lines value(s) don't "
+                  f"match any line in {args.dataset} (out of range or file "
+                  f"changed since the diff was taken): {sorted(unmatched)}",
+                  file=sys.stderr)
+    else:
+        new_pool = [(ln, r) for ln, r in all_records if ln > args.since_line]
+        control_pool = [(ln, r) for ln, r in all_records if ln <= args.since_line]
 
     if not new_pool:
-        print(f"error: no records after line {args.since_line} -- nothing "
-              f"new to sample. Check --since-line against the actual corpus "
-              f"size ({len(all_records)} records).", file=sys.stderr)
+        print(f"error: nothing in the 'new' pool -- check --since-line/"
+              f"--touched-lines against the actual corpus size "
+              f"({len(all_records)} records).", file=sys.stderr)
         return 2
 
     sample_size = args.sample_size or max(10, math.ceil(0.15 * len(new_pool)))
@@ -343,19 +400,21 @@ def main() -> int:
         for i, (_, r) in enumerate(selected, 1):
             f.write(json.dumps(anonymized_record(i, r), ensure_ascii=False) + "\n")
 
+    new_pool_lines = {ln for ln, _ in new_pool}
     mapping = {
         str(i): {
             "line": lineno,
             "category": r.get("category"),
             "difficulty": r.get("difficulty"),
             "input_hash": hashlib.sha256(r["input"].encode("utf-8")).hexdigest()[:16],
-            "pool": "new" if lineno > args.since_line else "control",
+            "pool": "new" if lineno in new_pool_lines else "control",
         }
         for i, (lineno, r) in enumerate(selected, 1)
     }
     mapping_path.write_text(
-        json.dumps({"seed": seed, "since_line": args.since_line, "dataset": str(args.dataset),
-                    "generated": today, "mapping": mapping}, indent=2),
+        json.dumps({"seed": seed, "since_line": args.since_line,
+                    "touched_lines": sorted(new_pool_lines) if args.touched_lines is not None else None,
+                    "dataset": str(args.dataset), "generated": today, "mapping": mapping}, indent=2),
         encoding="utf-8",
     )
 
@@ -363,10 +422,14 @@ def main() -> int:
     for _, r in selected:
         cat_counts[r.get("category", "?")] = cat_counts.get(r.get("category", "?"), 0) + 1
 
+    if args.touched_lines is not None:
+        new_pool_desc = f"new pool ({len(new_pool)} total, exact lines {sorted(new_pool_lines)})"
+    else:
+        new_pool_desc = (f"new pool ({len(new_pool)} total, lines "
+                          f"{args.since_line + 1}-{all_records[-1][0]})")
     print(f"Sampled {len(selected)} record(s): {len(selected_new)} from the "
-          f"new pool ({len(new_pool)} total, lines {args.since_line + 1}-"
-          f"{all_records[-1][0]}), {len(selected_controls)} controls "
-          f"(from {len(control_pool)} pre-boundary records).")
+          f"{new_pool_desc}, {len(selected_controls)} controls "
+          f"(from {len(control_pool)} eligible control records).")
     print(f"Seed: {seed} (pass --seed {seed} to reproduce this exact sample).")
     print("Category distribution in sample:")
     for cat, n in sorted(cat_counts.items(), key=lambda kv: -kv[1]):

@@ -81,6 +81,17 @@ DEFAULT_THRESHOLD = 0.90
 # ceiling check in main() below. Liveness (an allowlist key no longer
 # present in the corpus at all) is checked separately, also in main().
 ALLOWLIST = {
+    "a7755fb58422a8ed": (
+        'minimal_fragment/easy, 1.000 -- 14th periodic re-review (2026-09-15): '
+        'narrative fixed from "I\'m thinking about the green one." (an '
+        'invented interpretive frame the bare input "the green one" gives no '
+        'basis for) to "The green one." -- a trivial capitalization/period '
+        'change, same shape as this file\'s other short-single-clause '
+        'allowlist entries. The high ratio is the correct outcome here: '
+        'forcing it down would mean re-introducing the invented frame this '
+        'fix removed.',
+        1.0,
+    ),
     "ac1f970c69ed67e3": (
         'dangling_reference/medium, 0.91 -- REVIEW_GUIDE.md ss6b: input is '
         'already a single well-formed sentence, so there is no structure '
@@ -197,13 +208,20 @@ ALLOWLIST = {
     ),
     "4fb0a1917cbdb77c": (
         'multi_person_note/easy -- short, single sentence; content '
-        'confirmed correct in an earlier re-review.',
-        0.999,
+        'confirmed correct in an earlier re-review. Ceiling corrected '
+        '0.999 -> 1.000, 14th periodic re-review (2026-09-15): already '
+        'measuring 1.000 as far back as the 2026-09-09 adversarial-probe '
+        'doc, which describes this as one of "six records at ratio '
+        'exactly 1.000" -- the 0.999 figure was a stale/imprecise ceiling, '
+        'not a real threshold this record ever actually sat under.',
+        1.0,
     ),
     "a8cfbfc88ae7c9cc": (
         'contradictory_statement/expert -- short, single flowing sentence, '
-        'already well-ordered.',
-        0.999,
+        'already well-ordered. Ceiling corrected 0.999 -> 1.000, 14th '
+        'periodic re-review (2026-09-15) -- see 4fb0a1917cbdb77c\'s note '
+        'above for why.',
+        1.0,
     ),
     "137af4005bb77a89": (
         'interrupted_thought/easy -- minimal content before the literal '
@@ -217,14 +235,18 @@ ALLOWLIST = {
     ),
     "42290905cb98eb65": (
         'interrupted_thought/easy -- minimal content before the literal '
-        'cutoff, single clause.',
-        0.999,
+        'cutoff, single clause. Ceiling corrected 0.999 -> 1.000, 14th '
+        'periodic re-review (2026-09-15) -- see 4fb0a1917cbdb77c\'s note '
+        'above for why.',
+        1.0,
     ),
     "d1bad3a1d3835fa8": (
         'zero_action_items/hard -- single flowing thought ending in genuine '
         'indecision; confirmed content-correct in the twelfth re-review, '
-        "and the extraction work is the bullets'.",
-        0.999,
+        "and the extraction work is the bullets'. Ceiling corrected "
+        '0.999 -> 1.000, 14th periodic re-review (2026-09-15) -- see '
+        '4fb0a1917cbdb77c\'s note above for why.',
+        1.0,
     ),
     "38aec1099460c13b": (
         'multi_person_note/easy -- very short, single sentence.',
@@ -372,8 +394,10 @@ ALLOWLIST = {
     ),
     "4a5a098582c94748": (
         'interrupted_thought/easy -- short, ends in a genuine real-time '
-        'interruption preserved near-verbatim.',
-        0.999,
+        'interruption preserved near-verbatim. Ceiling corrected '
+        '0.999 -> 1.000, 14th periodic re-review (2026-09-15) -- see '
+        '4fb0a1917cbdb77c\'s note above for why.',
+        1.0,
     ),
     "5eea103fa19911c9": (
         'minimal_fragment/hard -- six-word fragment; nothing to '
@@ -387,8 +411,10 @@ ALLOWLIST = {
     ),
     "2f650f771f1b3905": (
         'rapid_branching/easy -- already an ordered branch-and-pivot '
-        '(hallway -> bedroom -> ask Leo -> brass or glass).',
-        0.999,
+        '(hallway -> bedroom -> ask Leo -> brass or glass). Ceiling '
+        'corrected 0.999 -> 1.000, 14th periodic re-review (2026-09-15) '
+        '-- see 4fb0a1917cbdb77c\'s note above for why.',
+        1.0,
     ),
     "d1d113218a7f3013": (
         'dangling_reference/expert -- preserves multiple unresolved '
